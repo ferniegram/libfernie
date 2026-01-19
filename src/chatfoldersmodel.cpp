@@ -13,10 +13,6 @@ namespace {
     const QString IS_SHAREABLE("is_shareable");
     const QString HAS_MY_INVITE_LINKS("has_my_invite_links");
     const QString TEXT("text");
-
-    const QString FOLDER_ICON_PATH_PREFIX("images/folders/icon-m-folder-");
-    const QString SVG_EXTENSION_SUFFIX(".svg");
-    const QString THEME_ICON_PREFIX("image://theme/icon-m-");
 }
 
 ChatFoldersModel::Icon ChatFoldersModel::iconForName(const QString &name) {
@@ -52,85 +48,6 @@ ChatFoldersModel::Icon ChatFoldersModel::iconForName(const QString &name) {
     if (name == "Palette") return IconPalette;
 
     return IconAll;
-}
-
-inline QUrl pathToIcon(const QString &name) {
-    return PlatformApp::pathTo(FOLDER_ICON_PATH_PREFIX + name + SVG_EXTENSION_SUFFIX);
-}
-
-QUrl ChatFoldersModel::iconPath(Icon icon) {
-    switch (icon) {
-    case IconAll:
-        return THEME_ICON_PREFIX + "chat"; // FIXME: should this be outline-chat?
-    case IconHome:
-        return THEME_ICON_PREFIX + "home";
-    case IconFavorite:
-        return THEME_ICON_PREFIX + "favorite";
-    case IconCustom:
-        return THEME_ICON_PREFIX + "folder";
-    case IconGame:
-        return THEME_ICON_PREFIX + "game-controller";
-    case IconLike:
-        return THEME_ICON_PREFIX + "like"; // FIXME: should this be outline-like?
-    case IconNote:
-        return THEME_ICON_PREFIX + "media-songs";
-    case IconWork:
-        return THEME_ICON_PREFIX + "company";
-
-
-    // possibly FIXME for these:
-    case IconLight:
-        return THEME_ICON_PREFIX + "flashlight";
-    case IconGroups:
-        return THEME_ICON_PREFIX + "people";
-    case IconMask:
-        return THEME_ICON_PREFIX + "incognito";
-
-    //case IconAirplane: // LOOOOOOL
-    //    return THEME_ICON_PREFIX + "airplane-mode";
-
-
-    case IconBook:
-        return pathToIcon("book");
-    case IconLove:
-        return pathToIcon("love");
-    case IconBots:
-        return pathToIcon("bots");
-    case IconCat:
-        return pathToIcon("cat");
-    case IconChannels:
-        return pathToIcon("channels");
-    case IconCrown:
-        return pathToIcon("crown");
-    case IconFlower:
-        return pathToIcon("flower");
-    case IconAirplane:
-        return pathToIcon("airplane");
-    case IconMoney:
-        return pathToIcon("money");
-    case IconPalette:
-        return pathToIcon("palette");
-    case IconParty:
-        return pathToIcon("party");
-    case IconPrivate:
-        return pathToIcon("private");
-    case IconSetup:
-        return pathToIcon("setup");
-    case IconSport:
-        return pathToIcon("sport");
-    case IconStudy:
-        return pathToIcon("study");
-    case IconTrade:
-        return pathToIcon("trade");
-    case IconTravel:
-        return pathToIcon("travel");
-    case IconUnmuted:
-        return pathToIcon("unmuted");
-    case IconUnread:
-        return pathToIcon("unread");
-    }
-
-    return QString();
 }
 
 ChatFoldersModel::ChatFolderData::ChatFolderData(const QVariantMap &data) :
@@ -231,7 +148,7 @@ QVariant ChatFoldersModel::data(const QModelIndex &index, int role) const {
         case RoleId: return data->data.value(ID).toInt();
         case RoleName: return data->name(); // ignore entities because only animated emojis are supported and we don't support them yet
         case RoleIcon: return data->icon;
-        case RoleIconPath: return iconPath(data->icon);
+        case RoleIconPath: return PlatformApp::pathToChatFolderIcon(data->icon);
         case RoleColorId: return data->data.value(COLOR_ID).toInt();
         case RoleIsShareable: return data->data.value(IS_SHAREABLE).toBool();
         case RoleHasMyInviteLinks: return data->data.value(HAS_MY_INVITE_LINKS).toBool();

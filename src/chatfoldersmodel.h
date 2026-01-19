@@ -78,7 +78,6 @@ public:
     QVariant data(const QModelIndex &index, int role) const Q_DECL_OVERRIDE;
 
     Q_INVOKABLE static Icon iconForName(const QString &name);
-    Q_INVOKABLE static QUrl iconPath(Icon icon);
 
 public slots:
     void handleFolderChatListUnreadChatCountUpdated(int folderId);

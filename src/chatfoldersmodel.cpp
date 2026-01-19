@@ -16,9 +16,7 @@ namespace {
 
     const QString FOLDER_ICON_PATH_PREFIX("images/folders/icon-m-folder-");
     const QString SVG_EXTENSION_SUFFIX(".svg");
-#ifdef EDITION_SAILFISH
     const QString THEME_ICON_PREFIX("image://theme/icon-m-");
-#endif
 }
 
 ChatFoldersModel::Icon ChatFoldersModel::iconForName(const QString &name) {
@@ -61,7 +59,6 @@ inline QUrl pathToIcon(const QString &name) {
 }
 
 QUrl ChatFoldersModel::iconPath(Icon icon) {
-#ifdef EDITION_SAILFISH
     switch (icon) {
     case IconAll:
         return THEME_ICON_PREFIX + "chat"; // FIXME: should this be outline-chat?
@@ -132,80 +129,6 @@ QUrl ChatFoldersModel::iconPath(Icon icon) {
     case IconUnread:
         return pathToIcon("unread");
     }
-#endif
-
-#ifdef EDITION_ASTEROID
-    switch (icon) {
-    case IconAll:
-        return "ios-chatbubbles"; // FIXME: should this be ios-chatbubbles-outline?
-    case IconHome:
-        return "ios-home";
-    case IconFavorite:
-        return "ios-star";
-    case IconCustom:
-        return "ios-folder";
-    case IconGame:
-        return "ios-game-controller-b";
-    case IconLike:
-        return "ios-thumbs-up";
-    //case IconNote:
-    //    return "ios-";
-    //case IconWork:
-    //    return "ios-";
-
-
-    // possibly FIXME for these:
-    //case IconLight:
-    //    return "ios-";
-    case IconGroups:
-        return "ios-people";
-    //case IconMask:
-    //    return "ios-";
-
-    case IconAirplane: // FIXME: add proper telegram icon here
-       return "ios-paper-plane";
-
-
-    case IconBook:
-        return "ios-book";
-    case IconLove:
-        return "ios-heart";
-    //case IconBots:
-    //    return pathToIcon("bots");
-    //case IconCat:
-    //    return pathToIcon("cat");
-    //case IconChannels:
-    //    return pathToIcon("channels");
-    //case IconCrown:
-    //    return pathToIcon("crown");
-    case IconFlower:
-        return "ios-flower";
-    //case IconMoney:
-    //    return pathToIcon("money");
-    case IconPalette:
-        return "ios-color-palette";
-    //case IconParty:
-    //    return pathToIcon("party");
-    //case IconPrivate:
-    //    return pathToIcon("private");
-    //case IconSetup:
-    //    return pathToIcon("setup");
-    case IconSport:
-        return "ios-walk";
-    //case IconStudy:
-    //    return pathToIcon("study");
-    //case IconTrade:
-    //    return pathToIcon("trade");
-    //case IconTravel:
-    //    return pathToIcon("travel");
-    //case IconUnmuted:
-    //    return pathToIcon("unmuted");
-    //case IconUnread:
-    //    return pathToIcon("unread");
-    default:
-        return QString();
-    }
-#endif
 
     return QString();
 }

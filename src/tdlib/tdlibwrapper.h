@@ -1,0 +1,633 @@
+/*
+    Copyright (C) 2020-22 Sebastian J. Wolf and other contributors
+
+    This file is part of Fernschreiber.
+
+    Fernschreiber is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Fernschreiber is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
+*/
+#ifndef TDLIBWRAPPER_H
+#define TDLIBWRAPPER_H
+
+#include <QCoreApplication>
+#include <QUrl>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
+#include <QNetworkConfigurationManager>
+#include <QQmlPropertyMap>
+#include <td/telegram/td_json_client.h>
+#include "tdlibreceiver.h"
+#include "tdlibresponse.h"
+#include "dbusadaptor.h"
+#include "dbusinterface.h"
+#include "appsettings.h"
+#include "mceinterface.h"
+
+class Utilities;
+class ChatData;
+
+class TDLibWrapper : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(AuthorizationState authorizationState MEMBER authorizationState NOTIFY authorizationStateChanged)
+    Q_PROPERTY(QVariantMap authorizationStateData MEMBER authorizationStateData NOTIFY authorizationStateChanged)
+    Q_PROPERTY(ConnectionState connectionState MEMBER connectionState NOTIFY connectionStateChanged)
+    Q_PROPERTY(QString connectionStateText READ connectionStateText NOTIFY connectionStateChanged)
+    Q_PROPERTY(QVariantMap userInformation READ getUserInformation NOTIFY ownUserUpdated)
+    Q_PROPERTY(QQmlPropertyMap* options MEMBER options CONSTANT)
+    Q_PROPERTY(qlonglong myUserId READ myUserId NOTIFY ownUserIdFound)
+
+public:
+    explicit TDLibWrapper(int argc, char **argv, AppSettings *appSettings, MceInterface *mceInterface, QObject *parent = nullptr);
+    ~TDLibWrapper();
+
+    enum AuthorizationState {
+        Closed,
+        Closing,
+        LoggingOut,
+        AuthorizationReady,
+        WaitCode,
+        WaitEncryptionKey,
+        WaitOtherDeviceConfirmation,
+        WaitPassword,
+        WaitPhoneNumber,
+        WaitRegistration,
+        WaitTdlibParameters
+    };
+    Q_ENUM(AuthorizationState)
+
+    enum ConnectionState {
+        Connecting,
+        ConnectingToProxy,
+        ConnectionReady,
+        Updating,
+        WaitingForNetwork
+    };
+    Q_ENUM(ConnectionState)
+
+    enum ChatType {
+        ChatTypeUnknown,
+        ChatTypePrivate,
+        ChatTypeBasicGroup,
+        ChatTypeSupergroup,
+        ChatTypeSecret
+    };
+    Q_ENUM(ChatType)
+
+    enum ChatMemberStatus {
+        ChatMemberStatusUnknown,
+        ChatMemberStatusCreator,
+        ChatMemberStatusAdministrator,
+        ChatMemberStatusMember,
+        ChatMemberStatusRestricted,
+        ChatMemberStatusLeft,
+        ChatMemberStatusBanned
+    };
+    Q_ENUM(ChatMemberStatus)
+
+    enum SecretChatState {
+        SecretChatStateUnknown,
+        SecretChatStateClosed,
+        SecretChatStatePending,
+        SecretChatStateReady,
+    };
+    Q_ENUM(SecretChatState)
+
+    enum UserPrivacySetting {
+        SettingAllowChatInvites,
+        SettingAllowFindingByPhoneNumber,
+        SettingShowLinkInForwardedMessages,
+        SettingShowPhoneNumber,
+        SettingShowProfilePhoto,
+        SettingShowStatus,
+        SettingUnknown
+    };
+    Q_ENUM(UserPrivacySetting)
+
+    enum UserPrivacySettingRule {
+        RuleAllowAll,
+        RuleAllowContacts,
+        RuleRestrictAll
+    };
+    Q_ENUM(UserPrivacySettingRule)
+
+    enum NetworkType {
+        Mobile,
+        MobileRoaming,
+        None,
+        Other,
+        WiFi
+    };
+    Q_ENUM(NetworkType)
+
+    enum TopChatCategory {
+        TopChatCategoryUsers,
+        TopChatCategoryBots,
+        TopChatCategoryCalls,
+        TopChatCategoryChannels,
+        TopChatCategoryForwardChats,
+        TopChatCategoryGroups,
+        TopChatCategoryInlineBots,
+        TopChatCategoryWebAppBots
+    };
+    Q_ENUM(TopChatCategory);
+
+    enum SearchMessagesFilter {
+        SearchMessagesFilterEmpty,
+        SearchMessagesFilterPhotoAndVideo,
+        SearchMessagesFilterAnimation,
+        SearchMessagesFilterAudio,
+        SearchMessagesFilterChatPhoto,
+        SearchMessagesFilterDocument,
+        SearchMessagesFilterFailedToSend,
+        SearchMessagesFilterMention,
+        SearchMessagesFilterPhoto,
+        SearchMessagesFilterPinned,
+        SearchMessagesFilterUnreadMention,
+        SearchMessagesFilterUnreadReaction,
+        SearchMessagesFilterUrl,
+        SearchMessagesFilterVideo,
+        SearchMessagesFilterVideoNote,
+        SearchMessagesFilterVoiceAndVideoNote,
+        SearchMessagesFilterVoiceNote
+    };
+    Q_ENUM(SearchMessagesFilter)
+
+    enum MessageSource {
+        MessageSourceAuto,
+        MessageSourceChatEventLog,
+        MessageSourceChatHistory,
+        MessageSourceChatList,
+        MessageSourceDirectMessagesChatTopicHistory,
+        MessageSourceForumTopicHistory,
+        MessageSourceHistoryPreview,
+        MessageSourceMessageThreadHistory,
+        MessageSourceNotification,
+        MessageSourceOther,
+        MessageSourceScreenshot,
+        MessageSourceSearch
+    };
+    Q_ENUM(MessageSource)
+
+    enum StickerType {
+        StickerTypeRegular,
+        StickerTypeMask,
+        StickerTypeCustomEmoji
+    };
+    Q_ENUM(StickerType)
+
+    class Group {
+    public:
+        Group(qlonglong id) : groupId(id) { }
+        ChatMemberStatus chatMemberStatus() const;
+        bool isPublic() const;
+    public:
+        const qlonglong groupId;
+        QVariantMap groupInfo;
+    };
+
+    Q_INVOKABLE qlonglong myUserId() const;
+    Q_INVOKABLE QVariantMap getUserInformation();
+    Q_INVOKABLE QVariantMap getUserInformation(const QString &userId);
+    Q_INVOKABLE bool hasUserInformation(const QString &userId);
+    Q_INVOKABLE bool hasUserNameInformation(const QString &userName);
+    Q_INVOKABLE QVariantMap getUserInformationByName(const QString &userName);
+    Q_INVOKABLE bool hasSuperGroupNameInformation(const QString &name);
+    Q_INVOKABLE QVariantMap getSupergroupInformationByName(const QString &name);
+    Q_INVOKABLE UserPrivacySettingRule getUserPrivacySettingRule(UserPrivacySetting userPrivacySetting);
+    Q_INVOKABLE QVariantMap getBasicGroup(qlonglong groupId) const;
+    Q_INVOKABLE QVariantMap getSuperGroup(qlonglong groupId) const;
+    Q_INVOKABLE QVariantMap getChat(qlonglong chatId);
+    bool hasChatData(qlonglong chatId);
+    ChatData* getChatData(qlonglong chatId);
+    ChatData* getChatDataForce(qlonglong chatId);
+    Q_INVOKABLE QVariantMap getSecretChatFromCache(qlonglong secretChatId);
+    Q_INVOKABLE QStringList getChatReactions(qlonglong chatId);
+    QVariant getOption(const QString &optionName);
+    Q_INVOKABLE void copyFileToDownloads(const QString &filePath, bool openAfterCopy = false);
+    Q_INVOKABLE void openFileOnDevice(const QString &filePath);
+    Q_INVOKABLE bool getJoinChatRequested();
+    Q_INVOKABLE void registerJoinChat();
+    Q_INVOKABLE bool isDiceEmoji(const QString &text);
+    Q_INVOKABLE void getChatListsToAddChat(qlonglong chatId);
+    Q_INVOKABLE void addChatToList(qlonglong chatId, bool archive);
+    Q_INVOKABLE void getArchiveChatListSettings();
+    Q_INVOKABLE void setArchiveChatListSettings(bool archiveAndMuteNewChatsFromUnknownUsers, bool keepUnmutedChatsArchived, bool keepChatsFromFoldersArchived);
+    Q_INVOKABLE void readChatList(bool archive = false);
+    Q_INVOKABLE void readFolderChatList(int folderId);
+    SearchMessagesFilter getSearchMessagesFilterForType(const QString &type);
+    static QString getSearchMessagesFilterType(SearchMessagesFilter filter);
+    QString connectionStateText();
+    Q_INVOKABLE bool canSkipChatJoinDialog(qlonglong chatId);
+
+    inline Utilities *getUtilities() const { return this->utilities; }
+    DBusAdaptor *getDBusAdaptor();
+
+    // Direct TDLib functions
+    Q_INVOKABLE void sendRequest(const QVariantMap &requestObject);
+    Q_INVOKABLE TDLibResponse *sendRequestWithId(const QVariantMap &requestObject);
+    void close();
+    Q_INVOKABLE void setAuthenticationPhoneNumber(const QString &phoneNumber);
+    Q_INVOKABLE void setAuthenticationCode(const QString &authenticationCode);
+    Q_INVOKABLE void setAuthenticationPassword(const QString &authenticationPassword);
+    Q_INVOKABLE void registerUser(const QString &firstName, const QString &lastName);
+    Q_INVOKABLE void logout();
+    Q_INVOKABLE void loadChats(bool archive = false);
+    Q_INVOKABLE void loadChatsForFolder(int folderId);
+    Q_INVOKABLE void downloadFile(int fileId);
+    Q_INVOKABLE void openChat(qlonglong chatId);
+    Q_INVOKABLE void closeChat(qlonglong chatId);
+    Q_INVOKABLE void joinChat(const QString &chatId);
+    Q_INVOKABLE void leaveChat(const QString &chatId);
+    Q_INVOKABLE void deleteChat(qlonglong chatId);
+    Q_INVOKABLE void getChatHistory(qlonglong chatId, int extra, qlonglong fromMessageId = 0, int offset = -1, int limit = 50, bool onlyLocal = false);
+    Q_INVOKABLE void viewMessage(qlonglong chatId, qlonglong messageId, bool force, MessageSource source = MessageSourceAuto);
+    Q_INVOKABLE void pinMessage(const QString &chatId, const QString &messageId, bool disableNotification = false);
+    Q_INVOKABLE void unpinMessage(const QString &chatId, const QString &messageId);
+    Q_INVOKABLE void sendFileMessage(qlonglong chatId, const QString &messageType, const QString &fileType, const QString &filePath, const QString &caption, qlonglong replyToMessageId, const QVariantMap &topicId = QVariantMap(), const QVariantMap &additionalOptions = QVariantMap());
+    Q_INVOKABLE void sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void sendLocationMessage(qlonglong chatId, double latitude, double longitude, double horizontalAccuracy, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void sendStickerMessage(qlonglong chatId, const QString &fileId, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void sendPollMessage(qlonglong chatId, const QString &question, const QStringList &options, bool anonymous, int correctOption, bool multiple, const QString &explanation, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void sendDiceMessage(qlonglong chatId, const QString &emoji, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void forwardMessages(const QString &chatId, const QString &fromChatId, const QVariantList &messageIds, bool sendCopy, bool removeCaption);
+    Q_INVOKABLE void getMessage(qlonglong chatId, qlonglong messageId);
+    Q_INVOKABLE void getMessageLinkInfo(const QString &url);
+    Q_INVOKABLE void getExternalLinkInfo(const QString &url, const QString &extra = "");
+    Q_INVOKABLE void getCallbackQueryAnswer(const QString &chatId, const QString &messageId, const QVariantMap &payload);
+    Q_INVOKABLE void getChatPinnedMessage(qlonglong chatId);
+    Q_INVOKABLE void getChatSponsoredMessages(qlonglong chatId);
+    Q_INVOKABLE void setOptionInteger(const QString &optionName, qlonglong optionValue);
+    Q_INVOKABLE void setOptionBoolean(const QString &optionName, bool optionValue);
+    Q_INVOKABLE void setOptionString(const QString &optionName, const QString &optionValue);
+    Q_INVOKABLE void resetOption(const QString &optionName);
+    Q_INVOKABLE void setChatNotificationSettings(const QString &chatId, const QVariantMap &notificationSettings);
+    Q_INVOKABLE void editMessageText(const QString &chatId, const QString &messageId, const QString &message);
+    Q_INVOKABLE void editMessageCaption(const QString &chatId, const QString &messageId, const QString &caption);
+    Q_INVOKABLE void deleteMessages(const QString &chatId, const QVariantList messageIds, bool revoke = true);
+    Q_INVOKABLE void getMapThumbnailFile(const QString &chatId, double latitude, double longitude, int width, int height, const QString &extra);
+    Q_INVOKABLE void getRecentStickers();
+    Q_INVOKABLE void getFavoriteStickers();
+    Q_INVOKABLE void getInstalledStickerSets(StickerType stickerType = StickerTypeRegular);
+    Q_INVOKABLE void getStickerSet(const QString &setId);
+    Q_INVOKABLE void getSupergroupMembers(const QString &groupId, int limit, int offset);
+    Q_INVOKABLE void getGroupFullInfo(const QString &groupId, bool isSuperGroup);
+    Q_INVOKABLE void getUserFullInfo(const QString &userId);
+    Q_INVOKABLE void createPrivateChat(const QString &userId, const QString &extra);
+    Q_INVOKABLE void createNewSecretChat(const QString &userId, const QString &extra);
+    Q_INVOKABLE void createSupergroupChat(const QString &supergroupId, const QString &extra);
+    Q_INVOKABLE void createBasicGroupChat(const QString &basicGroupId, const QString &extra);
+    Q_INVOKABLE void getGroupsInCommon(const QString &userId, int limit, int offset);
+    Q_INVOKABLE void getUserProfilePhotos(const QString &userId, int limit, int offset);
+    Q_INVOKABLE void setChatPermissions(const QString &chatId, const QVariantMap &chatPermissions);
+    Q_INVOKABLE void setChatSlowModeDelay(const QString &chatId, int delay);
+    Q_INVOKABLE void setChatDescription(const QString &chatId, const QString &description);
+    Q_INVOKABLE void setChatTitle(const QString &chatId, const QString &title);
+    Q_INVOKABLE void setBio(const QString &bio);
+    Q_INVOKABLE void toggleSupergroupIsAllHistoryAvailable(const QString &groupId, bool isAllHistoryAvailable);
+    Q_INVOKABLE void setPollAnswer(const QString &chatId, qlonglong messageId, QVariantList optionIds);
+    Q_INVOKABLE void stopPoll(const QString &chatId, qlonglong messageId);
+    Q_INVOKABLE void getPollVoters(const QString &chatId, qlonglong messageId, int optionId, int limit, int offset, const QString &extra);
+    Q_INVOKABLE void searchPublicChat(const QString &userName, bool doOpenOnFound = false);
+    Q_INVOKABLE void searchUserByPhoneNumber(const QString &phoneNumber, bool doOpenOnFound = false);
+    Q_INVOKABLE void joinChatByInviteLink(const QString &inviteLink, bool isChannel = false);
+    Q_INVOKABLE void getDeepLinkInfo(const QString &link);
+    Q_INVOKABLE void getContacts();
+    Q_INVOKABLE void getSecretChat(qlonglong secretChatId);
+    Q_INVOKABLE void closeSecretChat(qlonglong secretChatId);
+    Q_INVOKABLE void importContacts(const QVariantList &contacts, bool single = false);
+    Q_INVOKABLE void addContact(qlonglong userId, const QString &firstName, const QString &lastName, const QString &phone, bool sharePhoneNumber);
+    Q_INVOKABLE void removeContacts(QStringList userIds);
+    Q_INVOKABLE void removeContact(QString userId);
+    Q_INVOKABLE void searchChatMessages(qlonglong chatId, const QString &query, int extra, qlonglong fromMessageId = 0, SearchMessagesFilter filter = SearchMessagesFilterEmpty, int limit = 50, int offset = 0);
+    Q_INVOKABLE void searchChats(const QString &query);
+    Q_INVOKABLE void searchPublicChats(const QString &query);
+    Q_INVOKABLE void getSearchSponsoredChats(const QString &query);
+    Q_INVOKABLE void readAllChatMentions(qlonglong chatId);
+    Q_INVOKABLE void readAllChatReactions(qlonglong chatId);
+    Q_INVOKABLE void toggleChatIsMarkedAsUnread(qlonglong chatId, bool isMarkedAsUnread);
+    Q_INVOKABLE void toggleChatIsPinned(qlonglong chatId, bool isPinned, bool archive = false);
+    Q_INVOKABLE void toggleChatIsPinnedForFolder(qlonglong chatId, bool isPinned, int folderId);
+    Q_INVOKABLE void setChatDraftMessage(qlonglong chatId, qlonglong replyToMessageId, const QString &draft, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void getInlineQueryResults(qlonglong botUserId, qlonglong chatId, const QVariantMap &userLocation, const QString &query, const QString &offset, const QString &extra);
+    Q_INVOKABLE void sendInlineQueryResultMessage(qlonglong chatId, qlonglong threadId, qlonglong replyToMessageId, const QString &queryId, const QString &resultId);
+    Q_INVOKABLE void sendBotStartMessage(qlonglong botUserId, qlonglong chatId, const QString &parameter, const QString &extra);
+    Q_INVOKABLE void cancelDownloadFile(int fileId);
+    Q_INVOKABLE void cancelUploadFile(int fileId);
+    Q_INVOKABLE void deleteFile(int fileId);
+    Q_INVOKABLE void setName(const QString &firstName, const QString &lastName);
+    Q_INVOKABLE void setUsername(const QString &username);
+    Q_INVOKABLE void setUserPrivacySettingRule(UserPrivacySetting setting, UserPrivacySettingRule rule);
+    Q_INVOKABLE void getUserPrivacySettingRules(UserPrivacySetting setting);
+    Q_INVOKABLE void setProfilePhoto(const QString &filePath);
+    Q_INVOKABLE void deleteProfilePhoto(const QString &profilePhotoId);
+    Q_INVOKABLE void changeStickerSet(const QString &stickerSetId, bool isInstalled);
+    Q_INVOKABLE void getActiveSessions();
+    Q_INVOKABLE void terminateSession(const QString &sessionId);
+    Q_INVOKABLE void getMessageAvailableReactions(qlonglong chatId, qlonglong messageId);
+    Q_INVOKABLE void addMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction);
+    Q_INVOKABLE void removeMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction);
+    Q_INVOKABLE void setNetworkType(NetworkType networkType);
+    Q_INVOKABLE void setInactiveSessionTtl(int days);
+    Q_INVOKABLE void getMessageProperties(qlonglong chatId, qlonglong messageId);
+    Q_INVOKABLE void getCustomEmojiStickers(QStringList ids);
+    Q_INVOKABLE void getCustomEmojiStickers(QString id);
+    Q_INVOKABLE void getStorageStatisticsFast();
+    Q_INVOKABLE void optimizeStorage(bool entire = false);
+    Q_INVOKABLE void translateText(const QVariantMap &text, const QString &languageCode, const QString &extra);
+    Q_INVOKABLE void translateMessageText(qlonglong chatId, qlonglong messageId, const QString &languageCode);
+    Q_INVOKABLE void summarizeMessage(qlonglong chatId, qlonglong messageId, const QString &translateToLanguageCode = QString());
+    Q_INVOKABLE void sendChatAction(qlonglong chatId, const QString &chatActionType, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void searchEmojis(const QString &text);
+    Q_INVOKABLE void toggleSupergroupIsForum(bool isForum);
+    Q_INVOKABLE void getTopChats(TopChatCategory category, int limit=50);
+    Q_INVOKABLE void removeTopChat(TopChatCategory category, qlonglong chatId);
+    Q_INVOKABLE void searchRecentlyFoundChats(const QString &query = QString());
+    Q_INVOKABLE void clearRecentlyFoundChats();
+    Q_INVOKABLE void addRecentlyFoundChat(qlonglong chatId);
+    Q_INVOKABLE void removeRecentlyFoundChat(qlonglong chatId);
+    Q_INVOKABLE void getChatMessageCount(qlonglong chatId, SearchMessagesFilter filter, bool returnLocal = false);
+    Q_INVOKABLE void getForumTopics(qlonglong chatId, qint32 offsetDate = 0, qlonglong offsetMessageId = 0, int offsetForumTopicId = 0, const QString &query = QString(), int limit = 25);
+    Q_INVOKABLE void hideSuggestedAction(const QVariantMap &action);
+    Q_INVOKABLE void hideSuggestedAction(const QString &type);
+    Q_INVOKABLE void setBirthdate(int day, int month, int year);
+    Q_INVOKABLE void setBirthdate();
+    Q_INVOKABLE void getChatJoinRequests(qlonglong chatId, const QVariantMap &offsetRequest = QVariantMap(), const QString &query = QString(), int limit = 25);
+    Q_INVOKABLE void processChatJoinRequest(qlonglong chatId, qlonglong userId, bool approve);
+    Q_INVOKABLE void processChatJoinRequests(qlonglong chatId, bool approve, const QString &inviteLink = QString());
+    Q_INVOKABLE void getInternalLinkType(const QString &link);
+    Q_INVOKABLE void checkChatInviteLink(const QString &link);
+    Q_INVOKABLE void clickChatSponsoredMessage(qlonglong chatId, qlonglong messageId, bool isMediaClick = false, bool fromFullscreen = false);
+    Q_INVOKABLE void toggleChatViewAsTopics(qlonglong chatId, bool viewAsTopics);
+    Q_INVOKABLE void getMessageThreadHistory(qlonglong chatId, qlonglong messageId, int extra, qlonglong fromMessageId = 0, int offset = -1, int limit = 50);
+    Q_INVOKABLE void getForumTopicHistory(qlonglong chatId, int forumTopicId, int extra, qlonglong fromMessageId = 0, int offset = -1, int limit = 50);
+    Q_INVOKABLE void getForumTopic(qlonglong chatId, int forumTopicId);
+    Q_INVOKABLE void addFavoriteSticker(int fileId);
+    Q_INVOKABLE void removeFavoriteSticker(int fileId);
+
+    // Others (candidates for extraction ;))
+    Q_INVOKABLE void initializeOpenWith();
+    Q_INVOKABLE void removeOpenWith();
+
+public:
+    const Group* getGroup(qlonglong groupId) const;
+    static ChatType chatTypeFromString(const QString &type);
+    static ChatMemberStatus chatMemberStatusFromString(const QString &status);
+    static SecretChatState secretChatStateFromString(const QString &state);
+
+signals:
+    void ownUserIdFound(const QString &ownUserId);
+    void authorizationStateChanged(const TDLibWrapper::AuthorizationState &authorizationState, const QVariantMap &authorizationStateData);
+    void optionUpdated(const QString &optionName, const QVariant &optionValue);
+    void connectionStateChanged(const TDLibWrapper::ConnectionState &connectionState);
+    void fileUpdated(int fileId, const QVariantMap &fileInformation);
+    void newChatDiscovered(qlonglong chatId, const QVariantMap &chatInformation);
+
+    void chatAddedToMainList(ChatData *chatData, qlonglong order, bool isPinned);
+    void chatRemovedFromMainList(qlonglong chatId);
+    void mainChatListChatPositionUpdated(qlonglong chatId, qlonglong order, bool isPinned);
+    void mainChatListUnreadMessageCountUpdated(const QVariantMap &messageCountInformation);
+    void mainChatListUnreadChatCountUpdated(const QVariantMap &chatCountInformation);
+
+    void chatAddedToArchiveList(ChatData *chatData, qlonglong order, bool isPinned);
+    void chatRemovedFromArchiveList(qlonglong chatId);
+    void archiveChatListChatPositionUpdated(qlonglong chatId, qlonglong order, bool isPinned);
+    void archiveChatListUnreadMessageCountUpdated(const QVariantMap &messageCountInformation);
+    void archiveChatListUnreadChatCountUpdated(const QVariantMap &chatCountInformation);
+
+    void chatAddedToFolderList(int folderId, ChatData *chatData, qlonglong order, bool isPinned);
+    void chatRemovedFromFolderList(int folderId, qlonglong chatId);
+    void folderChatListChatPositionUpdated(int folderId, qlonglong chatId, qlonglong order, bool isPinned);
+    void folderChatListUnreadMessageCountUpdated(int folderId, const QVariantMap &messageCountInformation);
+    void folderChatListUnreadChatCountUpdated(int folderId, const QVariantMap &chatCountInformation);
+
+    void chatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles = QVector<int>());
+
+    void responseForRequestIdReceived(qlonglong requestId, const QVariantMap &response);
+    void someChatListUpdated();
+    void chatLastMessageUpdated(qlonglong chatId, const QVariantMap &lastMessage);
+    void chatReadInboxUpdated(const QString &chatId, const QString &lastReadInboxMessageId, int unreadCount);
+    void chatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
+    void chatAvailableReactionsUpdated(qlonglong chatId, const QVariantMap &availableReactions);
+    void userUpdated(const QString &userId, const QVariantMap &userInformation);
+    void ownUserUpdated(const QVariantMap &userInformation);
+    void basicGroupUpdated(qlonglong groupId);
+    void superGroupUpdated(qlonglong groupId);
+    void chatOnlineMemberCountUpdated(const QString &chatId, int onlineMemberCount);
+    void messagesReceived(qlonglong chatId, int extra, const QVariantList &messages, int totalCount);
+    void foundChatMessagesReceived(qlonglong chatId, SearchMessagesFilter filter, int extra, const QVariantList &messages, int totalCount, qlonglong nextFromMessageId);
+    void sponsoredMessagesReceived(qlonglong chatId, const QVariantList &messages, int messagesBetween);
+    void messageLinkInfoReceived(qlonglong chatId, qlonglong messageId);
+    void newMessageReceived(qlonglong chatId, const QVariantMap &message);
+    void copyToDownloadsSuccessful(const QString &fileName, const QString &filePath);
+    void copyToDownloadsError(const QString &fileName, const QString &filePath);
+    void receivedMessage(qlonglong chatId, qlonglong messageId, const QVariantMap &message);
+    void messageSendSucceeded(qlonglong chatId, qlonglong oldMessageId, qlonglong messageId, const QVariantMap &message);
+    void activeNotificationsUpdated(const QVariantList notificationGroups);
+    void notificationGroupUpdated(const QVariantMap notificationGroupUpdate);
+    void notificationUpdated(const QVariantMap updatedNotification);
+    void chatNotificationSettingsUpdated(const QString &chatId, const QVariantMap chatNotificationSettings);
+    void messageContentUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &newContent);
+    void messageEditedUpdated(qlonglong chatId, qlonglong messageId, int editDate, const QVariantMap &replyMarkup);
+    void messagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds);
+    void chatsReceived(const QString &extra, const QVariantList &chatIds, const int totalCount);
+    void sponsoredChatsReceived(const QVariantList &chats);
+    void chatReceived(const QVariantMap &chat);
+    void secretChatReceived(qlonglong secretChatId, const QVariantMap &secretChat);
+    void secretChatUpdated(qlonglong secretChatId, const QVariantMap &secretChat);
+    void recentStickersUpdated(bool isAttached, const QList<int> &stickerIds);
+    void recentStickersReceived(const QVariantList &stickers);
+    void favoriteStickersUpdated(const QList<int> &stickerIds);
+    void favoriteStickersReceived(const QVariantList &stickers);
+    void stickersReceived(const QVariantList &stickers);
+    void installedStickerSetsUpdated(const QString &stickerType, const QVariantList &stickerSetIds);
+    void installedStickerSetsReceived(StickerType stickerType, const QVariantList &stickerSets);
+    void stickerSetsReceived(const QVariantList &stickerSets);
+    void stickerSetReceived(const QString &stickerSetId, const QVariantMap &stickerSet);
+    void chatMembersReceived(const QString &extra, const QVariantList &members, int totalMembers);
+    void userFullInfoReceived(const QVariantMap &userFullInfo);
+    void userFullInfoUpdated(const QString &userId, const QVariantMap &userFullInfo);
+    void basicGroupFullInfoReceived(const QString &groupId, const QVariantMap &groupFullInfo);
+    void supergroupFullInfoReceived(const QString &groupId, const QVariantMap &groupFullInfo);
+    void basicGroupFullInfoUpdated(const QString &groupId, const QVariantMap &groupFullInfo);
+    void supergroupFullInfoUpdated(const QString &groupId, const QVariantMap &groupFullInfo);
+    void userProfilePhotosReceived(const QString &extra, const QVariantList &photos, int totalPhotos);
+    void chatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions);
+    void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
+    void chatTitleUpdated(qlonglong chatId, const QString &title);
+    void chatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
+    void usersReceived(const QString &extra, const QVariantList &userIds, int totalUsers);
+    void messageSendersReceived(const QString &extra, const QVariantList &senders, int totalUsers);
+    void errorReceived(int code, const QString &message, const QVariant &extra);
+    void serviceNotificationReceived(const QString &type, const QVariantMap &content);
+    void contactsImported(const QVariantList &importerCount, const QVariantList &userIds, bool single);
+    void messageNotFound(qlonglong chatId, qlonglong messageId);
+    void chatIsMarkedAsUnreadUpdated(qlonglong chatId, bool chatIsMarkedAsUnread);
+    void inlineQueryResults(const QString &inlineQueryId, const QString &nextOffset, const QVariantList &results, const QString &switchPmText, const QString &switchPmParameter, const QString &extra);
+    void callbackQueryAnswer(const QString &text, bool alert, const QString &url);
+    void userPrivacySettingUpdated(UserPrivacySetting setting, UserPrivacySettingRule rule);
+    void messageInteractionInfoUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &updatedInfo);
+    void okReceived(const QString &request);
+    void okMapReceived(const QString &type, const QVariantMap &extra);
+    void sessionsReceived(int inactive_session_ttl_days, const QVariantList &sessions);
+    void openFileExternally(const QString &filePath);
+    void availableReactionsReceived(qlonglong messageId, const QStringList &reactions);
+    void chatUnreadMentionCountUpdated(qlonglong chatId, int unreadMentionCount);
+    void messageMentionRead(qlonglong chatId, qlonglong messageId);
+    void chatUnreadReactionCountUpdated(qlonglong chatId, int unreadReactionCount);
+    void reactionsUpdated();
+    void messagePropertiesReceived(qlonglong chatId, qlonglong messageId, const QVariantMap &messageProperties);
+    void storageStatisticsFastReceived(const QVariantMap &statistics);
+    void storageStatisticsReceived(const QVariantMap &statistics);
+    void formattedTextReceived(const QVariantMap &formattedText, const QString &extra);
+    void chatActionUpdated(qlonglong chatId, const QVariantMap &sender, const QVariantMap &action, qlonglong messageThreadId);
+    void emojiKeywordsReceived(const QString &text, const QVariantList &emojis);
+    void suggestedActionsUpdated(const QVariantList &added, const QVariantList &removed);
+    void countReceived(int count, const QString &extra);
+    void chatMessageCountReceived(int count, qlonglong chatId, SearchMessagesFilter filter, bool onlyLocal);
+    void chatMessageCountErrorReceived(qlonglong chatId, SearchMessagesFilter filter, bool onlyLocal);
+    void chatListsReceived(qlonglong chatId, const QVariantList &chatLists);
+    void archiveChatListSettingsReceived(bool archiveAndMuteNewChatsFromUnknownUsers, bool keepUnmutedChatsArchived, bool keepChatsFromFoldersArchived);
+    void chatFoldersUpdated(const QVariantList &chatFolders, int mainChatListPosition, bool tagsEnabled);
+    void forumTopicsReceived(qlonglong chatId, int totalCount, QVariantList topics, qint32 nextOffsetDate, qlonglong nextOffsetMessageId, int nextOffsetForumTopicId);
+    void chatPendingJoinRequestsUpdated(qlonglong chatId);
+    void chatJoinRequestsReceived(qlonglong chatId, int totalCount, const QVariantList &requests);
+    void deepLinkInfoReceived(const QVariantMap &text, bool needUpdateApplication);
+    void userReceived(const QVariantMap &user);
+    void chatInviteLinkInfoReceived(const QString &link, const QVariantMap &info);
+    void chatViewAsTopicsUpdated(qlonglong chatId);
+    void threadMessagesReceived(qlonglong chatId, qlonglong messageId, int extra, const QVariantList &messages, int totalCount);
+    void forumTopicMessagesReceived(qlonglong chatId, int forumTopicId, int extra, const QVariantList &messages, int totalCount);
+    void forumTopicUpdated(qlonglong chatId, int forumTopicId, const QVariantMap &update);
+    void forumTopicInfoUpdated(qlonglong chatId, int forumTopicId, const QVariantMap &info);
+    void forumTopicReceived(qlonglong chatId, int forumTopicId, const QVariantMap &topic);
+    void messageSuggestedPostInfoUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &suggestedPostInfo);
+    void messageContentOpened(qlonglong chatId, qlonglong messageId);
+    void messageFactCheckUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &factCheck);
+    void forumTopicNotFound(qlonglong chatId, int forumTopicId);
+    void stickerSetUpdated(const QString &stickerSetId, const QVariantMap &stickerSet);
+
+    // Link types
+    void linkUnsupportedByApp(const QString &type);
+
+    // Signals not directly used by TDLibWrapper
+    void chatListsReset();
+    void chatListsCalculateUnreadState();
+
+public slots:
+    // appSettings
+    void handleOpenWithChanged();
+    void handleStorageOptimizerChanged();
+    void handleSendMarkdownChanged();
+
+    // options QQmlPropertyMap
+    void handleOptionsValueChanged(const QString &name, const QVariant &value);
+
+    void handleAuthorizationStateChanged(const QString &authorizationState, const QVariantMap authorizationStateData);
+    void handleOptionUpdated(const QString &optionName, const QVariant &optionValue);
+    void handleConnectionStateChanged(const QString &connectionState);
+    void handleUserUpdated(const QVariantMap &updatedUserInformation);
+    void handleUserStatusUpdated(const QString &userId, const QVariantMap &userStatusInformation);
+    void handleFileUpdated(const QVariantMap &fileInformation);
+
+    void handleNewChatDiscovered(const QVariantMap &chatInformation);
+    void handleChatAddedToList(const QVariantMap &chatList, qlonglong id);
+    void handleChatRemovedFromList(const QVariantMap &chatList, qlonglong id);
+    void handleChatPositionUpdated(qlonglong chatId, const QVariantMap &position);
+    void handleChatLastMessageUpdated(qlonglong chatId, const QVariantMap &lastMessage, const QVariantList &positions);
+    void handleChatDraftMessageUpdated(qlonglong chatId, const QVariantMap &draftMessage, const QVariantList &positions);
+    
+    void handleChatReadInboxUpdated(const QString &chatId, const QString &lastReadInboxMessageId, int unreadCount);
+    void handleChatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
+    void handleChatTitleUpdated(qlonglong chatId, const QString &title);
+    void handleChatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
+    void handleChatNotificationSettingsUpdated(const QString &chatId, const QVariantMap chatNotificationSettings);
+    void handleChatIsMarkedAsUnreadUpdated(qlonglong chatId, bool chatIsMarkedAsUnread);
+    void handleChatUnreadMentionCountUpdated(qlonglong chatId, int unreadMentionCount);
+    void handleChatUnreadReactionCountUpdated(qlonglong chatId, int unreadReactionCount);
+    void handleChatAvailableReactionsUpdated(qlonglong chatId, const QVariantMap &availableReactions);
+    void handleUnreadMessageCountUpdated(const QVariantMap &messageCountInformation);
+    void handleUnreadChatCountUpdated(const QVariantMap &chatCountInformation);
+    void handleBasicGroupUpdated(qlonglong groupId, const QVariantMap &groupInformation);
+    void handleSuperGroupUpdated(qlonglong groupId, const QVariantMap &groupInformation);
+    void handleStickerSets(const QVariantList &stickerSets, int totalCount, const QString &extra);
+    void handleSecretChatReceived(qlonglong secretChatId, const QVariantMap &secretChat);
+    void handleSecretChatUpdated(qlonglong secretChatId, const QVariantMap &secretChat);
+    void handleErrorReceived(int code, const QString &message, const QVariant &extra);
+    void handleMessageInformation(qlonglong chatId, qlonglong messageId, const QVariantMap &receivedInformation);
+    void handleMessageIsPinnedUpdated(qlonglong chatId, qlonglong messageId, bool isPinned);
+    void handleUserPrivacySettingRules(const QVariantMap &rules);
+    void handleUpdatedUserPrivacySettingRules(const QVariantMap &updatedRules);
+    void handleSponsoredMessagesReceived(qlonglong chatId, const QVariantList &messages, int messagesBetween);
+    void handleNetworkConfigurationChanged(const QNetworkConfiguration &config);
+    void handleActiveEmojiReactionsUpdated(const QStringList& emojis);
+    void handleDiceEmojisUpdated(const QStringList &emojis);
+    void handleFoundChatMessagesReceived(qlonglong chatId, int extra, int extra2, const QVariantList &messages, int totalCount, qlonglong nextFromMessageId);
+    void handleCountReceived(int count, const QString &extra);
+    void handleChatPendingJoinRequestsUpdated(qlonglong chatId, const QVariantMap &pendingJoinRequests);
+    void handleInternalLinkTypeReceived(const QVariantMap &type);
+    void handleUserReceived(const QVariantMap &user, bool doOpenOnFound);
+    void handleChatViewAsTopicsUpdated(qlonglong chatId, bool viewAsTopics);
+    void handleStickersReceived(const QVariantList &stickers, const QString &extra);
+
+private:
+    void setOption(const QString &name, const QString &type, const QVariant &value);
+    void setInitialParameters();
+    void setEncryptionKey();
+    void setLogVerbosityLevel();
+    const Group *updateGroup(qlonglong groupId, const QVariantMap &groupInfo, QHash<qlonglong,Group*> *groups);
+    void sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content);
+    void initializeTDLibReceiver();
+    void updateUserInformation(const QString &userId, const QVariantMap &userInformation);
+    void updateChatPositions(qlonglong chatId, const QVariantList &positions);
+    static QString getTopChatCategoryType(TopChatCategory category);
+    static QString getMessageSourceType(MessageSource source);
+    static QString getStickerTypeType(StickerType stickerType);
+    static StickerType getStickerTypeForType(const QString &type);
+
+private:
+    int tdLibClientId;
+    QNetworkAccessManager *manager;
+    QNetworkConfigurationManager *networkConfigurationManager;
+    AppSettings *appSettings;
+    MceInterface *mceInterface;
+    TDLibReceiver *tdLibReceiver;
+    DBusInterface *dbusInterface;
+    Utilities *utilities;
+    TDLibWrapper::AuthorizationState authorizationState;
+    QVariantMap authorizationStateData;
+    TDLibWrapper::ConnectionState connectionState;
+    QQmlPropertyMap* options;
+    QVariantMap userInformation;
+    QMap<UserPrivacySetting, UserPrivacySettingRule> userPrivacySettingRules;
+    QVariantMap usersById;
+    QVariantMap usersByName;
+    QHash<qlonglong, ChatData*> chats;
+    QMap<qlonglong, QVariantMap> secretChats;
+    QVariantMap unreadMessageInformation;
+    QVariantMap unreadChatInformation;
+    QHash<qlonglong,Group*> basicGroups;
+    QHash<qlonglong,Group*> superGroups;
+    QVariantMap superGroupsByName;
+    QStringList activeEmojiReactions;
+    QStringList diceEmojis;
+
+    int versionNumber;
+    bool joinChatRequested;
+    bool isLoggingOut;
+    bool closing;
+    qlonglong nextRequestId;
+};
+
+#endif // TDLIBWRAPPER_H

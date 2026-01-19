@@ -1,0 +1,169 @@
+#include "readablemessagesmodel.h"
+
+#define DEBUG_MODULE ReadableMessagesModel
+#include "debuglog.h"
+
+namespace {
+    const QString ID("id");
+    const QString CHAT_ID("chat_id");
+    const QString LAST_READ_INBOX_MESSAGE_ID("last_read_inbox_message_id");
+    const QString LAST_READ_OUTBOX_MESSAGE_ID("last_read_outbox_message_id");
+}
+
+ReadableMessagesModel::ReadableMessagesModel(QObject *parent) :
+    JumpableMessagesModel(parent),
+    loadingFullEnd(false)
+{
+    connect(this, &ReadableMessagesModel::messageSendSucceeded, this, &ReadableMessagesModel::lastReadSentMessageUpdated);
+    connect(this, &ReadableMessagesModel::messagesReceived, this, &ReadableMessagesModel::lastReadSentMessageUpdated);
+
+    // FIXME: can this be implemented better?
+    connect(this, &ReadableMessagesModel::messagesReceived, this, &ReadableMessagesModel::lastReadMessageIndexChanged);
+    connect(this, &ReadableMessagesModel::newMessageReceived, this, &ReadableMessagesModel::lastReadMessageIndexChanged);
+    connect(this, &ReadableMessagesModel::unreadCountUpdated, this, &ReadableMessagesModel::lastReadMessageIndexChanged);
+
+}
+
+ReadableMessagesModel::ReadableMessagesModel(TDLibWrapper *tdLibWrapper, QObject *parent) : ReadableMessagesModel(parent) {
+    this->tdLibWrapper = tdLibWrapper;
+    setupTDLibWrapper();
+}
+
+bool ReadableMessagesModel::clear() {
+    LOG("Clearing readable messages model");
+    loadingFullEnd = false;
+    if (JumpableMessagesModel::clear()) {
+        emit lastReadSentMessageUpdated();
+        return true;
+    }
+    return false;
+}
+
+int ReadableMessagesModel::getLastReadMessageIndex() {
+    int listInboxPosition = messageIndexMap.value(lastReadInboxMessageId(), -1);
+    if (listInboxPosition > messages.size() - 1) listInboxPosition = -1;
+    return listInboxPosition;
+}
+
+int ReadableMessagesModel::calculateLastReadSentMessageIndex() {
+    LOG("calculateLastReadSentMessageIndex");
+    qlonglong id = lastReadOutboxMessageId();
+    LOG("lastReadSentMessageId" << id);
+    LOG("size messageIndexMap" << messageIndexMap.size());
+    LOG("contains ID?" << messageIndexMap.contains(id));
+    int listOutboxPosition;
+    if (messageIndexMap.contains(id))
+        listOutboxPosition = messageIndexMap.value(id, -1);
+    else {
+        LOG("Last read sent message is not loaded, falling back to last loaded sent message");
+        listOutboxPosition = findLastSentMessageIndex();
+    }
+    LOG("Last read sent message" << id << "is at position" << listOutboxPosition);
+    return listOutboxPosition;
+}
+
+int ReadableMessagesModel::calculateScrollPosition() {
+    if (loadingFullEnd) return this->messages.size() - 1;
+
+    int scrollPosition = this->messageIndexMap.value(this->highlightedMessageId, -1);
+    if (scrollPosition == -1) {
+        LOG("calculateLastScrollMessageIndex");
+
+        int listInboxPosition = this->messageIndexMap.value(lastReadInboxMessageId(), -1);
+        int listOwnPosition = findLastSentMessageIndex();
+
+        if (listInboxPosition > messages.size() - 1) listInboxPosition = -1;
+        if (listOwnPosition > messages.size() - 1) listOwnPosition = -1;
+
+        LOG("Last read received message is at position" << listInboxPosition << "; last read sent message is at position" << listOwnPosition);
+
+        scrollPosition = qMax(listInboxPosition, listOwnPosition);
+    }
+
+    LOG("Calculating new scroll position, current:" << scrollPosition << ", list size:" << this->messages.size());
+    return qMin(scrollPosition + 1, this->messages.size() - 1);
+}
+
+void ReadableMessagesModel::handlePrepareMessagesReceived(int totalCount, UpdateType fromUpdate) {
+    LOG("Updating start/end reached values");
+
+    if (this->messageIndexMap.contains(lastMessageId())) {
+        endReached = true;
+        LOG("Last message is in the model, end was reached");
+    }
+
+    JumpableMessagesModel::handlePrepareMessagesReceived(totalCount, fromUpdate);
+}
+
+int ReadableMessagesModel::calculateLastReadMessageIndexInBounds() {
+    LOG("calculateLastReadMessageIndexInBounds");
+    const qlonglong lastReadMessageId = lastReadInboxMessageId(); // last read incoming message id
+
+    LOG("lastReadMessageId" << lastReadMessageId);
+    LOG("size messageIndexMap" << messageIndexMap.size()
+        << "; contains last read ID?" << messageIndexMap.contains(lastReadMessageId)
+        );
+
+    int listInboxPosition = messageIndexMap.value(lastReadMessageId, messages.size() - 1);
+    int listOwnPosition = findLastSentMessageIndex();
+
+    if (listInboxPosition > messages.size() - 1)
+        listInboxPosition = messages.size() - 1;
+    if (listOwnPosition > messages.size() - 1)
+        listOwnPosition = -1;
+
+    LOG("Last known message is at position" << listInboxPosition << "; last own message is at position" << listOwnPosition);
+
+    return qMax(listInboxPosition, listOwnPosition);
+}
+
+
+void ReadableMessagesModel::loadMoreHistoryImpl() {
+    this->loadMessages(UpdatePreviousSlice, messages.first()->messageId);
+}
+void ReadableMessagesModel::loadMoreFutureImpl() {
+    this->loadMessages(UpdateNextSlice, messages.last()->messageId, -49);
+}
+void ReadableMessagesModel::loadHistoryForMessageImpl(qlonglong messageId) {
+    this->loadMessages(UpdateInitial, messageId);
+}
+
+void ReadableMessagesModel::handleNewMessageReceived(const QVariantMap &message) {
+    const qlonglong messageId = message.value(ID).toLongLong();
+    if (!messageIndexMap.contains(messageId)) {
+        if (canLoadMoreMessages() && this->endReached) {
+            LOG("New message received for this chat");
+            QList<MessageData*> messagesToBeAdded;
+            MessageData *data = new MessageData(message, messageId);
+            processMessageData(data);
+            messagesToBeAdded.append(data);
+            insertMessages(messagesToBeAdded);
+            setMessagesAlbum(messagesToBeAdded);
+            emit newMessageReceived(message);
+        } else {
+            LOG("New message in this chat, but not relevant as less recent messages need to be loaded first!");
+        }
+    }
+}
+
+
+void ReadableMessagesModel::loadEnd(bool markAllAsRead) {
+    if (!this->waitingForSlice() && !waitingFor.value(UpdateReload) && !messages.isEmpty()) {
+        LOG("Loading end of the chat... markAllAsRead:" << markAllAsRead << (markAllAsRead ? 0 : lastReadOutboxMessageId()) << chatId);
+
+        //if (markAllAsRead) // FIXME: is this really needed?
+        //    this->tdLibWrapper->toggleChatIsMarkedAsUnread(this->chatId, false);
+        this->loadingFullEnd = markAllAsRead; // doesn't seem to always work (also a similar issue with search)
+
+        this->clear();
+        this->loadMessages(UpdateInitial, markAllAsRead ? 0 : lastReadOutboxMessageId());
+    }
+}
+
+void ReadableMessagesModel::processMessageData(MessageData *message) {
+    LOG("OOOOAWE" << message->messageId << lastReadInboxMessageId());
+    if (message->messageId > lastReadInboxMessageId()) {
+        LOG("Marking generated content as unread since the message is unread" << message->messageId);
+        message->generatedContentUnread = true;
+    }
+}

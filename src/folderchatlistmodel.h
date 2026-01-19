@@ -1,0 +1,29 @@
+#ifndef FOLDERCHATLISTMODEL_H
+#define FOLDERCHATLISTMODEL_H
+
+#include "chatlistmodel.h"
+#include <QObject>
+
+class ChatFoldersModel;
+
+class FolderChatListModel : public ChatListModel {
+    Q_OBJECT
+public:
+    FolderChatListModel(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, ChatFoldersModel* chatFoldersModel, int folderId);
+
+    int getFolderId();
+
+private slots:
+    void handleFolderUnreadChatCountUpdated(int folderId, const QVariantMap &chatCountInformation);
+    void handleFolderUnreadMessageCountUpdated(int folderId, const QVariantMap &messageCountInformation);
+
+    void handleChatAddedToFolderList(int folderId, ChatData *chatData, qlonglong order, bool isPinned);
+    void handleChatRemovedFromFolderList(int folderId, qlonglong chatId);
+    void handleFolderChatPositionUpdated(int folderId, qlonglong chatId, qlonglong order, bool isPinned);
+
+private:
+    ChatFoldersModel* chatFoldersModel;
+    int folderId;
+};
+
+#endif // FOLDERCHATLISTMODEL_H

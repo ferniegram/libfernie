@@ -1,0 +1,150 @@
+/*
+    Copyright (C) 2020-21 Sebastian J. Wolf and other contributors
+
+    This file is part of Fernschreiber.
+
+    Fernschreiber is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Fernschreiber is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifndef UTILITIES_H
+#define UTILITIES_H
+
+#include <QObject>
+#include <QAudioRecorder>
+#include <QGeoPositionInfo>
+#include <QGeoPositionInfoSource>
+#include <QNetworkAccessManager>
+#include "tdlib/tdlibwrapper.h"
+
+#ifdef NO_HARBOUR_COMPLIANCE
+#include "gstaudiorecorder.h"
+#endif
+
+class Utilities : public QObject {
+    Q_OBJECT
+
+    Q_PROPERTY(VoiceNoteRecordingState voiceNoteRecordingState READ getVoiceNoteRecordingState NOTIFY voiceNoteRecordingStateChanged)
+    Q_PROPERTY(QString voiceNotePath READ getVoiceNotePath)
+    Q_PROPERTY(qlonglong voiceNoteDuration READ getVoiceNoteDuration NOTIFY voiceNoteDurationChanged)
+public:
+    explicit Utilities(int argc, char *argv[], AppSettings *settings = nullptr, TDLibWrapper *tdLibWrapper = nullptr, QObject *parent = nullptr);
+    ~Utilities();
+
+    static const QByteArray GZ_MAGIC;
+
+    enum VoiceNoteRecordingState {
+        Unavailable,
+        Ready,
+        Starting,
+        Recording,
+        Stopping
+    };
+    Q_ENUM(VoiceNoteRecordingState)
+
+    enum MessageText {
+        MessageTextDefault,
+        MessageTextSimpleWithThumbnails,
+        MessageTextSimple,
+        MessageTextSimpleInForumTopic
+    };
+    Q_ENUM(MessageText)
+
+    Q_INVOKABLE static QString getUserName(const QVariantMap &userInformation);
+    static QString formatDuration(int seconds);
+    
+    Q_INVOKABLE static QString fixReservedHtmlCharacters(const QString &text);
+    // TODO proper name for this (don't make it private since it might be used from other cpp classes):
+    static QString enhanceMessageTextInternal(const QVariantMap &formattedText, QList<QVariantMap> *customInsertions = nullptr, bool ignoreEntities = false, bool escapeReserved = true);
+    Q_INVOKABLE static QString enhanceMessageText(const QVariantMap &formattedText, bool ignoreEntities = false, bool escapeReserved = true);
+    Q_INVOKABLE static QVariantMap enhanceMessageTextWithCustomInsertions(const QVariantMap &formattedText, bool ignoreEntities = false, bool escapeReserved = true);
+
+    Q_INVOKABLE QString getMessageText(const QVariantMap &message, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
+    Q_INVOKABLE QString getMessageContentText(const QVariantMap &messageContent, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
+    Q_INVOKABLE QVariantMap getMessageTextWithCustomEntities(const QVariantMap &message, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
+
+    Q_INVOKABLE static bool messageContentIsService(const QString &contentType, bool includeTextOnly = false);
+    Q_INVOKABLE static QVariant getMessageMinithumbnail(const QVariantMap &messageContent);
+
+    Q_INVOKABLE static QVariantMap newFormattedText(const QString &text, const QVariantList &entities = QVariantList());
+    Q_INVOKABLE static QVariantList formattedTextEntitiesFromReplacements(QList<QVariantMap> &replacements, QString &text);
+    Q_INVOKABLE static QList<QVariantMap> findFormattedTextReplacements(const QRegularExpression &re, const QString &text, const QString &entityType, const QString &typeParameter);
+    Q_INVOKABLE static QVariantMap enhanceInputText(const QString &text);
+
+
+    VoiceNoteRecordingState getVoiceNoteRecordingState() const;
+    QString getVoiceNotePath() const;
+    qlonglong getVoiceNoteDuration() const;
+
+    Q_INVOKABLE void startRecordingVoiceNote();
+    Q_INVOKABLE void stopRecordingVoiceNote();
+    Q_INVOKABLE void startGeoLocationUpdates();
+    Q_INVOKABLE void stopGeoLocationUpdates();
+    Q_INVOKABLE inline bool supportsGeoLocation() const { return this->geoPositionInfoSource; }
+    Q_INVOKABLE void initiateReverseGeocode(double latitude, double longitude);
+
+    Q_INVOKABLE static QVariantMap findPhotoSize(const QVariantList &photoSizes, int width);
+    Q_INVOKABLE static QVariantMap findBiggestPhotoSize(const QVariantList &photoSizes);
+    Q_INVOKABLE static QVariantMap findSmallestPhotoSize(const QVariantList &photoSizes);
+
+    Q_INVOKABLE static bool messageMatchesSearchFilter(const QVariantMap &message, TDLibWrapper::SearchMessagesFilter filter);
+
+    Q_INVOKABLE void handleLink(const QString &link);
+    Q_INVOKABLE void handleLink(const QString &link, qlonglong botCommandChatId);
+
+    static std::string uncompress(const QByteArray &data);
+    Q_INVOKABLE static QString uncompressLocalFile(const QString &path);
+
+private:
+    struct FormattedTextInsertion;
+
+    static bool messageInsertionSorter(const FormattedTextInsertion &a, const FormattedTextInsertion &b);
+
+    // FIXME: use templates here ideally
+    static void addInsertionsFor(const QString &messageText, QList<FormattedTextInsertion> &insertions, const QString &original, const QString &replacement);
+    static void addInsertionsFor(const QString &messageText, QList<FormattedTextInsertion> &insertions, const QChar &original, const QString &replacement);
+    static void addInsertionsFor(const QString &messageText, QList<FormattedTextInsertion> &insertions, const QRegularExpression &original, const QString &replacement);
+
+    QString getMessageTextInternal(const QVariantMap &messageContent, const QString &messageSenderType, qlonglong messageSenderUserId, bool isSponsored, QList<QVariantMap> *customEntities = nullptr, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
+
+signals:
+    void voiceNoteDurationChanged();
+    void voiceNoteRecordingStateChanged();
+    void newPositionInformation(const QVariantMap &positionInformation);
+    void newGeocodedAddress(const QString &geocodedAddress);
+
+private slots:
+    void handleGeoPositionUpdated(const QGeoPositionInfo &info);
+    void handleReverseGeocodeFinished();
+    void handleVoiceNoteVolumeChanged();
+    void setupAudioRecorder();
+
+private:
+    AppSettings *appSettings;
+    TDLibWrapper *tdLibWrapper;
+
+    int argc;
+    char **argv;
+
+#ifdef NO_HARBOUR_COMPLIANCE
+    GstAudioRecorder *gstAudioRecorder;
+#endif
+    QAudioRecorder *qAudioRecorder;
+
+    QGeoPositionInfoSource *geoPositionInfoSource;
+    QNetworkAccessManager *manager;
+
+    QString getTemporaryDirectoryPath();
+};
+
+#endif // UTILITIES_H

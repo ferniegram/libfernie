@@ -49,7 +49,7 @@ class TDLibWrapper : public QObject
     Q_PROPERTY(qlonglong myUserId READ myUserId NOTIFY ownUserIdFound)
 
 public:
-    explicit TDLibWrapper(int argc, char **argv, AppSettings *appSettings, MceInterface *mceInterface, QObject *parent = nullptr);
+    explicit TDLibWrapper(AppSettings *appSettings, MceInterface *mceInterface, QObject *parent = nullptr);
     ~TDLibWrapper();
 
     enum AuthorizationState {

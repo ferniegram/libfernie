@@ -186,14 +186,14 @@ QVariantMap findChatPositionForFolder(const QVariantList &positions, int folderI
     return QVariantMap();
 }
 
-TDLibWrapper::TDLibWrapper(int argc, char **argv, AppSettings *settings, MceInterface *mce, QObject *parent)
+TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *parent)
     : QObject(parent)
     , tdLibClientId(td_create_client_id())
     , manager(new QNetworkAccessManager(this))
     , networkConfigurationManager(new QNetworkConfigurationManager(this))
     , appSettings(settings)
     , mceInterface(mce)
-    , utilities(new Utilities(argc, argv, appSettings, this))
+    , utilities(new Utilities(this))
     , authorizationState(AuthorizationState::Closed)
     , options(new QQmlPropertyMap(this))
     , diceEmojis()

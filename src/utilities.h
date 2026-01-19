@@ -21,36 +21,19 @@
 #define UTILITIES_H
 
 #include <QObject>
-#include <QAudioRecorder>
 #include <QGeoPositionInfo>
 #include <QGeoPositionInfoSource>
 #include <QNetworkAccessManager>
 #include "tdlib/tdlibwrapper.h"
 
-#ifdef NO_HARBOUR_COMPLIANCE
-#include "gstaudiorecorder.h"
-#endif
-
 class Utilities : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(VoiceNoteRecordingState voiceNoteRecordingState READ getVoiceNoteRecordingState NOTIFY voiceNoteRecordingStateChanged)
-    Q_PROPERTY(QString voiceNotePath READ getVoiceNotePath)
-    Q_PROPERTY(qlonglong voiceNoteDuration READ getVoiceNoteDuration NOTIFY voiceNoteDurationChanged)
 public:
-    explicit Utilities(int argc, char *argv[], AppSettings *settings = nullptr, TDLibWrapper *tdLibWrapper = nullptr, QObject *parent = nullptr);
+    explicit Utilities(TDLibWrapper *tdLibWrapper = nullptr, QObject *parent = nullptr);
     ~Utilities();
 
     static const QByteArray GZ_MAGIC;
-
-    enum VoiceNoteRecordingState {
-        Unavailable,
-        Ready,
-        Starting,
-        Recording,
-        Stopping
-    };
-    Q_ENUM(VoiceNoteRecordingState)
 
     enum MessageText {
         MessageTextDefault,
@@ -82,12 +65,6 @@ public:
     Q_INVOKABLE static QVariantMap enhanceInputText(const QString &text);
 
 
-    VoiceNoteRecordingState getVoiceNoteRecordingState() const;
-    QString getVoiceNotePath() const;
-    qlonglong getVoiceNoteDuration() const;
-
-    Q_INVOKABLE void startRecordingVoiceNote();
-    Q_INVOKABLE void stopRecordingVoiceNote();
     Q_INVOKABLE void startGeoLocationUpdates();
     Q_INVOKABLE void stopGeoLocationUpdates();
     Q_INVOKABLE inline bool supportsGeoLocation() const { return this->geoPositionInfoSource; }
@@ -118,33 +95,18 @@ private:
     QString getMessageTextInternal(const QVariantMap &messageContent, const QString &messageSenderType, qlonglong messageSenderUserId, bool isSponsored, QList<QVariantMap> *customEntities = nullptr, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
 
 signals:
-    void voiceNoteDurationChanged();
-    void voiceNoteRecordingStateChanged();
     void newPositionInformation(const QVariantMap &positionInformation);
     void newGeocodedAddress(const QString &geocodedAddress);
 
 private slots:
     void handleGeoPositionUpdated(const QGeoPositionInfo &info);
     void handleReverseGeocodeFinished();
-    void handleVoiceNoteVolumeChanged();
-    void setupAudioRecorder();
 
 private:
-    AppSettings *appSettings;
     TDLibWrapper *tdLibWrapper;
-
-    int argc;
-    char **argv;
-
-#ifdef NO_HARBOUR_COMPLIANCE
-    GstAudioRecorder *gstAudioRecorder;
-#endif
-    QAudioRecorder *qAudioRecorder;
 
     QGeoPositionInfoSource *geoPositionInfoSource;
     QNetworkAccessManager *manager;
-
-    QString getTemporaryDirectoryPath();
 };
 
 #endif // UTILITIES_H

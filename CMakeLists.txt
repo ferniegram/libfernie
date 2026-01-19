@@ -146,6 +146,7 @@ target_sources(libfernie PRIVATE
     src/basemessagabledata.cpp
     src/chat/forumtopicmessagesmodel.cpp
     src/chat/forumtopic.cpp
+    src/ferniemain.cpp
 
     src/appsettings.h
     src/boolfiltermodel.h
@@ -187,6 +188,7 @@ target_sources(libfernie PRIVATE
     src/basemessagabledata.h
     src/chat/forumtopicmessagesmodel.h
     src/chat/forumtopic.h
+    src/ferniemain.h
 )
 
 target_link_libraries(libfernie

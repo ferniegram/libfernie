@@ -12,4 +12,4 @@ See Ferniegram for a compelte example of including libfernie in your project.
 
 ## TODO
 
-Move LottieItem to a separate project.
+- Move LottieItem to a separate project

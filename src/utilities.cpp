@@ -110,7 +110,7 @@ namespace {
     const QChar AMP('&');
     const QString HTML_AMP("&amp;");
     const QChar QUOT('"');
-    const QString HTML_QUOT("&qout;");
+    const QString HTML_QUOT("&quot;");
     const QRegularExpression RAW_NEW_LINE_RE("\r?\n");
     const QString HTML_BR_TAG("<br>");
 

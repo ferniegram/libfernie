@@ -161,7 +161,6 @@ void ReadableMessagesModel::loadEnd(bool markAllAsRead) {
 }
 
 void ReadableMessagesModel::processMessageData(MessageData *message) {
-    LOG("OOOOAWE" << message->messageId << lastReadInboxMessageId());
     if (message->messageId > lastReadInboxMessageId()) {
         LOG("Marking generated content as unread since the message is unread" << message->messageId);
         message->generatedContentUnread = true;

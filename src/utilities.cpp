@@ -180,6 +180,8 @@ void Utilities::addInsertionsFor(const QString &messageText, QList<FormattedText
 
 bool Utilities::messageInsertionSorter(const FormattedTextInsertion &a, const FormattedTextInsertion &b) {
     // Sort in reverse order (so offset indexes are valid)
+    if (b.offset + b.removeLength == a.offset + a.removeLength)
+        return b.offset < a.offset;
     return b.offset + b.removeLength < a.offset + a.removeLength;
 }
 

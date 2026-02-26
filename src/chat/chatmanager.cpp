@@ -24,11 +24,6 @@ namespace {
 
     const char* PROPERTY_CHAT_INFORMATION = "chatInformation";
     const char* PROPERTY_IS_CHANNEL = "isChannel";
-
-    const QString CONTENT_MESSAGE_PHOTO("messagePhoto");
-    const QString CONTENT_MESSAGE_VIDEO("messageVideo");
-    const QString CONTENT_MESSAGE_ANIMATION("messageAnimation");
-    const QString CONTENT_MESSAGE_VIDEO_NOTE("messageVideoNote");
 }
 
 ChatMessagesModel::ChatMessagesModel(TDLibWrapper *tdLibWrapper, qlonglong chatId, QObject *parent)
@@ -226,9 +221,6 @@ ChatManager::ChatManager(QObject *parent)
       mainModelsInitializationScheduledFromMessageId(0),
 
       chatMessagesModel(nullptr),
-      photoAndVideoMessagesModel(nullptr),
-      animationMessagesModel(nullptr),
-      videoNoteMessagesModel(nullptr),
       topicsModel(nullptr)
 {
     LOG("Created");
@@ -426,17 +418,10 @@ void ChatManager::reset(bool resetChatId) {
     LOG("Resetting chat manager resetChatId:" << resetChatId);
     if (chatMessagesModel)
         chatMessagesModel->deleteLater();
-    if (photoAndVideoMessagesModel)
-        photoAndVideoMessagesModel->deleteLater();
-    if (animationMessagesModel)
-        animationMessagesModel->deleteLater();
-    if (videoNoteMessagesModel)
-        videoNoteMessagesModel->deleteLater();
     if (topicsModel)
         topicsModel->deleteLater();
 
     chatMessagesModel = nullptr;
-    photoAndVideoMessagesModel = animationMessagesModel = videoNoteMessagesModel = nullptr;
     topicsModel = nullptr;
 
     if (resetChatId) {
@@ -514,28 +499,9 @@ void ChatManager::initializeMainModels(qlonglong fromMessageId) {
 
         this->chatMessagesModel->loadMessages(ChatMessagesModel::UpdateInitial, fromMessageId != 0 ? fromMessageId : this->chatInformation().value(LAST_READ_INBOX_MESSAGE_ID).toLongLong());
     }
-
-    if (!photoAndVideoMessagesModel)
-        photoAndVideoMessagesModel = new MediaMessagesModel(tdLibWrapper, TDLibWrapper::SearchMessagesFilterPhotoAndVideo, this);
-    if (!animationMessagesModel)
-        animationMessagesModel = new MediaMessagesModel(tdLibWrapper, TDLibWrapper::SearchMessagesFilterAnimation, this);
-    if (!videoNoteMessagesModel)
-        videoNoteMessagesModel = new MediaMessagesModel(tdLibWrapper, TDLibWrapper::SearchMessagesFilterVideoNote, this);
-
-    emit mediaMessageModelsChanged();
 }
 
 
-
-void ChatManager::initializeMediaMessagesModel(MediaMessagesModel* model, qlonglong fromMessageId) {
-    model->init(this->chatId, fromMessageId);
-}
-
-void ChatManager::initializeMediaMessagesModels() {
-    initializeMediaMessagesModel(photoAndVideoMessagesModel);
-    initializeMediaMessagesModel(animationMessagesModel);
-    initializeMediaMessagesModel(videoNoteMessagesModel);
-}
 
 bool ChatManager::viewAsTopics() {
     return chatInformation().value("view_as_topics").toBool();

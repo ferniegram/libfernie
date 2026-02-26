@@ -17,7 +17,6 @@ void ForumTopicMessagesModel::setTDLibWrapper(QObject *obj) {
     TDLibWrapper *wrapper = qobject_cast<TDLibWrapper*>(obj);
     if (tdLibWrapper != wrapper) {
         tdLibWrapper = wrapper;
-        LOG("TDLibWrapper set" << wrapper);
         emit tdlibChanged();
 
         if (tdLibWrapper) {

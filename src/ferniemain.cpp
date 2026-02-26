@@ -66,6 +66,8 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     qmlRegisterType<ChatManager>(uri, 1, 0, "ChatManager");
     qmlRegisterType<LottieItem>(uri, 1, 0, "LottieItem");
     qmlRegisterType<ForumTopicMessagesModel>(uri, 1, 0, "ForumTopicMessagesModel");
+    qmlRegisterType<MediaMessagesModel>(uri, 1, 0, "MediaMessagesModel");
+    qmlRegisterType<InvertedMediaMessagesModel>(uri, 1, 0, "InvertedMediaMessagesModel");
     qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
 
     AppSettings *appSettings = new AppSettings(view.data());

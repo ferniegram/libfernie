@@ -28,6 +28,8 @@
 #include "suggestedactionsmanager.h"
 #include "lottieitem.h"
 #include "chat/forumtopicmessagesmodel.h"
+#include "chat/mediamessagesmodel.h"
+#include "chat/invertedmediamessagesmodel.h"
 
 namespace FernieMain {
     void setupLogging();

@@ -59,8 +59,7 @@ MessagesModel::~MessagesModel() {
     qDeleteAll(messages);
 }
 
-QHash<int,QByteArray> MessagesModel::roleNames() const
-{
+QHash<int,QByteArray> MessagesModel::roleNames() const {
     return QHash<int,QByteArray>{
         {MessageData::RoleDisplay, "display"},
         {MessageData::RoleMessageId, "message_id"},

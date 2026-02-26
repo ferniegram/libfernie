@@ -1,13 +1,13 @@
-#include "invertedmessagesmodel.h"
+#include "invertedmediamessagesmodel.h"
 
-#define DEBUG_MODULE InvertedMessagesModel
+#define DEBUG_MODULE InvertedMediaMessagesModel
 #include "debuglog.h"
 
-InvertedMessagesModel::InvertedMessagesModel(TDLibWrapper *tdLibWrapper, QObject *parent) : MessagesModel(tdLibWrapper, parent) {
+InvertedMediaMessagesModel::InvertedMediaMessagesModel(QObject *parent) : MediaMessagesModel(parent) {
 
 }
 
-void InvertedMessagesModel::handleMessagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds) {
+void InvertedMediaMessagesModel::handleMessagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds) {
     LOG("Messages were deleted in a chat" << chatId);
     if (chatId == this->chatId) {
         const int count = messageIds.size();

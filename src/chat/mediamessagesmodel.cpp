@@ -11,13 +11,37 @@ namespace {
     const QString _TYPE("@type");
 }
 
-MediaMessagesModel::MediaMessagesModel(TDLibWrapper *tdLibWrapper, TDLibWrapper::SearchMessagesFilter searchMessagesFilter, QObject *parent)
-    : JumpableMessagesModel(tdLibWrapper, parent),
-      searchMessagesFilter(searchMessagesFilter)
-{
+MediaMessagesModel::MediaMessagesModel(QObject *parent)
+    : JumpableMessagesModel(parent),
+      searchMessagesFilter(TDLibWrapper::SearchMessagesFilterEmpty)
+{}
+
+void MediaMessagesModel::setTDLibWrapper(QObject *obj) {
+    TDLibWrapper *wrapper = qobject_cast<TDLibWrapper*>(obj);
+    if (tdLibWrapper != wrapper) {
+        tdLibWrapper = wrapper;
+        emit tdlibChanged();
+        LOG("Set TDLibWrapper" << tdLibWrapper);
+
+        if (tdLibWrapper)
+            setupTDLibWrapper();
+    }
+}
+
+void MediaMessagesModel::setupTDLibWrapper() {
+    JumpableMessagesModel::setupTDLibWrapper();
+
     connect(this->tdLibWrapper, &TDLibWrapper::chatMessageCountReceived, this, &MediaMessagesModel::handleChatMessageCountReceived);
     connect(this->tdLibWrapper, &TDLibWrapper::foundChatMessagesReceived, this, &MediaMessagesModel::handleMessagesReceived);
     connect(this->tdLibWrapper, &TDLibWrapper::newMessageReceived, this, &MediaMessagesModel::handleNewMessageReceived);
+}
+
+void MediaMessagesModel::setSearchMessagesFilter(TDLibWrapper::SearchMessagesFilter filter) {
+    if (this->searchMessagesFilter != filter) {
+        this->searchMessagesFilter = filter;
+        LOG("Filter set" << filter);
+        emit searchMessagesFilterChanged();
+    }
 }
 
 bool MediaMessagesModel::clear() {
@@ -27,12 +51,20 @@ bool MediaMessagesModel::clear() {
 }
 
 void MediaMessagesModel::loadMessagesWithLimit(int extra, qlonglong fromMessageId, int offset, int limit) {
+    if (!tdLibWrapper) {
+        LOG("Can't load messages, tdLibWrapper is not set" << extra << fromMessageId << offset);
+        return;
+    }
     LOG("Loading messages" << extra << fromMessageId << offset);
     this->tdLibWrapper->searchChatMessages(this->chatId, QString(), extra, fromMessageId, this->searchMessagesFilter, limit, offset);
 }
 
 void MediaMessagesModel::init(qlonglong chatId, qlonglong fromMessageId) {
-    LOG("Initializing" << chatId << fromMessageId);
+    if (!tdLibWrapper) {
+        LOG("Can't initialize, tdLibWrapper is not set" << chatId << fromMessageId);
+        return;
+    }
+    LOG("Initializing" << searchMessagesFilter << chatId << fromMessageId);
 
     // TODO: (maybe) add this to JumpableMessagesModel too
     if (this->chatId == chatId) {

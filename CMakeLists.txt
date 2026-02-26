@@ -122,12 +122,10 @@ target_sources(libfernie PRIVATE
     src/dbusinterface.cpp
     src/folderchatlistmodel.cpp
     src/chat/forumtopicsmodel.cpp
-    src/chat/invertedmessagesmodel.cpp
     src/chat/mediamessagesmodel.cpp
     src/chat/messagedata.cpp
     src/chat/messagesmodel.cpp
     src/chat/readablemessagesmodel.cpp
-    src/invertedproxymodel.cpp
     src/suggestedactionsmanager.cpp
     src/utilities.cpp
     src/knownusersmodel.cpp
@@ -147,6 +145,7 @@ target_sources(libfernie PRIVATE
     src/chat/forumtopicmessagesmodel.cpp
     src/chat/forumtopic.cpp
     src/ferniemain.cpp
+    src/chat/invertedmediamessagesmodel.cpp
 
     src/appsettings.h
     src/boolfiltermodel.h
@@ -163,12 +162,10 @@ target_sources(libfernie PRIVATE
     src/debuglogjs.h
     src/folderchatlistmodel.h
     src/chat/forumtopicsmodel.h
-    src/chat/invertedmessagesmodel.h
     src/chat/mediamessagesmodel.h
     src/chat/messagedata.h
     src/chat/messagesmodel.h
     src/chat/readablemessagesmodel.h
-    src/invertedproxymodel.h
     src/suggestedactionsmanager.h
     src/utilities.h
     src/knownusersmodel.h
@@ -189,6 +186,7 @@ target_sources(libfernie PRIVATE
     src/chat/forumtopicmessagesmodel.h
     src/chat/forumtopic.h
     src/ferniemain.h
+    src/chat/invertedmediamessagesmodel.h
 )
 
 target_link_libraries(libfernie

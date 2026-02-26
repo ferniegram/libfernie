@@ -2,7 +2,6 @@
 #define CHATMANAGER_H
 
 #include "readablemessagesmodel.h"
-#include "mediamessagesmodel.h"
 #include "forumtopicsmodel.h"
 
 class ChatMessagesModel : public ReadableMessagesModel {
@@ -69,10 +68,6 @@ class ChatManager : public QObject {
 
     Q_PROPERTY(ChatMessagesModel* model MEMBER chatMessagesModel NOTIFY messagesModelChanged)
 
-    Q_PROPERTY(MediaMessagesModel* photoAndVideoMessagesModel MEMBER photoAndVideoMessagesModel NOTIFY mediaMessageModelsChanged)
-    Q_PROPERTY(MediaMessagesModel* animationMessagesModel MEMBER animationMessagesModel NOTIFY mediaMessageModelsChanged)
-    Q_PROPERTY(MediaMessagesModel* videoNoteMessagesModel MEMBER videoNoteMessagesModel NOTIFY mediaMessageModelsChanged)
-
     Q_PROPERTY(ForumTopicsModel* topicsModel MEMBER topicsModel NOTIFY topicsModelChanged)
 
     Q_PROPERTY(qlonglong pinnedMessageId MEMBER pinnedMessageId NOTIFY pinnedMessageChanged)
@@ -88,8 +83,6 @@ public:
     Q_INVOKABLE void reset(bool resetChatId = true);
     void setChatId(qlonglong chatId);
     Q_INVOKABLE void initializeMainModels(qlonglong fromMessageId = 0);
-    Q_INVOKABLE void initializeMediaMessagesModel(MediaMessagesModel* model, qlonglong fromMessageId = 0);
-    Q_INVOKABLE void initializeMediaMessagesModels();
     bool viewAsTopics();
     inline qlonglong getChatId() { return chatId; }
     bool infoInitialized();
@@ -111,7 +104,6 @@ public:
 signals:
     void tdlibChanged();
     void messagesModelChanged();
-    void mediaMessageModelsChanged();
     void topicsModelChanged();
     void chatIdChanged();
     void infoInitializedChanged();
@@ -158,9 +150,6 @@ private:
     QVariantMap botSponsoredMessage;
 
     ChatMessagesModel *chatMessagesModel;
-    MediaMessagesModel* photoAndVideoMessagesModel;
-    MediaMessagesModel* animationMessagesModel;
-    MediaMessagesModel* videoNoteMessagesModel;
     ForumTopicsModel *topicsModel;
 
     QVariantMap chatActionsByUsers; // QMap<qlonglong, QString>

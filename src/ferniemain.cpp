@@ -61,7 +61,6 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     qmlRegisterType<TDLibFile>(uri, 1, 0, "TDLibFile");
     qmlRegisterType<TextFilterModel>(uri, 1, 0, "TextFilterModel");
     qmlRegisterType<BoolFilterModel>(uri, 1, 0, "BoolFilterModel");
-    qmlRegisterType<InvertedProxyModel>(uri, 1, 0, "InvertedProxyModel");
     qmlRegisterType<ChatPermissionFilterModel>(uri, 1, 0, "ChatPermissionFilterModel");
     qmlRegisterType<ChatManager>(uri, 1, 0, "ChatManager");
     qmlRegisterType<LottieItem>(uri, 1, 0, "LottieItem");

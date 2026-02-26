@@ -23,7 +23,6 @@
 #include "knownusersmodel.h"
 #include "contactsmodel.h"
 #include "chatfoldersmodel.h"
-#include "invertedproxymodel.h"
 #include "waveformmanager.h"
 #include "suggestedactionsmanager.h"
 #include "lottieitem.h"

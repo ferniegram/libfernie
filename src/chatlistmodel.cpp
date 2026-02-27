@@ -133,6 +133,7 @@ ChatListModel::~ChatListModel()
 
 void ChatListModel::reset()
 {
+    qDeleteAll(chatList);
     chatList.clear();
 }
 
@@ -261,9 +262,8 @@ int ChatListModel::updateChatOrder(const int chatIndex) {
             }
         }
         endMoveRows();
-    } else {
+    } else
         LOG("Chat" << chat->data->chatId << "stays at position" << chatIndex);
-    }
 
     return newIndex;
 }
@@ -345,13 +345,12 @@ void ChatListModel::handleChatRemovedFromList(qlonglong chatId) {
         LOG("Removing chat at" << i);
 
         beginRemoveRows(QModelIndex(), i, i);
-        chatList.removeAt(i);
+        delete chatList.takeAt(i);
         chatIndexMap.remove(chatId);
         // Update damaged part of the map
         const int n = chatList.size();
-        for (int pos = i; pos < n; pos++) {
+        for (int pos = i; pos < n; pos++)
             chatIndexMap.insert(chatList.at(pos)->data->chatId, pos);
-        }
         endRemoveRows();
     }
 }

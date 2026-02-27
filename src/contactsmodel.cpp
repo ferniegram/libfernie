@@ -90,9 +90,9 @@ QVariant ContactsListModel::data(const QModelIndex &index, int role) const {
 }
 
 void ContactsListModel::addUser(const QString &userId) {
-    if (!this->tdLibWrapper->hasUserInformation(userId)) {
+    /*if (!this->tdLibWrapper->hasUserInformation(userId)) { // FIXME: why was this here?
         this->tdLibWrapper->getUserFullInfo(userId);
-    }
+    }*/
     beginInsertRows(QModelIndex(), contactIds.size(), contactIds.size());
     this->contactIds.append(userId);
     endInsertRows();

@@ -27,8 +27,7 @@
 #include <td/telegram/td_json_client.h>
 #include "waveformmanager.h"
 
-class TDLibReceiver : public QThread
-{
+class TDLibReceiver : public QThread {
     Q_OBJECT
     void run() Q_DECL_OVERRIDE {
         receiverLoop();
@@ -82,8 +81,8 @@ signals:
     void stickerSets(const QVariantList &stickerSets, int totalCount, const QString &extra);
     void stickerSet(const QString &stickerSetId, const QVariantMap &stickerSet);
     void chatMembers(const QString &extra, const QVariantList &members, int totalMembers);
-    void userFullInfo(const QVariantMap &userFullInfo);
-    void userFullInfoUpdated(const QString &userId, const QVariantMap &userFullInfo);
+    void userFullInfo(qlonglong userId, const QVariantMap &userFullInfo);
+    void userFullInfoUpdated(qlonglong userId, const QVariantMap &userFullInfo);
     void basicGroupFullInfo(const QString &groupId, const QVariantMap &groupFullInfo);
     void basicGroupFullInfoUpdated(const QString &groupId, const QVariantMap &groupFullInfo);
     void supergroupFullInfo(const QString &groupId, const QVariantMap &groupFullInfo);

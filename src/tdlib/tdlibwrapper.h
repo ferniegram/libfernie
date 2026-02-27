@@ -283,7 +283,7 @@ public:
     Q_INVOKABLE void getStickerSet(const QString &setId);
     Q_INVOKABLE void getSupergroupMembers(const QString &groupId, int limit, int offset);
     Q_INVOKABLE void getGroupFullInfo(const QString &groupId, bool isSuperGroup);
-    Q_INVOKABLE void getUserFullInfo(const QString &userId);
+    Q_INVOKABLE void getUserFullInfo(qlonglong userId);
     Q_INVOKABLE void createPrivateChat(const QString &userId, const QString &extra);
     Q_INVOKABLE void createNewSecretChat(const QString &userId, const QString &extra);
     Q_INVOKABLE void createSupergroupChat(const QString &supergroupId, const QString &extra);
@@ -456,8 +456,8 @@ signals:
     void stickerSetsReceived(const QVariantList &stickerSets);
     void stickerSetReceived(const QString &stickerSetId, const QVariantMap &stickerSet);
     void chatMembersReceived(const QString &extra, const QVariantList &members, int totalMembers);
-    void userFullInfoReceived(const QVariantMap &userFullInfo);
-    void userFullInfoUpdated(const QString &userId, const QVariantMap &userFullInfo);
+    void userFullInfoReceived(qlonglong userId, const QVariantMap &userFullInfo);
+    void userFullInfoUpdated(qlonglong userId, const QVariantMap &userFullInfo);
     void basicGroupFullInfoReceived(const QString &groupId, const QVariantMap &groupFullInfo);
     void supergroupFullInfoReceived(const QString &groupId, const QVariantMap &groupFullInfo);
     void basicGroupFullInfoUpdated(const QString &groupId, const QVariantMap &groupFullInfo);

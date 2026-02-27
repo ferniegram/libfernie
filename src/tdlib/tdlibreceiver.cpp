@@ -595,16 +595,16 @@ void TDLibReceiver::processChatMembers(const QVariantMap &receivedInformation)
     emit chatMembers(extra, receivedInformation.value("members").toList(), receivedInformation.value(TOTAL_COUNT).toInt());
 }
 
-void TDLibReceiver::processUserFullInfo(const QVariantMap &receivedInformation)
-{
-    LOG("Received UserFullInfo");
-    emit userFullInfo(receivedInformation);
+void TDLibReceiver::processUserFullInfo(const QVariantMap &receivedInformation) {
+    const qlonglong userId = receivedInformation.value(_EXTRA).toLongLong();
+    LOG("Received userFullInfo" << userId);
+    emit userFullInfo(userId, receivedInformation);
 }
 
-void TDLibReceiver::processUpdateUserFullInfo(const QVariantMap &receivedInformation)
-{
-    LOG("Received UserFullInfoUpdate");
-    emit userFullInfoUpdated(receivedInformation.value(USER_ID).toString(), receivedInformation.value("user_full_info").toMap());
+void TDLibReceiver::processUpdateUserFullInfo(const QVariantMap &receivedInformation) {
+    const qlonglong userId = receivedInformation.value(USER_ID).toLongLong();
+    LOG("Received updateUserFullInfo");
+    emit userFullInfoUpdated(userId, receivedInformation.value("user_full_info").toMap());
 }
 
 void TDLibReceiver::processBasicGroupFullInfo(const QVariantMap &receivedInformation)

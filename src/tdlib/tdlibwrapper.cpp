@@ -862,7 +862,7 @@ void TDLibWrapper::getGroupFullInfo(const QString &groupId, bool isSuperGroup) {
     this->sendRequest(requestObject);
 }
 
-void TDLibWrapper::getUserFullInfo(const QString &userId) {
+void TDLibWrapper::getUserFullInfo(qlonglong userId) {
     LOG("Retrieving UserFullInfo" << userId);
     this->sendRequest(QVariantMap{
         {_TYPE, "getUserFullInfo"},

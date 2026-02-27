@@ -298,11 +298,10 @@ void TDLibReceiver::processUpdateUser(const QVariantMap &receivedInformation)
     emit userUpdated(userInformation);
 }
 
-void TDLibReceiver::processUpdateUserStatus(const QVariantMap &receivedInformation)
-{
-    const QString userId = receivedInformation.value(USER_ID).toString();
+void TDLibReceiver::processUpdateUserStatus(const QVariantMap &receivedInformation) {
+    const qlonglong userId = receivedInformation.value(USER_ID).toLongLong();
     QVariantMap userStatusInformation = receivedInformation.value("status").toMap();
-    VERBOSE("User status was updated: " << receivedInformation.value(USER_ID).toString() << userStatusInformation.value(_TYPE).toString());
+    VERBOSE("User status was updated: " << userId << userStatusInformation.value(_TYPE).toString());
     emit userStatusUpdated(userId, userStatusInformation);
 }
 

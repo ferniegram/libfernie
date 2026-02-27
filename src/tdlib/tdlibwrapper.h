@@ -538,7 +538,7 @@ public slots:
     void handleOptionUpdated(const QString &optionName, const QVariant &optionValue);
     void handleConnectionStateChanged(const QString &connectionState);
     void handleUserUpdated(const QVariantMap &updatedUserInformation);
-    void handleUserStatusUpdated(const QString &userId, const QVariantMap &userStatusInformation);
+    void handleUserStatusUpdated(qlonglong userId, const QVariantMap &userStatusInformation);
     void handleFileUpdated(const QVariantMap &fileInformation);
 
     void handleNewChatDiscovered(const QVariantMap &chatInformation);
@@ -589,7 +589,7 @@ private:
     const Group *updateGroup(qlonglong groupId, const QVariantMap &groupInfo, QHash<qlonglong,Group*> *groups);
     void sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content);
     void initializeTDLibReceiver();
-    void updateUserInformation(const QString &userId, const QVariantMap &userInformation);
+    void updateUserInformation(qlonglong userId, const QVariantMap &userInformation);
     void updateChatPositions(qlonglong chatId, const QVariantList &positions);
     static QString getTopChatCategoryType(TopChatCategory category);
     static QString getMessageSourceType(MessageSource source);
@@ -611,8 +611,8 @@ private:
     QQmlPropertyMap* options;
     QVariantMap userInformation;
     QMap<UserPrivacySetting, UserPrivacySettingRule> userPrivacySettingRules;
-    QVariantMap usersById;
-    QVariantMap usersByName;
+    QMap<qlonglong, QVariantMap> usersById;
+    QHash<QString, qlonglong> usersByName;
     QHash<qlonglong, ChatData*> chats;
     QMap<qlonglong, QVariantMap> secretChats;
     QVariantMap unreadMessageInformation;

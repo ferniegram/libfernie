@@ -42,7 +42,7 @@ signals:
     void optionUpdated(const QString &optionName, const QVariant &optionValue);
     void connectionStateChanged(const QString &connectionState);
     void userUpdated(const QVariantMap &userInformation);
-    void userStatusUpdated(const QString &userId, const QVariantMap &userStatusInformation);
+    void userStatusUpdated(qlonglong userId, const QVariantMap &userStatusInformation);
     void fileUpdated(const QVariantMap &fileInformation);
     void newChatDiscovered(const QVariantMap &chatInformation);
     void chatAddedToList(const QVariantMap &chatList, qlonglong chatId);

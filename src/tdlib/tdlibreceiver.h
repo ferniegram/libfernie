@@ -55,7 +55,7 @@ signals:
     void chatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
     void chatAvailableReactionsUpdated(qlonglong chatId, const QVariantMap &availableReactions);
     void basicGroupUpdated(qlonglong groupId, const QVariantMap &groupInformation);
-    void superGroupUpdated(qlonglong groupId, const QVariantMap &groupInformation);
+    void supergroupUpdated(qlonglong groupId, const QVariantMap &groupInformation);
     void chatOnlineMemberCountUpdated(const QString &chatId, int onlineMemberCount);
     void messagesReceived(qlonglong chatId, int extra, const QVariantList &messages, int totalCount);
     void foundChatMessagesReceived(qlonglong chatId, int extra, int extra2, const QVariantList &messages, int totalCount, qlonglong nextFromMessageId);
@@ -80,13 +80,13 @@ signals:
     void installedStickerSetsUpdated(const QString &stickerType, const QVariantList &stickerSetIds);
     void stickerSets(const QVariantList &stickerSets, int totalCount, const QString &extra);
     void stickerSet(const QString &stickerSetId, const QVariantMap &stickerSet);
-    void chatMembers(const QString &extra, const QVariantList &members, int totalMembers);
+    void chatMembers(qlonglong chatId, const QVariantList &members, int totalMembers);
     void userFullInfo(qlonglong userId, const QVariantMap &userFullInfo);
     void userFullInfoUpdated(qlonglong userId, const QVariantMap &userFullInfo);
-    void basicGroupFullInfo(const QString &groupId, const QVariantMap &groupFullInfo);
-    void basicGroupFullInfoUpdated(const QString &groupId, const QVariantMap &groupFullInfo);
-    void supergroupFullInfo(const QString &groupId, const QVariantMap &groupFullInfo);
-    void supergroupFullInfoUpdated(const QString &groupId, const QVariantMap &groupFullInfo);
+    void basicGroupFullInfo(qlonglong groupId, const QVariantMap &groupFullInfo);
+    void basicGroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
+    void supergroupFullInfo(qlonglong groupId, const QVariantMap &groupFullInfo);
+    void supergroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
     void userProfilePhotos(const QString &extra, const QVariantList &photos, int totalPhotos);
     void chatPermissionsUpdated(qlonglong chatId, const QVariantMap &chatPermissions);
     void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);

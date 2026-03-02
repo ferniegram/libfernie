@@ -401,7 +401,7 @@ void TDLibReceiver::processUpdateSuperGroup(const QVariantMap &receivedInformati
     const QVariantMap supergroup(receivedInformation.value(SUPERGROUP).toMap());
     const qlonglong superGroupId = supergroup.value(ID).toLongLong();
     LOG("Super group information updated for " << superGroupId);
-    emit superGroupUpdated(superGroupId, supergroup);
+    emit supergroupUpdated(superGroupId, supergroup);
 }
 
 void TDLibReceiver::processChatOnlineMemberCountUpdated(const QVariantMap &receivedInformation)
@@ -587,11 +587,10 @@ void TDLibReceiver::processStickerSet(const QVariantMap &receivedInformation) {
     LOG("Received stickerSet" << id);
     emit stickerSet(id, cleanupMap(receivedInformation));
 }
-void TDLibReceiver::processChatMembers(const QVariantMap &receivedInformation)
-{
-    LOG("Received super group members");
-    const QString extra = receivedInformation.value(_EXTRA).toString();
-    emit chatMembers(extra, receivedInformation.value("members").toList(), receivedInformation.value(TOTAL_COUNT).toInt());
+void TDLibReceiver::processChatMembers(const QVariantMap &receivedInformation) {
+    const qlonglong chatId = receivedInformation.value(_EXTRA).toLongLong();
+    LOG("Received super group members" << chatId);
+    emit chatMembers(chatId, receivedInformation.value("members").toList(), receivedInformation.value(TOTAL_COUNT).toInt());
 }
 
 void TDLibReceiver::processUserFullInfo(const QVariantMap &receivedInformation) {
@@ -602,39 +601,34 @@ void TDLibReceiver::processUserFullInfo(const QVariantMap &receivedInformation) 
 
 void TDLibReceiver::processUpdateUserFullInfo(const QVariantMap &receivedInformation) {
     const qlonglong userId = receivedInformation.value(USER_ID).toLongLong();
-    LOG("Received updateUserFullInfo");
+    LOG("Received updateUserFullInfo" << userId);
     emit userFullInfoUpdated(userId, receivedInformation.value("user_full_info").toMap());
 }
 
-void TDLibReceiver::processBasicGroupFullInfo(const QVariantMap &receivedInformation)
-{
-    LOG("Received BasicGroupFullInfo");
-    const QString groupId = receivedInformation.value(_EXTRA).toString();
+void TDLibReceiver::processBasicGroupFullInfo(const QVariantMap &receivedInformation) {
+    const qlonglong groupId = receivedInformation.value(_EXTRA).toLongLong();
+    LOG("Received basicGroupFullInfo" << groupId);
     emit basicGroupFullInfo(groupId, receivedInformation);
 }
-void TDLibReceiver::processUpdateBasicGroupFullInfo(const QVariantMap &receivedInformation)
-{
-    LOG("Received BasicGroupFullInfoUpdate");
-    const QString groupId = receivedInformation.value("basic_group_id").toString();
+void TDLibReceiver::processUpdateBasicGroupFullInfo(const QVariantMap &receivedInformation) {
+    const qlonglong groupId = receivedInformation.value("basic_group_id").toLongLong();
+    LOG("Received updateBasicGroupFullInfo" << groupId);
     emit basicGroupFullInfoUpdated(groupId, receivedInformation.value("basic_group_full_info").toMap());
 }
 
-void TDLibReceiver::processSupergroupFullInfo(const QVariantMap &receivedInformation)
-{
-    LOG("Received SuperGroupFullInfoUpdate");
-    const QString groupId = receivedInformation.value(_EXTRA).toString();
+void TDLibReceiver::processSupergroupFullInfo(const QVariantMap &receivedInformation) {
+    const qlonglong groupId = receivedInformation.value(_EXTRA).toLongLong();
+    LOG("Received updateSuperGroupFullInfo" << groupId);
     emit supergroupFullInfo(groupId, receivedInformation);
 }
 
-void TDLibReceiver::processUpdateSupergroupFullInfo(const QVariantMap &receivedInformation)
-{
-    LOG("Received SuperGroupFullInfoUpdate");
-    const QString groupId = receivedInformation.value("supergroup_id").toString();
+void TDLibReceiver::processUpdateSupergroupFullInfo(const QVariantMap &receivedInformation) {
+    const qlonglong groupId = receivedInformation.value("supergroup_id").toLongLong();
+    LOG("Received updateSuperGroupFullInfo" << groupId);
     emit supergroupFullInfoUpdated(groupId, receivedInformation.value("supergroup_full_info").toMap());
 }
 
-void TDLibReceiver::processUserProfilePhotos(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processUserProfilePhotos(const QVariantMap &receivedInformation) {
     const QString extra = receivedInformation.value(_EXTRA).toString();
     emit userProfilePhotos(extra, receivedInformation.value("photos").toList(), receivedInformation.value(TOTAL_COUNT).toInt());
 }

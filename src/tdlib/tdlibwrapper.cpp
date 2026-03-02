@@ -279,7 +279,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::unreadMessageCountUpdated, this, &TDLibWrapper::handleUnreadMessageCountUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::unreadChatCountUpdated, this, &TDLibWrapper::handleUnreadChatCountUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::basicGroupUpdated, this, &TDLibWrapper::handleBasicGroupUpdated);
-    connect(this->tdLibReceiver, &TDLibReceiver::superGroupUpdated, this, &TDLibWrapper::handleSuperGroupUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::supergroupUpdated, this, &TDLibWrapper::handleSupergroupUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::chatOnlineMemberCountUpdated, this, &TDLibWrapper::chatOnlineMemberCountUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::messagesReceived, this, &TDLibWrapper::messagesReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::foundChatMessagesReceived, this, &TDLibWrapper::handleFoundChatMessagesReceived);
@@ -838,9 +838,9 @@ void TDLibWrapper::getStickerSet(const QString &setId) {
     this->sendRequest({{_TYPE, "getStickerSet"}, {"set_id", setId}});
 }
 
-void TDLibWrapper::getSupergroupMembers(const QString &groupId, int limit, int offset) {
-    LOG("Retrieving SupergroupMembers");
-    this->sendRequest(QVariantMap{
+void TDLibWrapper::getSupergroupMembers(qlonglong groupId, int limit, int offset) {
+    LOG("Retrieving supergroup members");
+    this->sendRequest({
         {_TYPE, "getSupergroupMembers"},
         {_EXTRA, groupId},
         {SUPERGROUP_ID, groupId},
@@ -907,11 +907,11 @@ void TDLibWrapper::createBasicGroupChat(const QString &basicGroupId, const QStri
     });
 }
 
-void TDLibWrapper::getGroupsInCommon(const QString &userId, int limit, int offset) {
+void TDLibWrapper::getGroupsInCommon(qlonglong userId, int limit, int offset) {
     LOG("Retrieving Groups in Common");
     this->sendRequest(QVariantMap{
         {_TYPE, "getGroupsInCommon"},
-        {_EXTRA, userId},
+        {_EXTRA, "getGroupsInCommon:" + QString::number(userId)},
         {USER_ID, userId},
         {OFFSET, offset},
         {LIMIT, limit}
@@ -1784,7 +1784,7 @@ void TDLibWrapper::updateUserInformation(qlonglong userId, const QVariantMap &us
     }
     this->usersById.insert(userId, userInformation);
     this->usersByName.insert(username, userId);
-    emit userUpdated(QString::number(userId), userInformation);
+    emit userUpdated(userId, userInformation);
 }
 
 void TDLibWrapper::handleFileUpdated(const QVariantMap &fileInformation) {
@@ -2021,9 +2021,9 @@ void TDLibWrapper::handleBasicGroupUpdated(qlonglong groupId, const QVariantMap 
     emit basicGroupUpdated(updateGroup(groupId, groupInformation, &basicGroups)->groupId);
 }
 
-void TDLibWrapper::handleSuperGroupUpdated(qlonglong groupId, const QVariantMap &groupInformation) {
+void TDLibWrapper::handleSupergroupUpdated(qlonglong groupId, const QVariantMap &groupInformation) {
     superGroupsByName.insert(groupInformation.value(USERNAMES).toMap().value(EDITABLE_USERNAME).toString().toLower(), groupInformation);
-    emit superGroupUpdated(updateGroup(groupId, groupInformation, &superGroups)->groupId);
+    emit supergroupUpdated(updateGroup(groupId, groupInformation, &superGroups)->groupId);
 }
 
 void TDLibWrapper::handleStickerSets(const QVariantList &stickerSets, int totalCount, const QString &extra) {

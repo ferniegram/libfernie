@@ -251,7 +251,7 @@ void ChatManager::setTDLibWrapper(QObject *obj) {
             connect(this->tdLibWrapper, &TDLibWrapper::chatActionUpdated, this, &ChatManager::handleChatActionUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::userUpdated, this, &ChatManager::handleUserUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::basicGroupUpdated, this, &ChatManager::handleBasicGroupUpdated);
-            connect(this->tdLibWrapper, &TDLibWrapper::superGroupUpdated, this, &ChatManager::handleSupergroupUpdated);
+            connect(this->tdLibWrapper, &TDLibWrapper::supergroupUpdated, this, &ChatManager::handleSupergroupUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::sponsoredMessagesReceived, this, &ChatManager::handleSponsoredMessagesReceived);
             connect(this->tdLibWrapper, &TDLibWrapper::chatViewAsTopicsUpdated, this, &ChatManager::handleChatViewAsTopicsUpdated);
 
@@ -339,8 +339,8 @@ bool ChatManager::isBot() const {
     return userInfo().toMap().value(TYPE).toMap().value(_TYPE).toString() == TYPE_USER_TYPE_BOT;
 }
 
-void ChatManager::handleUserUpdated(const QString &userId) {
-    if (this->userId() == userId.toLongLong())
+void ChatManager::handleUserUpdated(qlonglong userId) {
+    if (this->userId() == userId)
         emit userInfoChanged();
 }
 

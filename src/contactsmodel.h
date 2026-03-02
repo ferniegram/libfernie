@@ -57,7 +57,7 @@ signals:
 
 public slots:
     void handleUsersReceived(const QString &extra, const QVariantList &userIds, int totalUsers);
-    void handleUserUpdated(const QString &userId);
+    void handleUserUpdated(qlonglong userId);
     void handleContactsImported(const QVariantList &importerCount, const QVariantList &userIds, bool single);
     void handleOkMapReceived(const QString &type, const QVariantMap &extra);
 

@@ -108,8 +108,8 @@ void ContactsListModel::handleUsersReceived(const QString &extra, const QVariant
     }
 }
 
-void ContactsListModel::handleUserUpdated(const QString &userId) {
-    int i = contactIds.indexOf(userId);
+void ContactsListModel::handleUserUpdated(qlonglong userId) {
+    int i = contactIds.indexOf(QString::number(userId));
     if (i > -1) {
         const QModelIndex modelIndex = index(i);
         emit dataChanged(modelIndex, modelIndex);

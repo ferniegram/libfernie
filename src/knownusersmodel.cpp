@@ -27,7 +27,7 @@ KnownUsersModel::KnownUsersModel(TDLibWrapper *tdLibWrapper, QObject *parent)
 {
     this->tdLibWrapper = tdLibWrapper;
 
-    connect(this->tdLibWrapper, SIGNAL(userUpdated(QString, QVariantMap)), this, SLOT(handleUserUpdated(QString, QVariantMap)));
+    connect(this->tdLibWrapper, &TDLibWrapper::userUpdated, this, &KnownUsersModel::handleUserUpdated);
 }
 
 QHash<int, QByteArray> KnownUsersModel::roleNames() const
@@ -65,7 +65,7 @@ QVariant KnownUsersModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void KnownUsersModel::handleUserUpdated(const QString &userId, const QVariantMap &userInformation)
+void KnownUsersModel::handleUserUpdated(qlonglong userId, const QVariantMap &userInformation)
 {
-    this->knownUsers.insert(userId, userInformation);
+    this->knownUsers.insert(QString::number(userId), userInformation);
 }

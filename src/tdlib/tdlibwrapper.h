@@ -375,6 +375,8 @@ public:
     Q_INVOKABLE void getForumTopic(qlonglong chatId, int forumTopicId);
     Q_INVOKABLE void addFavoriteSticker(int fileId);
     Q_INVOKABLE void removeFavoriteSticker(int fileId);
+    Q_INVOKABLE void getChatSimilarChats(qlonglong chatId);
+    Q_INVOKABLE void getBotSimilarBots(qlonglong botUserId);
 
     // Others (candidates for extraction ;))
     Q_INVOKABLE void initializeOpenWith();
@@ -467,8 +469,8 @@ signals:
     void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
     void chatTitleUpdated(qlonglong chatId, const QString &title);
     void chatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
-    void usersReceived(const QString &extra, const QVariantList &userIds, int totalUsers);
-    void messageSendersReceived(const QString &extra, const QVariantList &senders, int totalUsers);
+    void usersReceived(const QString &extra, const QVariantList &userIds, int totalCount);
+    void messageSendersReceived(const QString &extra, const QVariantList &senders, int totalCount);
     void errorReceived(int code, const QString &message, const QVariant &extra);
     void serviceNotificationReceived(const QString &type, const QVariantMap &content);
     void contactsImported(const QVariantList &importerCount, const QVariantList &userIds, bool single);

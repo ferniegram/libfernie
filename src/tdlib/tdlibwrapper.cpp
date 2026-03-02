@@ -134,6 +134,7 @@ namespace {
     const QString TYPE_SET_OPTION("setOption");
     const QString STICKER_TYPE("sticker_type");
     const QString STICKER("sticker");
+    const QString BOT_USER_ID("bot_user_id");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -1222,7 +1223,7 @@ void TDLibWrapper::getInlineQueryResults(qlonglong botUserId, qlonglong chatId, 
     QVariantMap requestObject{
         {_TYPE, "getInlineQueryResults"},
         {CHAT_ID, chatId},
-        {"bot_user_id", botUserId},
+        {BOT_USER_ID, botUserId},
         {QUERY, query},
         {OFFSET, offset},
         {_EXTRA, extra}
@@ -1251,7 +1252,7 @@ void TDLibWrapper::sendBotStartMessage(qlonglong botUserId, qlonglong chatId, co
     LOG("Send Bot Start Message" << botUserId << chatId << parameter << extra);
     this->sendRequest(QVariantMap{
         {_TYPE, "sendBotStartMessage"},
-        {"bot_user_id", botUserId},
+        {BOT_USER_ID, botUserId},
         {CHAT_ID, chatId},
         {"parameter", parameter},
         {_EXTRA, extra}
@@ -3036,4 +3037,14 @@ void TDLibWrapper::addFavoriteSticker(int fileId) {
 void TDLibWrapper::removeFavoriteSticker(int fileId) {
     LOG("Removing sticker to favorites" << fileId);
     this->sendRequest({{_TYPE, "removeFavoriteSticker"}, {STICKER, QVariantMap{{_TYPE, TYPE_INPUT_FILE_ID}, {ID, fileId}}}});
+}
+
+void TDLibWrapper::getChatSimilarChats(qlonglong chatId) {
+    LOG("Getting similar chats" << chatId);
+    this->sendRequest({{_TYPE, "getChatSimilarChats"}, {CHAT_ID, chatId}, {_EXTRA, "getChatSimilarChats:"+QString::number(chatId)}});
+}
+
+void TDLibWrapper::getBotSimilarBots(qlonglong botUserId) {
+    LOG("Getting similar bots" << botUserId);
+    this->sendRequest({{_TYPE, "getBotSimilarBots"}, {BOT_USER_ID, botUserId}, {_EXTRA, "getBotSimilarBots:"+QString::number(botUserId)}});
 }

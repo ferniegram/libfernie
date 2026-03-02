@@ -98,10 +98,10 @@ void ContactsListModel::addUser(const QString &userId) {
     endInsertRows();
 }
 
-void ContactsListModel::handleUsersReceived(const QString &extra, const QVariantList &userIds, int totalUsers)
+void ContactsListModel::handleUsersReceived(const QString &extra, const QVariantList &userIds, int totalCount)
 {
     if (extra == "contactsRequested") {
-        LOG("Received contacts list..." << totalUsers);
+        LOG("Received contacts list..." << totalCount);
         this->contactIds.clear();
         for (const QVariant &userIdVariant : userIds)
             addUser(userIdVariant.toString());

@@ -92,8 +92,8 @@ signals:
     void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
     void chatTitleUpdated(qlonglong chatId, const QString &title);
     void messageIsPinnedUpdated(qlonglong chatId, qlonglong messageId, bool isPinned);
-    void usersReceived(const QString &extra, const QVariantList &senders, int totalUsers);
-    void messageSendersReceived(const QString &extra, const QVariantList &userIds, int totalUsers);
+    void usersReceived(const QString &extra, const QVariantList &senders, int totalCount);
+    void messageSendersReceived(const QString &extra, const QVariantList &userIds, int totalCount);
     void errorReceived(const int code, const QString &message, const QVariant &extra);
     void serviceNotificationReceived(const QString &type, const QVariantMap &content);
     void secretChat(qlonglong secretChatId, const QVariantMap &secretChat);

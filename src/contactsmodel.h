@@ -56,7 +56,7 @@ signals:
     void contactNotFound();
 
 public slots:
-    void handleUsersReceived(const QString &extra, const QVariantList &userIds, int totalUsers);
+    void handleUsersReceived(const QString &extra, const QVariantList &userIds, int totalCount);
     void handleUserUpdated(qlonglong userId);
     void handleContactsImported(const QVariantList &importerCount, const QVariantList &userIds, bool single);
     void handleOkMapReceived(const QString &type, const QVariantMap &extra);

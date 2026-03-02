@@ -849,13 +849,14 @@ void TDLibWrapper::getSupergroupMembers(qlonglong groupId, int limit, int offset
     });
 }
 
-void TDLibWrapper::getGroupFullInfo(const QString &groupId, bool isSuperGroup) {
-    LOG("Retrieving GroupFullInfo");
+void TDLibWrapper::getGroupFullInfo(const QString &groupId, bool isSupergroup) {
     QVariantMap requestObject{{_EXTRA, groupId}};
-    if(isSuperGroup) {
+    if (isSupergroup) {
+        LOG("Retrieving supergroup full info" << groupId);
         requestObject.insert(_TYPE, "getSupergroupFullInfo");
         requestObject.insert(SUPERGROUP_ID, groupId);
     } else {
+        LOG("Retrieving basic group full info" << groupId);
         requestObject.insert(_TYPE, "getBasicGroupFullInfo");
         requestObject.insert(BASIC_GROUP_ID, groupId);
     }

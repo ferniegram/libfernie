@@ -29,6 +29,8 @@ The installation of TDLib should be handled by the application.
 
 See Ferniegram for a complete example of including libfernie in your project.
 
+**Important:** Libfernie's API is not stable, and it is not versioned. Ferniegram generally adapts to the latest API changes, since that is the main project relying on this library. This is unlikely to change in the future, since no code is ideal and there's always room for improvement.
+
 ## TODO
 
 - Move LottieItem to a separate project

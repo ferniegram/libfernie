@@ -197,7 +197,7 @@ public:
         QVariantMap groupInfo;
     };
 
-    Q_INVOKABLE qlonglong myUserId() const;
+    qlonglong myUserId() const;
     Q_INVOKABLE QVariantMap getUserInformation();
     Q_INVOKABLE QVariantMap getUserInformation(const QString &userId);
     Q_INVOKABLE bool hasUserInformation(const QString &userId);

@@ -289,7 +289,7 @@ public:
     Q_INVOKABLE void createSupergroupChat(const QString &supergroupId, const QString &extra);
     Q_INVOKABLE void createBasicGroupChat(const QString &basicGroupId, const QString &extra);
     Q_INVOKABLE void getGroupsInCommon(qlonglong userId, int limit, int offset = 0);
-    Q_INVOKABLE void getUserProfilePhotos(const QString &userId, int limit, int offset);
+    Q_INVOKABLE void getUserProfilePhotos(qlonglong userId, int limit, int offset);
     Q_INVOKABLE void setChatPermissions(const QString &chatId, const QVariantMap &chatPermissions);
     Q_INVOKABLE void setChatSlowModeDelay(const QString &chatId, int delay);
     Q_INVOKABLE void setChatDescription(const QString &chatId, const QString &description);
@@ -464,7 +464,7 @@ signals:
     void supergroupFullInfoReceived(qlonglong groupId, const QVariantMap &groupFullInfo);
     void basicGroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
     void supergroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
-    void userProfilePhotosReceived(const QString &extra, const QVariantList &photos, int totalPhotos);
+    void chatPhotosReceived(qlonglong chatId, const QVariantList &photos, int totalCount);
     void chatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions);
     void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
     void chatTitleUpdated(qlonglong chatId, const QString &title);

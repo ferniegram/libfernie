@@ -312,7 +312,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::basicGroupFullInfoUpdated, this, &TDLibWrapper::basicGroupFullInfoUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::supergroupFullInfo, this, &TDLibWrapper::supergroupFullInfoReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::supergroupFullInfoUpdated, this, &TDLibWrapper::supergroupFullInfoUpdated);
-    connect(this->tdLibReceiver, &TDLibReceiver::userProfilePhotos, this, &TDLibWrapper::userProfilePhotosReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::chatPhotos, this, &TDLibWrapper::chatPhotosReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::chatPermissionsUpdated, this, &TDLibWrapper::chatPermissionsUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::messageIsPinnedUpdated, this, &TDLibWrapper::handleMessageIsPinnedUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::usersReceived, this, &TDLibWrapper::usersReceived);
@@ -920,7 +920,7 @@ void TDLibWrapper::getGroupsInCommon(qlonglong userId, int limit, int offset) {
     });
 }
 
-void TDLibWrapper::getUserProfilePhotos(const QString &userId, int limit, int offset) {
+void TDLibWrapper::getUserProfilePhotos(qlonglong userId, int limit, int offset) {
     LOG("Retrieving User Profile Photos");
     this->sendRequest(QVariantMap{
         {_TYPE, "getUserProfilePhotos"},

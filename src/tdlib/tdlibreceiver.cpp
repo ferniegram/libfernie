@@ -163,7 +163,7 @@ TDLibReceiver::TDLibReceiver(int tdLibClientId, QObject *parent) : QThread(paren
     handlers.insert("updateBasicGroupFullInfo", &TDLibReceiver::processUpdateBasicGroupFullInfo);
     handlers.insert("supergroupFullInfo", &TDLibReceiver::processSupergroupFullInfo);
     handlers.insert("updateSupergroupFullInfo", &TDLibReceiver::processUpdateSupergroupFullInfo);
-    handlers.insert("chatPhotos", &TDLibReceiver::processUserProfilePhotos);
+    handlers.insert("chatPhotos", &TDLibReceiver::processChatPhotos);
     handlers.insert("updateChatPermissions", &TDLibReceiver::processUpdateChatPermissions);
     handlers.insert("updateChatPhoto", &TDLibReceiver::processUpdateChatPhoto);
     handlers.insert("updateChatTitle", &TDLibReceiver::processUpdateChatTitle);
@@ -628,9 +628,10 @@ void TDLibReceiver::processUpdateSupergroupFullInfo(const QVariantMap &receivedI
     emit supergroupFullInfoUpdated(groupId, receivedInformation.value("supergroup_full_info").toMap());
 }
 
-void TDLibReceiver::processUserProfilePhotos(const QVariantMap &receivedInformation) {
-    const QString extra = receivedInformation.value(_EXTRA).toString();
-    emit userProfilePhotos(extra, receivedInformation.value("photos").toList(), receivedInformation.value(TOTAL_COUNT).toInt());
+void TDLibReceiver::processChatPhotos(const QVariantMap &receivedInformation) {
+    const qlonglong chatId = receivedInformation.value(_EXTRA).toLongLong();
+    LOG("Received chatPhotos" << chatId);
+    emit chatPhotos(chatId, receivedInformation.value("photos").toList(), receivedInformation.value(TOTAL_COUNT).toInt());
 }
 
 void TDLibReceiver::processUpdateChatPermissions(const QVariantMap &receivedInformation)

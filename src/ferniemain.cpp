@@ -19,6 +19,22 @@
 
 #include "ferniemain.h"
 
+#include "debuglogjs.h"
+#include "tdlib/tdlibfile.h"
+#include "tdlib/tdlibresponse.h"
+#include "chatpermissionfiltermodel.h"
+#include "chatlistmodel.h"
+#include "chat/chatmanager.h"
+#include "dbusadaptor.h"
+#include "textfiltermodel.h"
+#include "boolfiltermodel.h"
+#include "tgsplugin.h"
+#include "lottieitem.h"
+#include "chat/forumtopicmessagesmodel.h"
+#include "chat/mediamessagesmodel.h"
+#include "chat/invertedmediamessagesmodel.h"
+#include "userprofilepicturesmodel.h"
+
 #ifdef QT_QML_DEBUG
 #include <QtQuick>
 #endif
@@ -67,6 +83,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     qmlRegisterType<ForumTopicMessagesModel>(uri, 1, 0, "ForumTopicMessagesModel");
     qmlRegisterType<MediaMessagesModel>(uri, 1, 0, "MediaMessagesModel");
     qmlRegisterType<InvertedMediaMessagesModel>(uri, 1, 0, "InvertedMediaMessagesModel");
+    qmlRegisterType<UserProfilePicturesModel>(uri, 1, 0, "UserProfilePicturesModel");
     qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
 
     AppSettings *appSettings = new AppSettings(view.data());

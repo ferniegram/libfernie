@@ -87,7 +87,7 @@ signals:
     void basicGroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
     void supergroupFullInfo(qlonglong groupId, const QVariantMap &groupFullInfo);
     void supergroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
-    void userProfilePhotos(const QString &extra, const QVariantList &photos, int totalPhotos);
+    void chatPhotos(qlonglong chatId, const QVariantList &photos, int totalCount);
     void chatPermissionsUpdated(qlonglong chatId, const QVariantMap &chatPermissions);
     void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
     void chatTitleUpdated(qlonglong chatId, const QString &title);
@@ -206,7 +206,7 @@ private:
     void processUpdateBasicGroupFullInfo(const QVariantMap &receivedInformation);
     void processSupergroupFullInfo(const QVariantMap &receivedInformation);
     void processUpdateSupergroupFullInfo(const QVariantMap &receivedInformation);
-    void processUserProfilePhotos(const QVariantMap &receivedInformation);
+    void processChatPhotos(const QVariantMap &receivedInformation);
     void processUpdateChatPermissions(const QVariantMap &receivedInformation);
     void processUpdateChatPhoto(const QVariantMap &receivedInformation);
     void processUpdateChatTitle(const QVariantMap &receivedInformation);

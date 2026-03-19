@@ -480,8 +480,7 @@ signals:
     void callbackQueryAnswer(const QString &text, bool alert, const QString &url);
     void userPrivacySettingUpdated(UserPrivacySetting setting, UserPrivacySettingRule rule);
     void messageInteractionInfoUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &updatedInfo);
-    void okReceived(const QString &request);
-    void okMapReceived(const QString &type, const QVariantMap &extra);
+    void okReceived(const QVariant &extra);
     void sessionsReceived(int inactive_session_ttl_days, const QVariantList &sessions);
     void openFileExternally(const QString &filePath);
     void availableReactionsReceived(qlonglong messageId, const QStringList &reactions);

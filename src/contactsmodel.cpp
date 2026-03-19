@@ -54,7 +54,7 @@ ContactsListModel::ContactsListModel(TDLibWrapper *tdLibWrapper, QObject *parent
     connect(this->tdLibWrapper, &TDLibWrapper::usersReceived, this, &ContactsListModel::handleUsersReceived);
     connect(this->tdLibWrapper, &TDLibWrapper::userUpdated, this, &ContactsListModel::handleUserUpdated);
     connect(this->tdLibWrapper, &TDLibWrapper::contactsImported, this, &ContactsListModel::handleContactsImported);
-    connect(this->tdLibWrapper, &TDLibWrapper::okMapReceived, this, &ContactsListModel::handleOkMapReceived);
+    connect(this->tdLibWrapper, &TDLibWrapper::okReceived, this, &ContactsListModel::handleOkReceived);
 }
 
 QHash<int, QByteArray> ContactsListModel::roleNames() const {
@@ -139,8 +139,9 @@ void ContactsListModel::handleContactsImported(const QVariantList &/*importerCou
     } else emit contactsImported();
 }
 
-void ContactsListModel::handleOkMapReceived(const QString &type, const QVariantMap &extra) {
-    if (type == "removeContacts") {
+void ContactsListModel::handleOkReceived(const QVariant &extraVariant) {
+    const QVariantMap extra = extraVariant.toMap();
+    if (extra.value("@type").toString() == "removeContacts") {
         LOG("Removing contacts");
         for (QString userId : extra.value("user_ids").toStringList()) {
             int i = contactIds.indexOf(userId);

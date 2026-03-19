@@ -715,7 +715,12 @@ QVariant Utilities::getMessageMinithumbnail(const QVariantMap &messageContent) {
 QString Utilities::getUserName(const QVariantMap &userInformation) {
     const QString firstName = userInformation.value("first_name").toString();
     const QString lastName = userInformation.value("last_name").toString();
-    return QString(firstName + " " + lastName).trimmed();
+    const QString result = QString(firstName + " " + lastName).trimmed();
+    if (!result.isEmpty())
+        return result;
+
+    const QString userType = userInformation.value(TYPE).toMap().value(_TYPE).toString();
+    return userType == "userTypeDeleted" || userType == "userTypeUnknown" ? tr("Deleted Account") : tr("Unknown", "A user without a known name");
 }
 
 QString Utilities::formatDuration(int seconds) {

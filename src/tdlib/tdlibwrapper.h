@@ -298,7 +298,7 @@ public:
     Q_INVOKABLE void toggleSupergroupIsAllHistoryAvailable(const QString &groupId, bool isAllHistoryAvailable);
     Q_INVOKABLE void setPollAnswer(const QString &chatId, qlonglong messageId, QVariantList optionIds);
     Q_INVOKABLE void stopPoll(const QString &chatId, qlonglong messageId);
-    Q_INVOKABLE void getPollVoters(const QString &chatId, qlonglong messageId, int optionId, int limit, int offset, const QString &extra);
+    Q_INVOKABLE void getPollVoters(qlonglong chatId, qlonglong messageId, int optionId, const QString &extra, int offset, int limit = 50);
     Q_INVOKABLE void searchPublicChat(const QString &userName, bool doOpenOnFound = false);
     Q_INVOKABLE void searchUserByPhoneNumber(const QString &phoneNumber, bool doOpenOnFound = false);
     Q_INVOKABLE void joinChatByInviteLink(const QString &inviteLink, bool isChannel = false);
@@ -470,7 +470,7 @@ signals:
     void chatTitleUpdated(qlonglong chatId, const QString &title);
     void chatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
     void usersReceived(const QString &extra, const QVariantList &userIds, int totalCount);
-    void messageSendersReceived(const QString &extra, const QVariantList &senders, int totalCount);
+    void messageSendersReceived(const QString &extra, const QVariantList &messageSenders, int totalCount);
     void errorReceived(int code, const QString &message, const QVariant &extra);
     void serviceNotificationReceived(const QString &type, const QVariantMap &content);
     void contactsImported(const QVariantList &importerCount, const QVariantList &userIds, bool single);
@@ -519,6 +519,7 @@ signals:
     void messageFactCheckUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &factCheck);
     void forumTopicNotFound(qlonglong chatId, int forumTopicId);
     void stickerSetUpdated(const QString &stickerSetId, const QVariantMap &stickerSet);
+    void pollVotersReceived(const QString &extra, const QVariantList &voters, int totalCount);
 
     // Link types
     void linkUnsupportedByApp(const QString &type);

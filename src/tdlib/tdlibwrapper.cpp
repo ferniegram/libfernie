@@ -361,6 +361,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::messageContentOpened, this, &TDLibWrapper::messageContentOpened);
     connect(this->tdLibReceiver, &TDLibReceiver::messageFactCheckUpdated, this, &TDLibWrapper::messageFactCheckUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::stickerSetUpdated, this, &TDLibWrapper::stickerSetUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::pollVotersReceived, this, &TDLibWrapper::pollVotersReceived);
 
     this->tdLibReceiver->start();
 }
@@ -996,7 +997,7 @@ void TDLibWrapper::setPollAnswer(const QString &chatId, qlonglong messageId, QVa
 }
 
 void TDLibWrapper::stopPoll(const QString &chatId, qlonglong messageId) {
-    LOG("Stopping Poll");
+    LOG("Stopping poll");
     this->sendRequest(QVariantMap{
         {_TYPE, "stopPoll"},
         {CHAT_ID, chatId},
@@ -1004,8 +1005,8 @@ void TDLibWrapper::stopPoll(const QString &chatId, qlonglong messageId) {
     });
 }
 
-void TDLibWrapper::getPollVoters(const QString &chatId, qlonglong messageId, int optionId, int limit, int offset, const QString &extra) {
-    LOG("Retrieving Poll Voters");
+void TDLibWrapper::getPollVoters(qlonglong chatId, qlonglong messageId, int optionId, const QString &extra, int offset, int limit) {
+    LOG("Getting poll voters");
     this->sendRequest(QVariantMap{
         {_TYPE, "getPollVoters"},
         {_EXTRA, extra},

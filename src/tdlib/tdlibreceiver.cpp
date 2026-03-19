@@ -217,6 +217,7 @@ TDLibReceiver::TDLibReceiver(int tdLibClientId, QObject *parent) : QThread(paren
     handlers.insert("updateMessageContentOpened", &TDLibReceiver::processUpdateMessageContentOpened);
     handlers.insert("updateMessageFactCheck", &TDLibReceiver::processUpdateMessageFactCheck);
     handlers.insert("updateStickerSet", &TDLibReceiver::processUpdateStickerSet);
+    handlers.insert("pollVoters", &TDLibReceiver::processPollVoters);
 }
 
 void TDLibReceiver::setActive(bool active)
@@ -1272,4 +1273,11 @@ void TDLibReceiver::processUpdateStickerSet(const QVariantMap &receivedInformati
     const QString id = stickerSet.value(ID).toString();
     LOG("Received updateStickerSet" << id);
     emit stickerSetUpdated(id, cleanupMap(stickerSet));
+}
+
+void TDLibReceiver::processPollVoters(const QVariantMap &receivedInformation) {
+    const QString extra = receivedInformation.value(_EXTRA).toString();
+    const int totalCount = receivedInformation.value(TOTAL_COUNT).toInt();
+    LOG("Received pollVoters" << extra << totalCount);
+    emit pollVotersReceived(extra, receivedInformation.value("voters").toList(), totalCount);
 }

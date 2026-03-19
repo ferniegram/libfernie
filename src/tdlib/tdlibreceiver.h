@@ -93,7 +93,7 @@ signals:
     void chatTitleUpdated(qlonglong chatId, const QString &title);
     void messageIsPinnedUpdated(qlonglong chatId, qlonglong messageId, bool isPinned);
     void usersReceived(const QString &extra, const QVariantList &senders, int totalCount);
-    void messageSendersReceived(const QString &extra, const QVariantList &userIds, int totalCount);
+    void messageSendersReceived(const QString &extra, const QVariantList &messageSenders, int totalCount);
     void errorReceived(const int code, const QString &message, const QVariant &extra);
     void serviceNotificationReceived(const QString &type, const QVariantMap &content);
     void secretChat(qlonglong secretChatId, const QVariantMap &secretChat);
@@ -143,6 +143,7 @@ signals:
     void messageContentOpened(qlonglong chatId, qlonglong messageId);
     void messageFactCheckUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &factCheck);
     void stickerSetUpdated(const QString &stickerSetId, const QVariantMap &stickerSet);
+    void pollVotersReceived(const QString &extra, const QVariantList &voters, int totalCount);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -260,6 +261,7 @@ private:
     void processUpdateMessageContentOpened(const QVariantMap &receivedInformation);
     void processUpdateMessageFactCheck(const QVariantMap &receivedInformation);
     void processUpdateStickerSet(const QVariantMap &receivedInformation);
+    void processPollVoters(const QVariantMap &receivedInformation);
 };
 
 #endif // TDLIBRECEIVER_H

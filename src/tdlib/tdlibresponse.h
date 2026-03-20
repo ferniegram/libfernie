@@ -11,7 +11,7 @@ public:
     explicit TDLibResponse(qlonglong id, TDLibWrapper *tdLibWrapper);
 
 signals:
-    void finished(const QVariantMap response);
+    void finished(const QString &type, const QVariantMap &response);
 
 private slots:
     void handleResponseForRequestIdReceived(qlonglong requestId, const QVariantMap &response);

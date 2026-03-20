@@ -14,8 +14,9 @@ TDLibResponse::TDLibResponse(qlonglong id, TDLibWrapper *tdLibWrapper) : QObject
 
 void TDLibResponse::handleResponseForRequestIdReceived(qlonglong requestId, const QVariantMap &response) {
     if (this->id == requestId) {
-        LOG_("Finished" << response.value("@type").toString());
-        emit this->finished(response);
+        const QString type = response.value("@type").toString();
+        LOG_("Finished" << type);
+        emit this->finished(type, response);
         disconnect(this->connection); // FIXME: is this really needed?
         this->deleteLater();
     }

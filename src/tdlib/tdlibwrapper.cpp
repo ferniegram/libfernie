@@ -1630,14 +1630,14 @@ void TDLibWrapper::copyFileToDownloads(const QString &filePath, bool openAfterCo
         QString downloadFilePath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + "/" + fileInfo.fileName();
         if (QFile::exists(downloadFilePath)) {
             if (openAfterCopy) {
-                this->openFileOnDevice(downloadFilePath);
+                QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
             } else {
                 emit copyToDownloadsSuccessful(fileInfo.fileName(), downloadFilePath);
             }
         } else {
             if (QFile::copy(filePath, downloadFilePath)) {
                 if (openAfterCopy) {
-                    this->openFileOnDevice(downloadFilePath);
+                    QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
                 } else {
                     emit copyToDownloadsSuccessful(fileInfo.fileName(), downloadFilePath);
                 }
@@ -1648,11 +1648,6 @@ void TDLibWrapper::copyFileToDownloads(const QString &filePath, bool openAfterCo
     } else {
         emit copyToDownloadsError(fileInfo.fileName(), filePath);
     }
-}
-
-void TDLibWrapper::openFileOnDevice(const QString &filePath) {
-    LOG("Open file on device:" << filePath);
-    emit openFileExternally(filePath);
 }
 
 bool TDLibWrapper::getJoinChatRequested() {

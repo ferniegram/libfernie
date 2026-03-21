@@ -216,7 +216,6 @@ public:
     Q_INVOKABLE QStringList getChatReactions(qlonglong chatId);
     QVariant getOption(const QString &optionName);
     Q_INVOKABLE void copyFileToDownloads(const QString &filePath, bool openAfterCopy = false);
-    Q_INVOKABLE void openFileOnDevice(const QString &filePath);
     Q_INVOKABLE bool getJoinChatRequested();
     Q_INVOKABLE void registerJoinChat();
     Q_INVOKABLE bool isDiceEmoji(const QString &text);
@@ -497,7 +496,6 @@ signals:
     void messageInteractionInfoUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &updatedInfo);
     void okReceived(const QVariant &extra);
     void sessionsReceived(int inactive_session_ttl_days, const QVariantList &sessions);
-    void openFileExternally(const QString &filePath);
     void availableReactionsReceived(qlonglong messageId, const QStringList &reactions);
     void chatUnreadMentionCountUpdated(qlonglong chatId, int unreadMentionCount);
     void messageMentionRead(qlonglong chatId, qlonglong messageId);

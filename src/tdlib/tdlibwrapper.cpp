@@ -129,7 +129,7 @@ namespace {
     const QString TOPIC_ID("topic_id");
     const QString SOURCE("source");
     const QString FORUM_TOPIC_ID("forum_topic_id");
-    const QString TYPE_GET_FORUM_TOPC("getForumTopic");
+    const QString TYPE_GET_FORUM_TOPIC("getForumTopic");
     const QString NAME("name");
     const QString TYPE_SET_OPTION("setOption");
     const QString STICKER_TYPE("sticker_type");
@@ -2088,7 +2088,7 @@ void TDLibWrapper::handleErrorReceived(int code, const QString &message, const Q
 
             QDesktopServices::openUrl(url);
             return;
-        } else if (parts.size() == 3 && parts.at(0) == TYPE_GET_FORUM_TOPC) {
+        } else if (parts.size() == 3 && parts.at(0) == TYPE_GET_FORUM_TOPIC) {
             qlonglong chatId = parts.at(1).toLongLong();
             int forumTopicId = parts.at(2).toInt();
             LOG("Forum topic not found" << chatId << forumTopicId);
@@ -3009,7 +3009,7 @@ QString TDLibWrapper::getMessageSourceType(MessageSource source) {
 void TDLibWrapper::getForumTopic(qlonglong chatId, int forumTopicId) {
     LOG("Getting forum topic" << chatId << forumTopicId);
     this->sendRequest({
-                          {_TYPE, TYPE_GET_FORUM_TOPC},
+                          {_TYPE, TYPE_GET_FORUM_TOPIC},
                           {CHAT_ID, chatId},
                           {FORUM_TOPIC_ID, forumTopicId},
                           {_EXTRA, "getForumTopic:"+QString::number(chatId)+":"+QString::number(forumTopicId)}

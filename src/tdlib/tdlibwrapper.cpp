@@ -135,6 +135,12 @@ namespace {
     const QString STICKER_TYPE("sticker_type");
     const QString STICKER("sticker");
     const QString BOT_USER_ID("bot_user_id");
+    const QString PROXY("proxy");
+    const QString PROXY_ID("proxy_id");
+    const QString ENABLE("enable");
+    const QString TYPE_DISABLE_PROXY("disableProxy");
+    const QString SERVER("server");
+    const QString PORT("port");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -361,6 +367,10 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::messageFactCheckUpdated, this, &TDLibWrapper::messageFactCheckUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::stickerSetUpdated, this, &TDLibWrapper::stickerSetUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::pollVotersReceived, this, &TDLibWrapper::pollVotersReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::addedProxiesReceived, this, &TDLibWrapper::addedProxiesReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::addedProxyReceived, this, &TDLibWrapper::addedProxyReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::pingReceived, this, &TDLibWrapper::pingReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::proxyPingReceived, this, &TDLibWrapper::proxyPingReceived);
 
     this->tdLibReceiver->start();
 }
@@ -2077,6 +2087,12 @@ void TDLibWrapper::handleSendMarkdownChanged() {
 void TDLibWrapper::handleErrorReceived(int code, const QString &message, const QVariant &extra) {
     const QString extraString = extra.toString();
     if (extra.userType() == QMetaType::QString && !extraString.isEmpty()) {
+        if (extraString == "ping") {
+            LOG("Ping error");
+            emit pingErrorReceived();
+            return;
+        }
+
         QStringList parts(extraString.split(':'));
         if (parts.size() == 3 && parts.at(0) == QStringLiteral("getMessage")) {
             emit messageNotFound(parts.at(1).toLongLong(), parts.at(2).toLongLong());
@@ -2105,7 +2121,16 @@ void TDLibWrapper::handleErrorReceived(int code, const QString &message, const Q
                 emit chatMessageCountErrorReceived(chatId, getSearchMessagesFilterForType(filterType), local);
             }
         }
+    } else if (extra.userType() == QMetaType::QVariantMap) {
+        const QVariantMap map = extra.toMap();
+        const QString type = map.value(_TYPE).toString();
+        if (type == PROXY) {
+            LOG("Proxy ping error");
+            emit proxyPingErrorReceived(map.value(SERVER).toString(), map.value(PORT).toInt(), map.value(TYPE).toMap());
+            return;
+        }
     }
+
     emit errorReceived(code, message, extra);
 }
 
@@ -2895,7 +2920,10 @@ void TDLibWrapper::handleInternalLinkTypeReceived(const QVariantMap &linkType) {
         this->checkChatInviteLink(linkType.value(INVITE_LINK).toString());
     else if (type == "internalLinkTypeUnknownDeepLink")
         this->getDeepLinkInfo(linkType.value(LINK).toString());
-    else
+    else if (type == "internalLinkTypeProxy") {
+        const QVariantMap &proxy = linkType.value(PROXY).toMap();
+        emit internalLinkTypeProxyReceived(proxy.value(SERVER).toString(), proxy.value(PORT).toInt(), proxy.value(TYPE).toMap());
+    } else
         emit linkUnsupportedByApp(type.mid(16));
 }
 
@@ -3047,4 +3075,63 @@ void TDLibWrapper::getChatSimilarChats(qlonglong chatId) {
 void TDLibWrapper::getBotSimilarBots(qlonglong botUserId) {
     LOG("Getting similar bots" << botUserId);
     this->sendRequest({{_TYPE, "getBotSimilarBots"}, {BOT_USER_ID, botUserId}, {_EXTRA, "getBotSimilarBots:"+QString::number(botUserId)}});
+}
+
+QVariantMap TDLibWrapper::getProxyObject(const QString &server, int port, const QVariantMap &type) {
+    return {
+        {_TYPE, PROXY},
+        {SERVER, server},
+        {PORT, port},
+        {TYPE, type}
+    };
+}
+
+void TDLibWrapper::addProxy(const QVariantMap &proxy, const QString &extra, bool enable) {
+    LOG("Adding proxy");
+    sendRequest({{_TYPE, "addProxy"}, {PROXY, proxy}, {ENABLE, enable}, {_EXTRA, extra}});
+}
+
+void TDLibWrapper::editProxy(int proxyId, const QString &server, int port, const QVariantMap &type, bool enable) {
+    LOG("Editing proxy" << proxyId);
+    sendRequest({
+                          {_TYPE, "editProxy"},
+                          {PROXY_ID, proxyId},
+                          {PROXY, getProxyObject(server, port, type)},
+                          {ENABLE, enable}
+                      });
+}
+
+void TDLibWrapper::enableProxy(int proxyId) {
+    LOG("Enabling proxy" << proxyId);
+    sendRequest({{_TYPE, "enableProxy"}, {PROXY_ID, proxyId}, {_EXTRA, "enableProxy:" + QString::number(proxyId)}});
+}
+
+void TDLibWrapper::disableProxy() {
+    LOG("Disabling proxy");
+    sendRequest({{_TYPE, TYPE_DISABLE_PROXY}, {_EXTRA, TYPE_DISABLE_PROXY}});
+}
+
+void TDLibWrapper::removeProxy(int proxyId) {
+    LOG("Removing proxy" << proxyId);
+    sendRequest({{_TYPE, "removeProxy"}, {PROXY_ID, proxyId}, {_EXTRA, "removeProxy:" + QString::number(proxyId)}});
+}
+
+void TDLibWrapper::getProxies() {
+    LOG("Getting proxies");
+    sendRequest({{_TYPE, "getProxies"}});
+}
+
+void TDLibWrapper::pingProxy() {
+    LOG("Pinging telegram server");
+    sendRequest({{_TYPE, "pingProxy"}, {_EXTRA, "ping"}});
+}
+
+void TDLibWrapper::pingProxy(const QVariantMap &proxy) {
+    LOG("Pinging proxy");
+    sendRequest({{_TYPE, "pingProxy"}, {PROXY, proxy}, {_EXTRA, proxy}});
+}
+
+void TDLibWrapper::getInternalLink(const QVariantMap &type, bool isHttp) {
+    LOG("Getting internal link HTTP:" << isHttp);
+    sendRequest({{_TYPE, "getInternalLink"}, {TYPE, type}, {"is_http", isHttp}});
 }

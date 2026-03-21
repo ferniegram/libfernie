@@ -377,6 +377,21 @@ public:
     Q_INVOKABLE void removeFavoriteSticker(int fileId);
     Q_INVOKABLE void getChatSimilarChats(qlonglong chatId);
     Q_INVOKABLE void getBotSimilarBots(qlonglong botUserId);
+    Q_INVOKABLE void addProxy(const QVariantMap &proxy, const QString &extra = QString(), bool enable = false);
+    Q_INVOKABLE inline void addProxy(const QString &server, int port, const QVariantMap &type, const QString &extra = QString(), bool enable = false) {
+        addProxy(getProxyObject(server, port, type), extra, enable);
+    }
+    Q_INVOKABLE void editProxy(int proxyId, const QString &server, int port, const QVariantMap &type, bool enable = false);
+    Q_INVOKABLE void enableProxy(int proxyId);
+    Q_INVOKABLE void disableProxy();
+    Q_INVOKABLE void removeProxy(int proxyId);
+    Q_INVOKABLE void getProxies();
+    Q_INVOKABLE void pingProxy();
+    Q_INVOKABLE void pingProxy(const QVariantMap &proxy);
+    Q_INVOKABLE inline void pingProxy(const QString &server, int port, const QVariantMap &type) {
+        pingProxy(getProxyObject(server, port, type));
+    }
+    Q_INVOKABLE void getInternalLink(const QVariantMap &type, bool isHttp = false);
 
     // Others (candidates for extraction ;))
     Q_INVOKABLE void initializeOpenWith();
@@ -519,8 +534,15 @@ signals:
     void forumTopicNotFound(qlonglong chatId, int forumTopicId);
     void stickerSetUpdated(const QString &stickerSetId, const QVariantMap &stickerSet);
     void pollVotersReceived(const QString &extra, const QVariantList &voters, int totalCount);
+    void addedProxiesReceived(const QVariantList &proxies);
+    void addedProxyReceived(const QVariantMap &proxy, const QString &extra);
+    void proxyPingReceived(const QString &server, int port, const QVariantMap &type, double ping);
+    void proxyPingErrorReceived(const QString &server, int port, const QVariantMap &type);
+    void pingReceived(double ping);
+    void pingErrorReceived();
 
     // Link types
+    void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);
     void linkUnsupportedByApp(const QString &type);
 
     // Signals not directly used by TDLibWrapper
@@ -597,6 +619,7 @@ private:
     static QString getMessageSourceType(MessageSource source);
     static QString getStickerTypeType(StickerType stickerType);
     static StickerType getStickerTypeForType(const QString &type);
+    static QVariantMap getProxyObject(const QString &server, int port, const QVariantMap &type);
 
 private:
     int tdLibClientId;

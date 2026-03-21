@@ -91,6 +91,7 @@ namespace {
     const QString INFO("info");
     const QString FORUM_TOPIC_ID("forum_topic_id");
     const QString STICKER_IDS("sticker_ids");
+    const QString TYPE("type");
 
     const QString _TYPE("@type");
     const QString _EXTRA("@extra");
@@ -218,6 +219,9 @@ TDLibReceiver::TDLibReceiver(int tdLibClientId, QObject *parent) : QThread(paren
     handlers.insert("updateMessageFactCheck", &TDLibReceiver::processUpdateMessageFactCheck);
     handlers.insert("updateStickerSet", &TDLibReceiver::processUpdateStickerSet);
     handlers.insert("pollVoters", &TDLibReceiver::processPollVoters);
+    handlers.insert("seconds", &TDLibReceiver::processSeconds);
+    handlers.insert("addedProxies", &TDLibReceiver::processAddedProxies);
+    handlers.insert("addedProxy", &TDLibReceiver::processAddedProxy);
 }
 
 void TDLibReceiver::setActive(bool active)
@@ -688,7 +692,7 @@ void TDLibReceiver::ok(const QVariantMap &receivedInformation) {
 
 void TDLibReceiver::processUpdateServiceNotification(const QVariantMap &receivedInformation) {
     LOG("Received updateServiceNotification");
-    emit serviceNotificationReceived(receivedInformation.value("type").toString(), receivedInformation.value(CONTENT).toMap());
+    emit serviceNotificationReceived(receivedInformation.value(TYPE).toString(), receivedInformation.value(CONTENT).toMap());
 }
 
 void TDLibReceiver::processSecretChat(const QVariantMap &receivedInformation)
@@ -1276,4 +1280,31 @@ void TDLibReceiver::processPollVoters(const QVariantMap &receivedInformation) {
     const int totalCount = receivedInformation.value(TOTAL_COUNT).toInt();
     LOG("Received pollVoters" << extra << totalCount);
     emit pollVotersReceived(extra, receivedInformation.value("voters").toList(), totalCount);
+}
+
+void TDLibReceiver::processAddedProxies(const QVariantMap &receivedInformation) {
+    const QVariantList proxies = receivedInformation.value("proxies").toList();
+    LOG("Received addedProxies" << proxies.size());
+    emit addedProxiesReceived(proxies);
+}
+
+void TDLibReceiver::processAddedProxy(const QVariantMap &receivedInformation) {
+    QVariantMap addedProxy = receivedInformation;
+    const QString extra = addedProxy.take(_EXTRA).toString();
+    LOG("Received addedProxy" << addedProxy.value(ID).toInt() << extra);
+    emit addedProxyReceived(addedProxy, extra);
+}
+
+void TDLibReceiver::processSeconds(const QVariantMap &receivedInformation) {
+    const double seconds = receivedInformation.value("seconds").toDouble();
+
+    if (receivedInformation.value(_EXTRA).toString() == "ping")
+        emit pingReceived(seconds);
+
+    const QVariantMap extra = receivedInformation.value(_EXTRA).toMap();
+    if (extra.value(_TYPE) == "proxy") {
+        LOG("Received proxy ping" << seconds);
+        emit proxyPingReceived(extra.value("server").toString(), extra.value("port").toInt(), extra.value(TYPE).toMap(), seconds);
+    } else
+        LOG("Received unknown seconds, ignoring" << seconds);
 }

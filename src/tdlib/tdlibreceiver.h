@@ -143,6 +143,10 @@ signals:
     void messageFactCheckUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &factCheck);
     void stickerSetUpdated(const QString &stickerSetId, const QVariantMap &stickerSet);
     void pollVotersReceived(const QString &extra, const QVariantList &voters, int totalCount);
+    void addedProxiesReceived(const QVariantList &proxies);
+    void addedProxyReceived(const QVariantMap &proxy, const QString &extra);
+    void pingReceived(double ping);
+    void proxyPingReceived(const QString &server, int port, const QVariantMap &type, double ping);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -261,6 +265,9 @@ private:
     void processUpdateMessageFactCheck(const QVariantMap &receivedInformation);
     void processUpdateStickerSet(const QVariantMap &receivedInformation);
     void processPollVoters(const QVariantMap &receivedInformation);
+    void processAddedProxies(const QVariantMap &receivedInformation);
+    void processAddedProxy(const QVariantMap &receivedInformation);
+    void processSeconds(const QVariantMap &receivedInformation);
 };
 
 #endif // TDLIBRECEIVER_H

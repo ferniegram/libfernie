@@ -1377,26 +1377,62 @@ void TDLibWrapper::getUserPrivacySettingRules(TDLibWrapper::UserPrivacySetting s
     this->sendRequest(requestObject);
 }
 
+QVariantMap getInputChatPhotoStatic(const QString &filePath) {
+    return {
+        {_TYPE, "inputChatPhotoStatic"},
+        {PHOTO, QVariantMap{
+            {_TYPE, TYPE_INPUT_FILE_LOCAL},
+            {PATH, filePath}
+        }}
+    };
+}
+
+QVariantMap getInputChatPhotoPrevious(const QString &photoId) {
+    return {
+        {_TYPE, "inputChatPhotoPrevious"},
+        {"chat_photo_id", photoId}
+   };
+}
+
 void TDLibWrapper::setProfilePhoto(const QString &filePath) {
-    LOG("Set a profile photo" << filePath);
-    this->sendRequest(QVariantMap{
+    LOG("Set profile photo" << filePath);
+    this->sendRequest({
         {_TYPE, "setProfilePhoto"},
         {_EXTRA, "setProfilePhoto"},
-        {PHOTO, QVariantMap{
-            {_TYPE, "inputChatPhotoStatic"},
-            {PHOTO, QVariantMap{
-                {_TYPE, TYPE_INPUT_FILE_LOCAL},
-                {PATH, filePath}
-            }}
-        }}
+        {PHOTO, getInputChatPhotoStatic(filePath)}
+    });
+}
+
+void TDLibWrapper::setPreviousProfilePhoto(const QString &photoId) {
+    LOG("Set previous profile photo" << photoId);
+    this->sendRequest({
+        {_TYPE, "setProfilePhoto"},
+        {_EXTRA, "setPreviousProfilePhoto"},
+        {PHOTO, getInputChatPhotoPrevious(photoId)}
+    });
+}
+
+void TDLibWrapper::setChatPhoto(qlonglong chatId, const QString &filePath) {
+    LOG("Set chat photo" << chatId << filePath);
+    this->sendRequest({
+        {_TYPE, "setChatPhoto"},
+        {PHOTO, getInputChatPhotoStatic(filePath)}
+    });
+}
+
+void TDLibWrapper::setPreviousChatPhoto(qlonglong chatId, const QString &photoId) {
+    LOG("Set previous chat photo" << chatId << photoId);
+    this->sendRequest({
+        {_TYPE, "setChatPhoto"},
+        {PHOTO, getInputChatPhotoPrevious(photoId)}
     });
 }
 
 void TDLibWrapper::deleteProfilePhoto(const QString &profilePhotoId) {
     LOG("Delete a profile photo" << profilePhotoId);
-    this->sendRequest(QVariantMap{
+    this->sendRequest({
         {_TYPE, "deleteProfilePhoto"},
-        {_EXTRA, "deleteProfilePhoto"},
+        {_EXTRA, "deleteProfilePhoto:" + profilePhotoId},
         {"profile_photo_id", profilePhotoId}
     });
 }

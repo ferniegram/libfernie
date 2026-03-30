@@ -48,6 +48,7 @@ signals:
 private slots:
     void handleUserFullInfo(qlonglong userId, const QVariantMap &userFullInfo);
     void handleChatPhotosReceived(qlonglong chatId, const QVariantList &photos, int totalCount);
+    void handleOkReceived(const QVariant &extraVariant);
 
 private:
     void setup();
@@ -58,6 +59,7 @@ private:
     qlonglong userId = 0;
 
     QList<QPair<PhotoType, QVariantMap>> profilePhotos;
+    QHash<qlonglong, int> indexMap; // doesn't include personal and public profile photos
     int totalCount = -1;
 };
 

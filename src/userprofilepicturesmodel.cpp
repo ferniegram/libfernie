@@ -47,6 +47,10 @@ void UserProfilePicturesModel::setup() {
             profilePhotos.clear();
             endResetModel();
         }
+
+        if (userId == tdLibWrapper->myUserId())
+            connect(tdLibWrapper, &TDLibWrapper::okReceived, this, &UserProfilePicturesModel::handleOkReceived);
+
         LOG("Loading initial chunk" << userId);
         tdLibWrapper->getUserFullInfo(userId);
         tdLibWrapper->getUserProfilePhotos(userId, 100, 0);
@@ -56,35 +60,9 @@ void UserProfilePicturesModel::setup() {
 void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVariantMap &userFullInfo) {
     if (this->userId != userId)
         return;
-    // FIXME: this can probably be done in a cleaner way
-
-    /*bool hadPersonalPhoto = !personalPhoto.isEmpty();
-    if (!hadPersonalPhoto)
-        beginInsertColumns(QModelIndex(), 0, 0);
-
-    personalPhoto = userFullInfo.value("personal_photo").toMap();
-    if (hadPersonalPhoto) {
-        const QModelIndex i = index(0);
-        emit dataChanged(i, i);
-    } else
-        endInsertColumns();
-
-
-    int publicPhotoIndex = -1;
-    if (!publicPhoto.isEmpty())
-        publicPhotoIndex = personalPhoto.isEmpty() ? 0 : 1;
-
-    if (publicPhotoIndex > -1)
-        beginInsertColumns(QModelIndex(), publicPhotoIndex, publicPhotoIndex);
-
-    publicPhoto = userFullInfo.value("public_photo").toMap();
-    if (publicPhotoIndex > -1) {
-        const QModelIndex i = index(publicPhotoIndex);
-        emit dataChanged(i, i);
-    } else
-        endInsertColumns();*/
 
     LOG("Handling user full info");
+    // FIXME: this can probably be done in a cleaner way
 
     bool containsPersonalPhoto = !profilePhotos.isEmpty() && profilePhotos.first().first == PersonalPhoto;
     if (containsPersonalPhoto) {
@@ -136,12 +114,34 @@ void UserProfilePicturesModel::handleChatPhotosReceived(qlonglong chatId, const 
     if (this->userId == chatId && !photos.isEmpty()) {
         LOG("User profile photos received" << chatId << totalCount);
         this->totalCount = totalCount;
+        const int additionalCount = this->additionalPhotosCount();
+
         // TODO: first, add the currently set photo to the list, next remove it once we get it here
         // if (... CurrentPhoto) ... removeAt();
         beginInsertRows(QModelIndex(), this->profilePhotos.size(), this->profilePhotos.size() + photos.size() - 1);
-        for (const QVariant &photo : photos)
-            this->profilePhotos.append({Photo, photo.toMap()});
+        for (const QVariant &photoVariant : photos) {
+            const QVariantMap photo = photoVariant.toMap();
+            this->profilePhotos.append({Photo, photo});
+            indexMap.insert(photo.value(ID).toLongLong(), profilePhotos.size() - 1 - additionalCount);
+        }
         endInsertRows();
+    }
+}
+
+void UserProfilePicturesModel::handleOkReceived(const QVariant &extraVariant) {
+    if (extraVariant.userType() == QMetaType::QString) {
+        const QString extra = extraVariant.toString();
+        if (extra.startsWith("deleteProfilePhoto:")) {
+            qlonglong id = extra.mid(19).toLongLong();
+            if (indexMap.contains(id)) {
+                const int index = indexMap.take(id);
+                beginRemoveRows(QModelIndex(), index, index);
+                profilePhotos.removeAt(index);
+                for (int i = index; i < profilePhotos.size(); i++)
+                    indexMap.insert(profilePhotos.at(i).second.value(ID).toLongLong(), i);
+                endRemoveRows();
+            }
+        }
     }
 }
 
@@ -163,18 +163,7 @@ int UserProfilePicturesModel::rowCount(const QModelIndex &) const {
 }
 
 QVariant UserProfilePicturesModel::data(const QModelIndex &index, int role) const {
-    /*const bool havePersonalPhoto = !personalPhoto.isEmpty();
-    const int additionalPhotos = havePersonalPhoto + !publicPhoto.isEmpty();
-    const int i = index.row();*/
-    if (index.isValid() && index.row() < profilePhotos.size() /*+ additionalPhotos*/) {
-        /*QVariantMap photo;
-        if (additionalPhotos == 1 && i == 0) {
-            return havePersonalPhoto ? personalPhoto : publicPhoto;
-        } else if (additionalPhotos == 2 && i >= 0 && i <= 1)
-            photo = i == 0 ? personalPhoto : publicPhoto;
-        else
-            photo = profilePhotos.at(index.row());*/
-
+    if (index.isValid() && index.row() < profilePhotos.size()) {
         auto pair = profilePhotos.at(index.row());
         const QVariantMap &photo = pair.second;
         switch (static_cast<Role>(role)) {

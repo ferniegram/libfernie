@@ -861,7 +861,7 @@ bool Utilities::messageMatchesSearchFilter(const QVariantMap &message, TDLibWrap
     case TDLibWrapper::SearchMessagesFilterAudio:
         return contentType == MESSAGE_CONTENT_TYPE_AUDIO;
     case TDLibWrapper::SearchMessagesFilterChatPhoto:
-        return contentType == MESSAGE_CONTENT_TYPE_CHAT_CHANGE_PHOTO || contentType == MESSAGE_CONTENT_TYPE_CHAT_DELETE_PHOTO;
+        return contentType == MESSAGE_CONTENT_TYPE_CHAT_CHANGE_PHOTO; // || contentType == MESSAGE_CONTENT_TYPE_CHAT_DELETE_PHOTO
     case TDLibWrapper::SearchMessagesFilterDocument:
         return contentType == MESSAGE_CONTENT_TYPE_DOCUMENT;
     case TDLibWrapper::SearchMessagesFilterPhoto:

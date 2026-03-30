@@ -64,6 +64,22 @@ void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVaria
     LOG("Handling user full info");
     // FIXME: this can probably be done in a cleaner way
 
+    const qlonglong newCurrentPhotoId = userFullInfo.value(PHOTO).toMap().value(ID).toLongLong();
+    if (this->currentPhotoId != newCurrentPhotoId) {
+        const qlonglong oldCurrentPhotoId = this->currentPhotoId;
+        this->currentPhotoId = newCurrentPhotoId;
+
+        QModelIndex i;
+        if (indexMap.contains(oldCurrentPhotoId)) {
+            i = index(indexMap.value(oldCurrentPhotoId));
+            emit dataChanged(i, i, {RoleIsCurrent});
+        }
+        if (indexMap.contains(newCurrentPhotoId)) {
+            i = index(indexMap.value(newCurrentPhotoId));
+            emit dataChanged(i, i, {RoleIsCurrent});
+        }
+    }
+
     bool containsPersonalPhoto = !profilePhotos.isEmpty() && profilePhotos.first().first == PersonalPhoto;
     if (containsPersonalPhoto) {
         if (userFullInfo.contains(PERSONAL_PHOTO)) {
@@ -155,6 +171,7 @@ QHash<int, QByteArray> UserProfilePicturesModel::roleNames() const {
         {RoleSmallPhoto, "small_photo"},
         {RoleBigPhoto, "big_photo"},
         {RoleAnimation, "photo_animation"},
+        {RoleIsCurrent, "is_current"},
     };
 }
 
@@ -182,6 +199,8 @@ QVariant UserProfilePicturesModel::data(const QModelIndex &index, int role) cons
             else if (photo.contains(SMALL_ANIMATION))
                 return photo.value(SMALL_ANIMATION).toMap();
             return QVariant();
+        case RoleIsCurrent:
+            return photo.value(ID).toLongLong() == this->currentPhotoId;
         }
     }
     return QVariant();

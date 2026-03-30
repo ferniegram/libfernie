@@ -20,6 +20,7 @@ public:
         RoleSmallPhoto,
         RoleBigPhoto,
         RoleAnimation,
+        RoleIsCurrent,
         //RoleSticker
     };
 
@@ -61,6 +62,7 @@ private:
     QList<QPair<PhotoType, QVariantMap>> profilePhotos;
     QHash<qlonglong, int> indexMap; // doesn't include personal and public profile photos
     int totalCount = -1;
+    qlonglong currentPhotoId = 0;
 };
 
 #endif // USERPROFILEPICTURESMODEL_H

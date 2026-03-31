@@ -24,8 +24,8 @@ void UserProfilePicturesModel::setTDLibWrapper(QObject *obj) {
 
         if (tdLibWrapper) {
             connect(tdLibWrapper, &TDLibWrapper::userFullInfoReceived, this, &UserProfilePicturesModel::handleUserFullInfo);
-            connect(tdLibWrapper, &TDLibWrapper::userFullInfoUpdated, this, &UserProfilePicturesModel::handleUserFullInfo);
             connect(tdLibWrapper, &TDLibWrapper::chatPhotosReceived, this, &UserProfilePicturesModel::handleChatPhotosReceived);
+            connect(tdLibWrapper, &TDLibWrapper::okReceived, this, &UserProfilePicturesModel::handleOkReceived);
         }
 
         setup();
@@ -45,131 +45,80 @@ void UserProfilePicturesModel::setup() {
         if (!profilePhotos.isEmpty()) {
             beginResetModel();
             profilePhotos.clear();
+            indexMap.clear();
+            additionalPhotosCount = 0;
+            totalCount = -1;
+            currentPhotoId = 0;
+            userFullInfoLoaded = false;
             endResetModel();
         }
 
-        if (userId == tdLibWrapper->myUserId())
-            connect(tdLibWrapper, &TDLibWrapper::okReceived, this, &UserProfilePicturesModel::handleOkReceived);
-
-        LOG("Loading initial chunk" << userId);
+        LOG("Loading" << userId);
         tdLibWrapper->getUserFullInfo(userId);
-        tdLibWrapper->getUserProfilePhotos(userId, 100, 0);
     }
 }
 
 void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVariantMap &userFullInfo) {
-    if (this->userId != userId)
+    if (userFullInfoLoaded || this->userId != userId)
         return;
 
+    userFullInfoLoaded = true;
     LOG("Handling user full info");
-    // FIXME: this can probably be done in a cleaner way
 
-    bool containsPersonalPhoto = !profilePhotos.isEmpty() && profilePhotos.first().first == PersonalPhoto;
+    currentPhotoId = userFullInfo.value(PHOTO).toMap().value(ID).toLongLong();
+    LOG("Current photo ID:" << currentPhotoId);
+
+    const bool containsPersonalPhoto = userFullInfo.contains(PERSONAL_PHOTO);
     if (containsPersonalPhoto) {
-        if (userFullInfo.contains(PERSONAL_PHOTO)) {
-            LOG("Personal photo updated");
-            profilePhotos.replace(0, {PersonalPhoto, userFullInfo.value(PERSONAL_PHOTO).toMap()});
-            const QModelIndex i = index(0);
-            emit dataChanged(i, i);
-        } else {
-            LOG("Personal photo removed");
-            beginRemoveRows(QModelIndex(), 0, 0);
-            profilePhotos.removeFirst();
-            endRemoveRows();
-            containsPersonalPhoto = false;
-        }
-    } else if (userFullInfo.contains(PERSONAL_PHOTO)) {
-        LOG("Personal photo added");
+        LOG("Adding personal photo");
+        additionalPhotosCount++;
         beginInsertRows(QModelIndex(), 0, 0);
         profilePhotos.prepend({PersonalPhoto, userFullInfo.value(PERSONAL_PHOTO).toMap()});
         endInsertRows();
-        containsPersonalPhoto = true;
     }
 
-
-    int publicPhotoIndex = -1;
-    if (!profilePhotos.isEmpty()) {
-        if (profilePhotos.first().first == PublicPhoto)
-            publicPhotoIndex = 0;
-        else if (profilePhotos.size() > 1 && profilePhotos.at(1).first == PublicPhoto)
-            publicPhotoIndex = 1;
-    }
-
-    const bool includePublicPhoto = userFullInfo.contains(PUBLIC_PHOTO) && (!userFullInfo.contains(PHOTO) || userId == tdLibWrapper->myUserId());
-
-    if (publicPhotoIndex > -1) {
-        if (includePublicPhoto) {
-            LOG("Public photo updated");
-            profilePhotos.replace(publicPhotoIndex, {PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
-            const QModelIndex i = index(publicPhotoIndex);
-            emit dataChanged(i, i);
-        } else {
-            LOG("Public photo removed");
-            beginRemoveRows(QModelIndex(), publicPhotoIndex, publicPhotoIndex);
-            profilePhotos.removeAt(publicPhotoIndex);
-            endRemoveRows();
-        }
-    } else if (includePublicPhoto) {
-        LOG("Public photo added");
-        const int insertIndex = containsPersonalPhoto ? 1 : 0;
-        beginInsertRows(QModelIndex(), insertIndex, insertIndex);
-        profilePhotos.insert(insertIndex, {PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
+    if (userFullInfo.contains(PUBLIC_PHOTO) && (!userFullInfo.contains(PHOTO) || userId == tdLibWrapper->myUserId())) {
+        LOG("Adding public photo");
+        additionalPhotosCount++;
+        // if contains a personal photo, 1; 0 otherwise
+        beginInsertRows(QModelIndex(), containsPersonalPhoto, containsPersonalPhoto);
+        profilePhotos.insert(containsPersonalPhoto, {PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
         endInsertRows();
     }
 
-    const qlonglong newCurrentPhotoId = userFullInfo.value(PHOTO).toMap().value(ID).toLongLong();
-    if (this->currentPhotoId != newCurrentPhotoId) {
-        const qlonglong oldCurrentPhotoId = this->currentPhotoId;
-        this->currentPhotoId = newCurrentPhotoId;
-        LOG("Current photo ID changed" << oldCurrentPhotoId << currentPhotoId);
-
-        QModelIndex i;
-        const int additionalCount = this->additionalPhotosCount();
-        if (indexMap.contains(oldCurrentPhotoId)) {
-            i = index(indexMap.value(oldCurrentPhotoId) + additionalCount);
-            emit dataChanged(i, i, {RoleIsCurrent});
-            //LOG("1" << indexMap.value(oldCurrentPhotoId) << additionalCount << i << data(i, RoleType) << data(i, RoleIsCurrent) << data(i, RoleId));
-        }
-        if (indexMap.contains(newCurrentPhotoId)) {
-            i = index(indexMap.value(newCurrentPhotoId) + additionalCount);
-            emit dataChanged(i, i, {RoleIsCurrent});
-            //LOG("2" << indexMap.value(newCurrentPhotoId) << additionalCount << i << data(i, RoleType) << data(i, RoleIsCurrent) << data(i, RoleId));
-        }
-    }
+    LOG("Loading initial chunk" << userId);
+    tdLibWrapper->getUserProfilePhotos(userId, 100, 0);
 }
 
 void UserProfilePicturesModel::handleChatPhotosReceived(qlonglong chatId, const QVariantList &photos, int totalCount) {
-    if (this->userId == chatId && !photos.isEmpty()) {
-        LOG("User profile photos received" << chatId << totalCount);
+    if (this->userId == chatId) {
+        LOG("User profile photos received" << chatId << photos.size() << totalCount);
         this->totalCount = totalCount;
-        const int additionalCount = this->additionalPhotosCount();
 
-        // TODO: first, add the currently set photo to the list, next remove it once we get it here
-        // if (... CurrentPhoto) ... removeAt();
-        beginInsertRows(QModelIndex(), this->profilePhotos.size(), this->profilePhotos.size() + photos.size() - 1);
-        for (const QVariant &photoVariant : photos) {
-            const QVariantMap photo = photoVariant.toMap();
-            this->profilePhotos.append({Photo, photo});
-            indexMap.insert(photo.value(ID).toLongLong(), profilePhotos.size() - 1 - additionalCount);
-            LOG("Inserting photo" << photo.value(ID).toLongLong() << "with relative index" << profilePhotos.size() - 1 - additionalCount);
+        if (!photos.isEmpty()) {
+            beginInsertRows(QModelIndex(), this->profilePhotos.size(), this->profilePhotos.size() + photos.size() - 1);
+            for (const QVariant &photoVariant : photos) {
+                const QVariantMap photo = photoVariant.toMap();
+                this->profilePhotos.append({Photo, photo});
+                indexMap.insert(photo.value(ID).toLongLong(), profilePhotos.size() - 1);
+            }
+            endInsertRows();
         }
-        endInsertRows();
     }
 }
 
 void UserProfilePicturesModel::handleOkReceived(const QVariant &extraVariant) {
-    if (extraVariant.userType() == QMetaType::QString) {
+    if (userId == tdLibWrapper->myUserId() && extraVariant.userType() == QMetaType::QString) {
         const QString extra = extraVariant.toString();
         if (extra.startsWith("deleteProfilePhoto:")) {
             qlonglong id = extra.mid(19).toLongLong();
             if (indexMap.contains(id)) {
-                const int additionalCount = this->additionalPhotosCount();
-                const int index = indexMap.take(id) + additionalCount;
+                const int index = indexMap.take(id);
                 beginRemoveRows(QModelIndex(), index, index);
                 profilePhotos.removeAt(index);
-                LOG("Removed profile photo at" << index << additionalCount << additionalPhotosCount());
+                LOG("Removed profile photo at" << index);
                 for (int i = index; i < profilePhotos.size(); i++)
-                    indexMap.insert(profilePhotos.at(i).second.value(ID).toLongLong(), i - additionalCount);
+                    indexMap.insert(profilePhotos.at(i).second.value(ID).toLongLong(), i);
                 endRemoveRows();
             }
         }
@@ -221,18 +170,9 @@ QVariant UserProfilePicturesModel::data(const QModelIndex &index, int role) cons
     return QVariant();
 }
 
-int UserProfilePicturesModel::additionalPhotosCount() {
-    int result = 0;
-    for (int i=0; i < qMin(2, profilePhotos.size()); i++)
-        if (profilePhotos.at(i).first != Photo)
-            result++;
-
-    return result;
-}
-
 void UserProfilePicturesModel::loadMore() {
     if (tdLibWrapper && userId) {
-        const int count = profilePhotos.size() - additionalPhotosCount();
+        const int count = profilePhotos.size() - additionalPhotosCount;
         if (totalCount == -1 || totalCount > count) {
             LOG("Loading more" << userId);
             totalCount = 0; // don't allow loading more until the next chunk

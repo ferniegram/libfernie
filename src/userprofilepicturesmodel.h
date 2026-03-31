@@ -53,16 +53,17 @@ private slots:
 
 private:
     void setup();
-    int additionalPhotosCount();
 
 private:
     TDLibWrapper *tdLibWrapper = nullptr;
     qlonglong userId = 0;
 
     QList<QPair<PhotoType, QVariantMap>> profilePhotos;
-    QHash<qlonglong, int> indexMap; // doesn't include personal and public profile photos
+    QHash<qlonglong, int> indexMap;
     int totalCount = -1;
     qlonglong currentPhotoId = 0;
+    int additionalPhotosCount = 0;
+    bool userFullInfoLoaded = false;
 };
 
 #endif // USERPROFILEPICTURESMODEL_H

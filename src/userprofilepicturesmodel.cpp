@@ -64,24 +64,6 @@ void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVaria
     LOG("Handling user full info");
     // FIXME: this can probably be done in a cleaner way
 
-    const qlonglong newCurrentPhotoId = userFullInfo.value(PHOTO).toMap().value(ID).toLongLong();
-    if (this->currentPhotoId != newCurrentPhotoId) {
-        const qlonglong oldCurrentPhotoId = this->currentPhotoId;
-        this->currentPhotoId = newCurrentPhotoId;
-        LOG("Current photo ID changed" << oldCurrentPhotoId << currentPhotoId);
-
-        QModelIndex i;
-        const int additionalCount = this->additionalPhotosCount();
-        if (indexMap.contains(oldCurrentPhotoId)) {
-            i = index(indexMap.value(oldCurrentPhotoId) + additionalCount);
-            emit dataChanged(i, i, {RoleIsCurrent});
-        }
-        if (indexMap.contains(newCurrentPhotoId)) {
-            i = index(indexMap.value(newCurrentPhotoId) + additionalCount);
-            emit dataChanged(i, i, {RoleIsCurrent});
-        }
-    }
-
     bool containsPersonalPhoto = !profilePhotos.isEmpty() && profilePhotos.first().first == PersonalPhoto;
     if (containsPersonalPhoto) {
         if (userFullInfo.contains(PERSONAL_PHOTO)) {
@@ -113,8 +95,10 @@ void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVaria
             publicPhotoIndex = 1;
     }
 
+    const bool includePublicPhoto = userFullInfo.contains(PUBLIC_PHOTO) && (!userFullInfo.contains(PHOTO) || userId == tdLibWrapper->myUserId());
+
     if (publicPhotoIndex > -1) {
-        if (userFullInfo.contains(PUBLIC_PHOTO)) {
+        if (includePublicPhoto) {
             LOG("Public photo updated");
             profilePhotos.replace(publicPhotoIndex, {PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
             const QModelIndex i = index(publicPhotoIndex);
@@ -125,12 +109,32 @@ void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVaria
             profilePhotos.removeAt(publicPhotoIndex);
             endRemoveRows();
         }
-    } else if (userFullInfo.contains(PUBLIC_PHOTO)) {
+    } else if (includePublicPhoto) {
         LOG("Public photo added");
         const int insertIndex = containsPersonalPhoto ? 1 : 0;
         beginInsertRows(QModelIndex(), insertIndex, insertIndex);
         profilePhotos.insert(insertIndex, {PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
         endInsertRows();
+    }
+
+    const qlonglong newCurrentPhotoId = userFullInfo.value(PHOTO).toMap().value(ID).toLongLong();
+    if (this->currentPhotoId != newCurrentPhotoId) {
+        const qlonglong oldCurrentPhotoId = this->currentPhotoId;
+        this->currentPhotoId = newCurrentPhotoId;
+        LOG("Current photo ID changed" << oldCurrentPhotoId << currentPhotoId);
+
+        QModelIndex i;
+        const int additionalCount = this->additionalPhotosCount();
+        if (indexMap.contains(oldCurrentPhotoId)) {
+            i = index(indexMap.value(oldCurrentPhotoId) + additionalCount);
+            emit dataChanged(i, i, {RoleIsCurrent});
+            //LOG("1" << indexMap.value(oldCurrentPhotoId) << additionalCount << i << data(i, RoleType) << data(i, RoleIsCurrent) << data(i, RoleId));
+        }
+        if (indexMap.contains(newCurrentPhotoId)) {
+            i = index(indexMap.value(newCurrentPhotoId) + additionalCount);
+            emit dataChanged(i, i, {RoleIsCurrent});
+            //LOG("2" << indexMap.value(newCurrentPhotoId) << additionalCount << i << data(i, RoleType) << data(i, RoleIsCurrent) << data(i, RoleId));
+        }
     }
 }
 

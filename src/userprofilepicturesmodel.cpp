@@ -68,14 +68,16 @@ void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVaria
     if (this->currentPhotoId != newCurrentPhotoId) {
         const qlonglong oldCurrentPhotoId = this->currentPhotoId;
         this->currentPhotoId = newCurrentPhotoId;
+        LOG("Current photo ID changed" << oldCurrentPhotoId << currentPhotoId);
 
         QModelIndex i;
+        const int additionalCount = this->additionalPhotosCount();
         if (indexMap.contains(oldCurrentPhotoId)) {
-            i = index(indexMap.value(oldCurrentPhotoId));
+            i = index(indexMap.value(oldCurrentPhotoId) + additionalCount);
             emit dataChanged(i, i, {RoleIsCurrent});
         }
         if (indexMap.contains(newCurrentPhotoId)) {
-            i = index(indexMap.value(newCurrentPhotoId));
+            i = index(indexMap.value(newCurrentPhotoId) + additionalCount);
             emit dataChanged(i, i, {RoleIsCurrent});
         }
     }
@@ -83,16 +85,19 @@ void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVaria
     bool containsPersonalPhoto = !profilePhotos.isEmpty() && profilePhotos.first().first == PersonalPhoto;
     if (containsPersonalPhoto) {
         if (userFullInfo.contains(PERSONAL_PHOTO)) {
+            LOG("Personal photo updated");
             profilePhotos.replace(0, {PersonalPhoto, userFullInfo.value(PERSONAL_PHOTO).toMap()});
             const QModelIndex i = index(0);
             emit dataChanged(i, i);
         } else {
+            LOG("Personal photo removed");
             beginRemoveRows(QModelIndex(), 0, 0);
             profilePhotos.removeFirst();
             endRemoveRows();
             containsPersonalPhoto = false;
         }
     } else if (userFullInfo.contains(PERSONAL_PHOTO)) {
+        LOG("Personal photo added");
         beginInsertRows(QModelIndex(), 0, 0);
         profilePhotos.prepend({PersonalPhoto, userFullInfo.value(PERSONAL_PHOTO).toMap()});
         endInsertRows();
@@ -110,18 +115,21 @@ void UserProfilePicturesModel::handleUserFullInfo(qlonglong userId, const QVaria
 
     if (publicPhotoIndex > -1) {
         if (userFullInfo.contains(PUBLIC_PHOTO)) {
-            profilePhotos.replace(publicPhotoIndex, {PublicPhoto, userFullInfo.value(PERSONAL_PHOTO).toMap()});
+            LOG("Public photo updated");
+            profilePhotos.replace(publicPhotoIndex, {PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
             const QModelIndex i = index(publicPhotoIndex);
             emit dataChanged(i, i);
         } else {
+            LOG("Public photo removed");
             beginRemoveRows(QModelIndex(), publicPhotoIndex, publicPhotoIndex);
             profilePhotos.removeAt(publicPhotoIndex);
             endRemoveRows();
         }
     } else if (userFullInfo.contains(PUBLIC_PHOTO)) {
+        LOG("Public photo added");
         const int insertIndex = containsPersonalPhoto ? 1 : 0;
         beginInsertRows(QModelIndex(), insertIndex, insertIndex);
-        profilePhotos.prepend({PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
+        profilePhotos.insert(insertIndex, {PublicPhoto, userFullInfo.value(PUBLIC_PHOTO).toMap()});
         endInsertRows();
     }
 }
@@ -139,6 +147,7 @@ void UserProfilePicturesModel::handleChatPhotosReceived(qlonglong chatId, const 
             const QVariantMap photo = photoVariant.toMap();
             this->profilePhotos.append({Photo, photo});
             indexMap.insert(photo.value(ID).toLongLong(), profilePhotos.size() - 1 - additionalCount);
+            LOG("Inserting photo" << photo.value(ID).toLongLong() << "with relative index" << profilePhotos.size() - 1 - additionalCount);
         }
         endInsertRows();
     }
@@ -150,11 +159,13 @@ void UserProfilePicturesModel::handleOkReceived(const QVariant &extraVariant) {
         if (extra.startsWith("deleteProfilePhoto:")) {
             qlonglong id = extra.mid(19).toLongLong();
             if (indexMap.contains(id)) {
-                const int index = indexMap.take(id);
+                const int additionalCount = this->additionalPhotosCount();
+                const int index = indexMap.take(id) + additionalCount;
                 beginRemoveRows(QModelIndex(), index, index);
                 profilePhotos.removeAt(index);
+                LOG("Removed profile photo at" << index << additionalCount << additionalPhotosCount());
                 for (int i = index; i < profilePhotos.size(); i++)
-                    indexMap.insert(profilePhotos.at(i).second.value(ID).toLongLong(), i);
+                    indexMap.insert(profilePhotos.at(i).second.value(ID).toLongLong(), i - additionalCount);
                 endRemoveRows();
             }
         }
@@ -209,7 +220,7 @@ QVariant UserProfilePicturesModel::data(const QModelIndex &index, int role) cons
 int UserProfilePicturesModel::additionalPhotosCount() {
     int result = 0;
     for (int i=0; i < qMin(2, profilePhotos.size()); i++)
-        if (profilePhotos.at(0).first != Photo)
+        if (profilePhotos.at(i).first != Photo)
             result++;
 
     return result;

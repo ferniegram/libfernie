@@ -154,16 +154,16 @@ QVariantList MessagesModel::getMessagesForAlbum(qlonglong albumId, int startAt) 
     LOG("getMessagesForAlbumId" << albumId);
     QVariantList messageIds = getMessageIdsForAlbum(albumId);
     int count = messageIds.size();
-    if ( count == 0) {
+    if (count == 0)
         return messageIds;
-    }
+
     QVariantList foundMessages;
     for (int messageNum = startAt; messageNum < count; ++messageNum) {
         const int position = messageIndexMap.value(messageIds.at(messageNum).toLongLong(), -1);
         if(position >= 0 && position < messages.size()) {
             foundMessages.append(messages.at(position)->messageData);
         } else {
-            LOG("Not found in messages: #"<< messageNum);
+            LOG("Not found in messages: #" << messageNum);
         }
     }
     return foundMessages;
@@ -468,46 +468,40 @@ void MessagesModel::prependMessages(const QList<MessageData*> newMessages, bool 
 }
 
 void MessagesModel::updateAlbumMessages(qlonglong albumId, bool checkDeleted) {
-    if(albumMessageMap.contains(albumId)) {
+    if (albumMessageMap.contains(albumId)) {
         const QVariantList empty;
-        QHash< qlonglong,  QVariantList >::iterator album = albumMessageMap.find(albumId);
-        QVariantList messageIds = album.value();
+        QVariantList messageIds = albumMessageMap.value(albumId);
         std::sort(messageIds.begin(), messageIds.end());
-        int count;
-        // first: clear deleted messageIds:
-        if(checkDeleted) {
-            QVariantList::iterator it = messageIds.begin();
-            while (it != messageIds.end()) {
-              if (!messageIndexMap.contains(it->toLongLong())) {
-                it = messageIds.erase(it);
-              }
-              else {
-                ++it;
-              }
-            }
-        }
-        // second: remaining ones still exist
-        count = messageIds.size();
-        if(count == 0) {
-            albumMessageMap.remove(albumId);
-        } else {
-            for (int i = 0; i < count; i++) {
-                const int position = messageIndexMap.value(messageIds.at(i).toLongLong(), -1);
-                if(position > -1) {
-                    // set list for first entry, empty for all others
-                    QVector<int> changedRolesFilter;
-                    QVector<int> changedRolesIds;
 
-                    QModelIndex messageIndex(index(position));
-                    if(i == 0) {
-                        changedRolesFilter = messages.at(position)->setAlbumEntryFilter(false);
-                        changedRolesIds = messages.at(position)->setAlbumEntryMessageIds(messageIds);
-                    } else {
-                        changedRolesFilter = messages.at(position)->setAlbumEntryFilter(true);
-                        changedRolesIds = messages.at(position)->setAlbumEntryMessageIds(empty);
-                    }
-                    emit dataChanged(messageIndex, messageIndex, changedRolesIds);
-                    emit dataChanged(messageIndex, messageIndex, changedRolesFilter);
+        // Remove deleted message IDs
+        if (checkDeleted)
+            messageIds.erase(std::remove_if(messageIds.begin(), messageIds.end(), [&](const QVariant &id) {
+                return !messageIndexMap.contains(id.toLongLong());
+            }), messageIds.end());
+
+        int count = messageIds.size();
+        if (count == 0)
+            albumMessageMap.remove(albumId);
+        else {
+            int mainMessageIndex = 0;
+            for (int i=0; i < count; i++) {
+                const int position = messageIndexMap.value(messageIds.at(i).toLongLong(), -1);
+                if (position > -1 && !tdLibWrapper->getUtilities()->getMessageText(messages.at(position)->messageData).isEmpty()) {
+                    mainMessageIndex = position;
+                    break;
+                }
+            }
+
+            for (int i=0; i < count; i++) {
+                const int position = messageIndexMap.value(messageIds.at(i).toLongLong(), -1);
+                if (position > -1) {
+                    QModelIndex messageIndex = index(position);
+                    MessageData *message = messages.at(position);
+                    const bool isMain = position == mainMessageIndex;
+                    const QVector<int> changedRoles =
+                            message->setAlbumEntryFilter(!isMain)
+                            + message->setAlbumEntryMessageIds(isMain ? messageIds : empty);
+                    emit dataChanged(messageIndex, messageIndex, changedRoles);
                 }
             }
         }
@@ -516,33 +510,28 @@ void MessagesModel::updateAlbumMessages(qlonglong albumId, bool checkDeleted) {
 }
 
 void MessagesModel::updateAlbumMessages(QList<qlonglong> albumIds, bool checkDeleted) {
-    const int albumsCount = albumIds.size();
-    for (int i = 0; i < albumsCount; i++) {
-        updateAlbumMessages(albumIds.at(i), checkDeleted);
-    }
+    for (qlonglong albumId : albumIds)
+        updateAlbumMessages(albumId, checkDeleted);
 }
 
-void MessagesModel::setMessagesAlbum(const QList<MessageData *> newMessages) {
-    const int count = newMessages.size();
-    for (int i = 0; i < count; i++) {
-        setMessagesAlbum(newMessages.at(i));
-    }
+void MessagesModel::setMessagesAlbum(const QList<MessageData*> newMessages) {
+    for (MessageData *message : newMessages)
+        setMessagesAlbum(message);
 }
 
 void MessagesModel::setMessagesAlbum(MessageData *message) {
     qlonglong albumId = message->messageData.value(MEDIA_ALBUM_ID).toLongLong();
-    if (albumId > 0 && (message->messageContentType != "messagePhoto" || message->messageContentType != "messageVideo")) {
+    if (albumId > 0) {
         qlonglong messageId = message->messageId;
 
-        if(albumMessageMap.contains(albumId)) {
-            // find message id within album:
-            QHash< qlonglong,  QVariantList >::iterator i = albumMessageMap.find(albumId);
-            if(!i.value().contains(messageId)) {
-                i.value().append(messageId);
-            }
-        } else { // new album id
-            albumMessageMap.insert(albumId, QVariantList() << messageId);
-        }
+        // Add message ID to an existing list or make a new one
+        if (albumMessageMap.contains(albumId)) {
+            QVariantList &messageIds = albumMessageMap[albumId];
+            if (!messageIds.contains(messageId))
+                messageIds.append(messageId);
+        } else
+            albumMessageMap.insert(albumId, {messageId});
+
         updateAlbumMessages(albumId, false);
     }
 }

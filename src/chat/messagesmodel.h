@@ -44,7 +44,7 @@ public:
     Q_INVOKABLE virtual void reset();
     Q_INVOKABLE QVariantMap getMessage(int index);
     Q_INVOKABLE QVariantList getMessageIdsForAlbum(qlonglong albumId);
-    Q_INVOKABLE QVariantList getMessagesForAlbum(qlonglong albumId, int startAt);
+    Q_INVOKABLE QVariantList getMessagesForAlbum(qlonglong albumId, int startAt = 0);
 
     Q_INVOKABLE int getMessageIndex(qlonglong messageId);
     inline qlonglong getChatId() const { return chatId; }

@@ -30,7 +30,6 @@
 namespace {
     const QString ID("id");
     const QString CHAT_ID("chat_id");
-    const QString MEDIA_ALBUM_ID("media_album_id");
 }
 
 MessagesModel::MessagesModel(QObject *parent) : QAbstractListModel(parent), tdLibWrapper(nullptr), chatId(0) {
@@ -159,12 +158,11 @@ QVariantList MessagesModel::getMessagesForAlbum(qlonglong albumId, int startAt) 
 
     QVariantList foundMessages;
     for (int messageNum = startAt; messageNum < count; ++messageNum) {
-        const int position = messageIndexMap.value(messageIds.at(messageNum).toLongLong(), -1);
-        if(position >= 0 && position < messages.size()) {
-            foundMessages.append(messages.at(position)->messageData);
-        } else {
-            LOG("Not found in messages: #" << messageNum);
-        }
+        qlonglong messageId = messageIds.at(messageNum).toLongLong();
+        if (messageIndexMap.contains(messageId))
+            foundMessages.append(messages.at(messageIndexMap.value(messageId))->messageData);
+        else
+            LOG("Album message not found in messages list" << messageId << messageNum);
     }
     return foundMessages;
 }
@@ -334,7 +332,7 @@ void MessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAl
             MessageData *message = messages.at(i);
             messageIndexMap.remove(message->messageId);
 
-            qlonglong albumId = message->messageData.value(MEDIA_ALBUM_ID).toLongLong();
+            qlonglong albumId = message->mediaAlbumId();
             if(albumId != 0 && albumMessageMap.contains(albumId)) {
                 rescanAlbumIds.append(albumId);
             }
@@ -520,7 +518,7 @@ void MessagesModel::setMessagesAlbum(const QList<MessageData*> newMessages) {
 }
 
 void MessagesModel::setMessagesAlbum(MessageData *message) {
-    qlonglong albumId = message->messageData.value(MEDIA_ALBUM_ID).toLongLong();
+    qlonglong albumId = message->mediaAlbumId();
     if (albumId > 0) {
         qlonglong messageId = message->messageId;
 
@@ -575,13 +573,39 @@ bool MessagesModel::handleInsertMessages(const QVariantList &messages, QList<Mes
     return reloadNeeded;
 }
 
+bool compareQlonglongVariant(const QVariant& a, const QVariant& b) {
+    return a.toLongLong() < b.toLongLong();
+}
+
 bool MessagesModel::messageIsFirstInSequence(const int index, const MessageData *message) const {
     if (index == 0) return true;
+    if (message->albumEntryFilter) return false;
+
+    if (!message->albumMessageIds.isEmpty()) {
+        qlonglong firstMessageId = std::min_element(message->albumMessageIds.begin(), message->albumMessageIds.end(), &compareQlonglongVariant)->toLongLong();
+        if (messageIndexMap.contains(firstMessageId)) {
+            const int firstMessageIndex = messageIndexMap.value(firstMessageId);
+            if (firstMessageIndex == 0) return true;
+            return !MessageData::areTogether(messages.at(firstMessageIndex), messages.at(firstMessageIndex - 1));
+        }
+    }
+
     return !MessageData::areTogether(message, this->messages.at(index - 1));
 }
 
 bool MessagesModel::messageIsLastInSequence(const int index, const MessageData *message) const {
     if (index == messages.size() - 1) return true;
+    if (message->albumEntryFilter) return false;
+
+    if (!message->albumMessageIds.isEmpty()) {
+        qlonglong lastMessageId = std::max_element(message->albumMessageIds.begin(), message->albumMessageIds.end(), &compareQlonglongVariant)->toLongLong();
+        if (messageIndexMap.contains(lastMessageId)) {
+            const int lastMessageIndex = messageIndexMap.value(lastMessageId);
+            if (lastMessageIndex ==  messages.size() - 1) return true;
+            return !MessageData::areTogether(messages.at(lastMessageIndex), messages.at(lastMessageIndex + 1));
+        }
+    }
+
     return !MessageData::areTogether(message, this->messages.at(index + 1));
 }
 

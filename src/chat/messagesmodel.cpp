@@ -333,9 +333,8 @@ void MessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAl
             messageIndexMap.remove(message->messageId);
 
             qlonglong albumId = message->mediaAlbumId();
-            if(albumId != 0 && albumMessageMap.contains(albumId)) {
+            if (albumId != 0 && albumMessageMap.contains(albumId))
                 rescanAlbumIds.append(albumId);
-            }
             delete message;
         }
         messages.erase(messages.begin() + firstDeleted, messages.begin() + (lastDeleted + 1));
@@ -485,7 +484,7 @@ void MessagesModel::updateAlbumMessages(qlonglong albumId, bool checkDeleted) {
             for (int i=0; i < count; i++) {
                 const int position = messageIndexMap.value(messageIds.at(i).toLongLong(), -1);
                 if (position > -1 && !tdLibWrapper->getUtilities()->getMessageText(messages.at(position)->messageData).isEmpty()) {
-                    mainMessageIndex = position;
+                    mainMessageIndex = i;
                     break;
                 }
             }
@@ -495,7 +494,7 @@ void MessagesModel::updateAlbumMessages(qlonglong albumId, bool checkDeleted) {
                 if (position > -1) {
                     QModelIndex messageIndex = index(position);
                     MessageData *message = messages.at(position);
-                    const bool isMain = position == mainMessageIndex;
+                    const bool isMain = i == mainMessageIndex;
                     const QVector<int> changedRoles =
                             message->setAlbumEntryFilter(!isMain)
                             + message->setAlbumEntryMessageIds(isMain ? messageIds : empty);
@@ -519,7 +518,7 @@ void MessagesModel::setMessagesAlbum(const QList<MessageData*> newMessages) {
 
 void MessagesModel::setMessagesAlbum(MessageData *message) {
     qlonglong albumId = message->mediaAlbumId();
-    if (albumId > 0) {
+    if (albumId != 0) {
         qlonglong messageId = message->messageId;
 
         // Add message ID to an existing list or make a new one

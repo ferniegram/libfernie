@@ -657,6 +657,25 @@ QVariantMap Utilities::getMessageTextWithCustomEntities(const QVariantMap &messa
     return {{TEXT, result}, {"customInsertions", customInsertionsVariants}};
 }
 
+QString Utilities::getAlbumMessagesText(const QVariantList &messages, MessageText type, bool ignoreEntities, bool escapeReserved, const QString &forumTopicName) const {
+    QString result;
+    for (const QVariant &message : messages) {
+        // Documents and audios don't open in fullscreen viewer, so we display caption together with each of the grouped messages
+        const QString contentType = message.toMap().value(CONTENT).toMap().value(_TYPE).toString();
+        if (contentType == MESSAGE_CONTENT_TYPE_DOCUMENT || contentType == MESSAGE_CONTENT_TYPE_AUDIO)
+            return QString();
+
+        const QString text = getMessageText(message.toMap(), type, ignoreEntities, escapeReserved, forumTopicName);
+        if (!text.isEmpty()) {
+            if (!result.isEmpty())
+                return QString(); // if more than one caption is available, return empty
+            result = text;
+        }
+    }
+
+    return result;
+}
+
 bool Utilities::messageContentIsService(const QString &contentType) {
     QStringList nonServiceContentTypes{
         MESSAGE_CONTENT_TYPE_TEXT,

@@ -32,6 +32,10 @@ namespace {
     const QString CHAT_ID("chat_id");
 }
 
+bool compareQlonglongVariant(const QVariant& a, const QVariant& b) {
+    return a.toLongLong() < b.toLongLong();
+}
+
 MessagesModel::MessagesModel(QObject *parent) : QAbstractListModel(parent), tdLibWrapper(nullptr), chatId(0) {
 }
 
@@ -68,6 +72,7 @@ QHash<int,QByteArray> MessagesModel::roleNames() const {
         {MessageData::RoleMessageAlbumEntryFilter, "album_entry_filter"},
         {MessageData::RoleMessageAlbumId, "album_id"},
         {MessageData::RoleMessageAlbumMessageIds, "album_message_ids"},
+        {MessageData::RoleMessageAlbumMessages, "album_messages"},
         {MessageData::RoleGeneratedContentUnread, "generated_content_unread"},
         {MessageData::RoleIsFirstInSequence, "is_first_in_sequence"},
         {MessageData::RoleIsLastInSequence, "is_last_in_sequence"},
@@ -89,8 +94,9 @@ QVariant MessagesModel::data(const QModelIndex &index, int role) const {
         case MessageData::RoleMessageViewCount: return message->viewCount;
         case MessageData::RoleMessageReactions: return message->reactions;
         case MessageData::RoleMessageAlbumEntryFilter: return message->albumEntryFilter;
-        case MessageData::RoleMessageAlbumId: return message->mediaAlbumId();
+        case MessageData::RoleMessageAlbumId: return QString::number(message->mediaAlbumId());
         case MessageData::RoleMessageAlbumMessageIds: return message->albumMessageIds;
+        case MessageData::RoleMessageAlbumMessages: return getMessages(message->albumMessageIds);
         case MessageData::RoleGeneratedContentUnread: return message->generatedContentUnread;
         case MessageData::RoleIsFirstInSequence: return messageIsFirstInSequence(row, message);
         case MessageData::RoleIsLastInSequence: return messageIsLastInSequence(row, message);
@@ -123,11 +129,28 @@ void MessagesModel::reset() {
     }
 }
 
-QVariantMap MessagesModel::getMessage(int index) {
+QVariantMap MessagesModel::getMessage(int index) const {
     if (index >= 0 && index < messages.size())
         return messages.at(index)->messageData;
 
     return QVariantMap();
+}
+
+QVariantList MessagesModel::getMessages(const QVariantList &messageIds) const {
+    LOG("Getting messages for IDs" << messageIds.size());
+    if (messageIds.isEmpty())
+        return messageIds;
+
+    QVariantList foundMessages;
+    for (const QVariant &messageIdVariant : messageIds) {
+        qlonglong messageId = messageIdVariant.toLongLong();
+        if (messageIndexMap.contains(messageId))
+            foundMessages.append(messages.at(messageIndexMap.value(messageId))->messageData);
+        else
+            LOG("Message not found in the list" << messageId);
+    }
+
+    return foundMessages;
 }
 
 int MessagesModel::getMessageIndex(qlonglong messageId) {
@@ -140,31 +163,13 @@ int MessagesModel::getMessageIndex(qlonglong messageId) {
     return -1;
 }
 
-QVariantList MessagesModel::getMessageIdsForAlbum(qlonglong albumId) {
-    QVariantList foundMessages;
-    if(albumMessageMap.contains(albumId)) { // there should be only one in here
-        QHash< qlonglong,  QVariantList >::iterator i = albumMessageMap.find(albumId);
-        return i.value();
-    }
-    return foundMessages;
+QVariantList MessagesModel::getMessageIdsForAlbum(qlonglong albumId) const {
+    return albumMessageMap.value(albumId);
 }
 
-QVariantList MessagesModel::getMessagesForAlbum(qlonglong albumId, int startAt) {
-    LOG("getMessagesForAlbumId" << albumId);
-    QVariantList messageIds = getMessageIdsForAlbum(albumId);
-    int count = messageIds.size();
-    if (count == 0)
-        return messageIds;
-
-    QVariantList foundMessages;
-    for (int messageNum = startAt; messageNum < count; ++messageNum) {
-        qlonglong messageId = messageIds.at(messageNum).toLongLong();
-        if (messageIndexMap.contains(messageId))
-            foundMessages.append(messages.at(messageIndexMap.value(messageId))->messageData);
-        else
-            LOG("Album message not found in messages list" << messageId << messageNum);
-    }
-    return foundMessages;
+QVariantList MessagesModel::getMessagesForAlbum(qlonglong albumId, int startAt) const {
+    LOG("Getting messages for album ID" << albumId);
+    return getMessages(albumMessageMap.value(albumId));
 }
 
 void MessagesModel::handleMessageReceived(qlonglong chatId, qlonglong messageId, const QVariantMap &message) {
@@ -205,15 +210,14 @@ void MessagesModel::handleMessageContentUpdated(qlonglong chatId, qlonglong mess
     LOG("Message content updated" << chatId << messageId);
     if (chatId == this->chatId && messageIndexMap.contains(messageId)) {
         LOG("We know the message that was updated" << messageId);
-        const int pos = messageIndexMap.value(messageId, -1);
-        if (pos >= 0) { // FIXME: why is this here if we check contains() before?
-            MessageData* messageData = messages.at(pos);
-            const QVector<int> changedRoles(messageData->setContent(newContent));
-            LOG("Message was updated at index" << pos);
-            const QModelIndex messageIndex(index(pos));
-            emit dataChanged(messageIndex, messageIndex, changedRoles);
-            emit messageUpdated(pos);
-        }
+        const int pos = messageIndexMap.value(messageId);
+        MessageData* messageData = messages.at(pos);
+        const QVector<int> changedRoles(messageData->setContent(newContent));
+        LOG("Message was updated at index" << pos);
+        const QModelIndex messageIndex(index(pos));
+        emit dataChanged(messageIndex, messageIndex, changedRoles);
+        emit messageUpdated(pos);
+        handleAlbumMessageUpdated(messageData->mediaAlbumId());
     }
 }
 
@@ -339,9 +343,8 @@ void MessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAl
         }
         messages.erase(messages.begin() + firstDeleted, messages.begin() + (lastDeleted + 1));
         // rebuild following messageIndexMap
-        for(int i = firstDeleted; i < messages.size(); ++i) {
+        for (int i = firstDeleted; i < messages.size(); i++)
             messageIndexMap.insert(messages.at(i)->messageId, i);
-        }
         endRemoveRows();
 
         if (updateAlbums)
@@ -351,11 +354,11 @@ void MessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAl
             QModelIndex modelIndex;
             if (firstDeleted > 0) {
                 modelIndex = index(firstDeleted - 1);
-                emit dataChanged(modelIndex, modelIndex, QVector<int>{invertIsFirstLastInSequence ? MessageData::RoleIsFirstInSequence : MessageData::RoleIsLastInSequence});
+                emit dataChanged(modelIndex, modelIndex, {invertIsFirstLastInSequence ? MessageData::RoleIsFirstInSequence : MessageData::RoleIsLastInSequence});
             }
             if (messages.size() > 0) {
                 modelIndex = index(firstDeleted);
-                emit dataChanged(modelIndex, modelIndex, QVector<int>{invertIsFirstLastInSequence ? MessageData::RoleIsLastInSequence : MessageData::RoleIsFirstInSequence});
+                emit dataChanged(modelIndex, modelIndex, {invertIsFirstLastInSequence ? MessageData::RoleIsLastInSequence : MessageData::RoleIsFirstInSequence});
             }
         }
     }
@@ -476,33 +479,35 @@ void MessagesModel::updateAlbumMessages(qlonglong albumId, bool checkDeleted) {
                 return !messageIndexMap.contains(id.toLongLong());
             }), messageIds.end());
 
-        int count = messageIds.size();
-        if (count == 0)
+        if (messageIds.isEmpty())
             albumMessageMap.remove(albumId);
-        else {
-            int mainMessageIndex = 0;
-            for (int i=0; i < count; i++) {
-                const int position = messageIndexMap.value(messageIds.at(i).toLongLong(), -1);
-                if (position > -1 && !tdLibWrapper->getUtilities()->getMessageText(messages.at(position)->messageData).isEmpty()) {
-                    mainMessageIndex = i;
-                    break;
-                }
-            }
-
-            for (int i=0; i < count; i++) {
+        else
+            for (int i=0; i < messageIds.size(); i++) {
                 const int position = messageIndexMap.value(messageIds.at(i).toLongLong(), -1);
                 if (position > -1) {
                     QModelIndex messageIndex = index(position);
                     MessageData *message = messages.at(position);
-                    const bool isMain = i == mainMessageIndex;
+                    const bool isMain = i == 0;
                     const QVector<int> changedRoles =
                             message->setAlbumEntryFilter(!isMain)
                             + message->setAlbumEntryMessageIds(isMain ? messageIds : empty);
                     emit dataChanged(messageIndex, messageIndex, changedRoles);
                 }
             }
-        }
         albumMessageMap.insert(albumId, messageIds);
+    }
+}
+
+void MessagesModel::handleAlbumMessageUpdated(qlonglong albumId) {
+    if (albumId != 0 && albumMessageMap.contains(albumId)) {
+        QVariantList &messageIds = albumMessageMap[albumId];
+        if (messageIds.isEmpty()) return;
+        qlonglong messageId = std::min_element(messageIds.begin(), messageIds.end(), &compareQlonglongVariant)->toLongLong();
+
+        if (messageIndexMap.contains(messageId)) {
+            const QModelIndex i = index(messageIndexMap.value(messageId));
+            emit dataChanged(i, i, {MessageData::RoleMessageAlbumMessages});
+        }
     }
 }
 
@@ -572,23 +577,9 @@ bool MessagesModel::handleInsertMessages(const QVariantList &messages, QList<Mes
     return reloadNeeded;
 }
 
-bool compareQlonglongVariant(const QVariant& a, const QVariant& b) {
-    return a.toLongLong() < b.toLongLong();
-}
-
 bool MessagesModel::messageIsFirstInSequence(const int index, const MessageData *message) const {
     if (index == 0) return true;
     if (message->albumEntryFilter) return false;
-
-    if (!message->albumMessageIds.isEmpty()) {
-        qlonglong firstMessageId = std::min_element(message->albumMessageIds.begin(), message->albumMessageIds.end(), &compareQlonglongVariant)->toLongLong();
-        if (messageIndexMap.contains(firstMessageId)) {
-            const int firstMessageIndex = messageIndexMap.value(firstMessageId);
-            if (firstMessageIndex == 0) return true;
-            return !MessageData::areTogether(messages.at(firstMessageIndex), messages.at(firstMessageIndex - 1));
-        }
-    }
-
     return !MessageData::areTogether(message, this->messages.at(index - 1));
 }
 

@@ -42,9 +42,10 @@ public:
 
     Q_INVOKABLE virtual bool clear();
     Q_INVOKABLE virtual void reset();
-    Q_INVOKABLE QVariantMap getMessage(int index);
-    Q_INVOKABLE QVariantList getMessageIdsForAlbum(qlonglong albumId);
-    Q_INVOKABLE QVariantList getMessagesForAlbum(qlonglong albumId, int startAt = 0);
+    Q_INVOKABLE QVariantMap getMessage(int index) const;
+    Q_INVOKABLE QVariantList getMessages(const QVariantList &messageIds) const;
+    Q_INVOKABLE QVariantList getMessageIdsForAlbum(qlonglong albumId) const;
+    Q_INVOKABLE QVariantList getMessagesForAlbum(qlonglong albumId, int startAt = 0) const;
 
     Q_INVOKABLE int getMessageIndex(qlonglong messageId);
     inline qlonglong getChatId() const { return chatId; }
@@ -68,6 +69,7 @@ private slots:
 
 private:
     void updateAlbumMessages(qlonglong albumId, bool checkDeleted);
+    void handleAlbumMessageUpdated(qlonglong albumId);
     void updateAlbumMessages(QList<qlonglong> albumIds, bool checkDeleted);
     void setMessagesAlbum(MessageData *message);
 

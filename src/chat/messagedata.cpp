@@ -76,6 +76,7 @@ QVector<int> MessageData::flagsToRoles(uint flags) {
     }
     if (flags & RoleFlagMessageAlbumMessageIds) {
         roles.append(RoleMessageAlbumMessageIds);
+        roles.append(RoleMessageAlbumMessages);
     }
     return roles;
 }
@@ -110,8 +111,10 @@ QVector<int> MessageData::diff(const MessageData *message) const {
             roles.append(RoleMessageReactions);
         if (message->albumEntryFilter != albumEntryFilter)
             roles.append(RoleMessageAlbumEntryFilter);
-        if (message->albumMessageIds != albumMessageIds)
+        if (message->albumMessageIds != albumMessageIds) {
             roles.append(RoleMessageAlbumMessageIds);
+            roles.append(RoleMessageAlbumMessages);
+        }
         if (message->generatedContentUnread != generatedContentUnread)
             roles.append(RoleGeneratedContentUnread);
     }
@@ -197,7 +200,7 @@ uint MessageData::updateAlbumEntryMessageIds(const QVariantList &newAlbumMessage
     albumMessageIds = newAlbumMessageIds;
 
     LOG("  Updating albumMessageIds... same again?" << (newAlbumMessageIds == oldAlbumMessageIds));
-    return (newAlbumMessageIds == oldAlbumMessageIds) ? 0 : RoleFlagMessageAlbumMessageIds;
+    return newAlbumMessageIds == oldAlbumMessageIds ? 0 : RoleFlagMessageAlbumMessageIds;
 }
 
 QVector<int> MessageData::setAlbumEntryMessageIds(const QVariantList &newAlbumMessageIds) {

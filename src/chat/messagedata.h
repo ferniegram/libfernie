@@ -16,6 +16,7 @@ struct MessageData {
         RoleMessageAlbumEntryFilter,
         RoleMessageAlbumId,
         RoleMessageAlbumMessageIds,
+        RoleMessageAlbumMessages,
         RoleGeneratedContentUnread,
 
         RoleIsFirstInSequence,
@@ -30,6 +31,7 @@ struct MessageData {
         RoleFlagMessageReactions = 0x16,
         RoleFlagMessageAlbumEntryFilter = 0x32,
         RoleFlagMessageAlbumMessageIds = 0x64,
+        RoleFlagMessageAlbumMessages = 0x128,
     };
 
     MessageData(const QVariantMap &data, qlonglong msgid);

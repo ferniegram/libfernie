@@ -657,8 +657,9 @@ QVariantMap Utilities::getMessageTextWithCustomEntities(const QVariantMap &messa
     return {{TEXT, result}, {"customInsertions", customInsertionsVariants}};
 }
 
-bool Utilities::messageContentIsService(const QString &contentType, bool includeTextOnly) {
+bool Utilities::messageContentIsService(const QString &contentType) {
     QStringList nonServiceContentTypes{
+        MESSAGE_CONTENT_TYPE_TEXT,
         MESSAGE_CONTENT_TYPE_ANIMATED_EMOJI,
         MESSAGE_CONTENT_TYPE_ANIMATION,
         MESSAGE_CONTENT_TYPE_AUDIO,
@@ -676,11 +677,8 @@ bool Utilities::messageContentIsService(const QString &contentType, bool include
         MESSAGE_CONTENT_TYPE_VIDEO,
         MESSAGE_CONTENT_TYPE_VIDEO_NOTE,
         MESSAGE_CONTENT_TYPE_VOICE_NOTE,
-        MESSAGE_CONTENT_TYPE_DICE,
+        MESSAGE_CONTENT_TYPE_DICE
     };
-    if (!includeTextOnly) {
-        nonServiceContentTypes.append("messageText");
-    }
 
     return !nonServiceContentTypes.contains(contentType);
 }

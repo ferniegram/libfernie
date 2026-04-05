@@ -56,7 +56,7 @@ public:
     Q_INVOKABLE QString getMessageContentText(const QVariantMap &messageContent, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
     Q_INVOKABLE QVariantMap getMessageTextWithCustomEntities(const QVariantMap &message, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
 
-    Q_INVOKABLE static bool messageContentIsService(const QString &contentType, bool includeTextOnly = false);
+    Q_INVOKABLE static bool messageContentIsService(const QString &contentType);
     Q_INVOKABLE static QVariant getMessageMinithumbnail(const QVariantMap &messageContent);
 
     Q_INVOKABLE static QVariantMap newFormattedText(const QString &text, const QVariantList &entities = QVariantList());

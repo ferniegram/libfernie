@@ -974,3 +974,7 @@ QString Utilities::uncompressLocalFile(const QString &path) {
 
     return QString::fromStdString(uncompress(file.readAll()));
 }
+
+bool Utilities::compareQlonglongVariant(const QVariant& a, const QVariant& b) {
+    return a.toLongLong() < b.toLongLong();
+}

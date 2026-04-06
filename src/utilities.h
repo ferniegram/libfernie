@@ -83,6 +83,8 @@ public:
     static std::string uncompress(const QByteArray &data);
     Q_INVOKABLE static QString uncompressLocalFile(const QString &path);
 
+    static bool compareQlonglongVariant(const QVariant& a, const QVariant& b);
+
 private:
     struct FormattedTextInsertion;
 

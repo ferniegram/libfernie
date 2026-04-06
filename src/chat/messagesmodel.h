@@ -75,17 +75,17 @@ private:
 
 protected:
     virtual void setupTDLibWrapper();
-    virtual void removeRange(int firstDeleted, int lastDeleted, bool updateAlbums = true, bool updateIsFirstLastInSequence = true, bool invertIsFirstLastInSequence = false);
+    virtual void removeRange(int firstDeleted, int lastDeleted, bool updateAlbums = true);
     virtual void insertMessages(const QList<MessageData*> newMessages);
-    virtual void insertMessagesAt(int index, const QList<MessageData*> newMessages, bool updateIsFirstLastFirstInSequence = true);
-    virtual void appendMessages(const QList<MessageData*> newMessages, bool updateIsLastInSequence = true);
-    virtual void prependMessages(const QList<MessageData*> newMessages, bool updateIsFirstInSequence = true);
+    virtual void insertMessagesAt(int index, const QList<MessageData*> newMessages);
+    virtual void appendMessages(const QList<MessageData*> newMessages);
+    virtual void prependMessages(const QList<MessageData*> newMessages);
     void setMessagesAlbum(const QList<MessageData*> newMessages);
     int findLastSentMessageIndex();
     virtual bool handleInsertMessages(const QVariantList &messages, QList<MessageData*> &newMessagesList, bool setAlbum = true, bool reverseOrder = false);
     inline virtual void processMessageData(MessageData* message) {}
-    virtual bool messageIsFirstInSequence(const int index, const MessageData *message) const;
-    virtual bool messageIsLastInSequence(const int index, const MessageData *message) const;
+    inline virtual bool messageIsFirstInSequence(const int index, const MessageData *message) const { return index == 0; }
+    inline virtual bool messageIsLastInSequence(const int index, const MessageData *message) const { return index == messages.size() - 1; }
 
 protected slots:
     virtual void handleMessagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds);

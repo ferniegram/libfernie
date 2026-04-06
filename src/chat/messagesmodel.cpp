@@ -32,10 +32,6 @@ namespace {
     const QString CHAT_ID("chat_id");
 }
 
-bool compareQlonglongVariant(const QVariant& a, const QVariant& b) {
-    return a.toLongLong() < b.toLongLong();
-}
-
 MessagesModel::MessagesModel(QObject *parent) : QAbstractListModel(parent), tdLibWrapper(nullptr), chatId(0) {
 }
 
@@ -196,7 +192,7 @@ void MessagesModel::handleMessageSendSucceeded(qlonglong chatId, qlonglong oldMe
         messageIndexMap.remove(oldMessageId);
         messageIndexMap.insert(messageId, pos);
         // TODO when we support sending album messages, handle ID change in albumMessageMap
-        const QVector<int> changedRoles(newMessage->diff(oldMessage));
+        const QVector<int> changedRoles = newMessage->diff(oldMessage);
         delete oldMessage;
         LOG("Message was replaced at index" << pos);
         const QModelIndex messageIndex(index(pos));
@@ -327,7 +323,7 @@ void MessagesModel::handleMessagesDeleted(qlonglong chatId, const QList<qlonglon
 }
 
 
-void MessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAlbums, bool updateIsFirstLastInSequence, bool invertIsFirstLastInSequence) {
+void MessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAlbums) {
     if (firstDeleted >= 0 && firstDeleted <= lastDeleted) {
         LOG("Removing range" << firstDeleted << "..." << lastDeleted << "| current messages size" << messages.size());
         beginRemoveRows(QModelIndex(), firstDeleted, lastDeleted);
@@ -349,26 +345,14 @@ void MessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAl
 
         if (updateAlbums)
             updateAlbumMessages(rescanAlbumIds, true);
-
-        if (updateIsFirstLastInSequence) {
-            QModelIndex modelIndex;
-            if (firstDeleted > 0) {
-                modelIndex = index(firstDeleted - 1);
-                emit dataChanged(modelIndex, modelIndex, {invertIsFirstLastInSequence ? MessageData::RoleIsFirstInSequence : MessageData::RoleIsLastInSequence});
-            }
-            if (messages.size() > 0) {
-                modelIndex = index(firstDeleted);
-                emit dataChanged(modelIndex, modelIndex, {invertIsFirstLastInSequence ? MessageData::RoleIsLastInSequence : MessageData::RoleIsFirstInSequence});
-            }
-        }
     }
 }
 
 void MessagesModel::insertMessages(const QList<MessageData*> newMessages) {
     // Caller ensures that newMessages is not empty
-    if (messages.isEmpty()) {
+    if (messages.isEmpty())
         appendMessages(newMessages);
-    } else if (!newMessages.isEmpty()) {
+    else if (!newMessages.isEmpty()) {
         // There is only an append or a prepend, tertium non datur! (probably ;))
         qlonglong lastKnownId = -1;
         for (int i = (messages.size() - 1); i >= 0; i-- ) {
@@ -388,7 +372,7 @@ void MessagesModel::insertMessages(const QList<MessageData*> newMessages) {
     }
 }
 
-void MessagesModel::insertMessagesAt(int insertIndex, const QList<MessageData*> newMessages, bool updateIsFirstLastFirstInSequence) {
+void MessagesModel::insertMessagesAt(int insertIndex, const QList<MessageData*> newMessages) {
     const int insertCount = newMessages.size();
     const int totalCount = messages.size() + insertCount;
     LOG("Inserting" << insertCount << "messages at" << insertIndex);
@@ -406,41 +390,22 @@ void MessagesModel::insertMessagesAt(int insertIndex, const QList<MessageData*> 
     for (i += insertIndex; i < totalCount; i++)
         messageIndexMap.insert(messages.at(i)->messageId, i);
     endInsertRows();
-
-
-    if (updateIsFirstLastFirstInSequence) {
-        if (insertIndex > 0) {
-            QModelIndex modelIndex = index(insertIndex - 1);
-            emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsLastInSequence});
-        }
-        if ((insertIndex + insertCount + 1) < totalCount) {
-            QModelIndex modelIndex = index(insertIndex + insertCount + 1);
-            emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsFirstInSequence});
-        }
-    }
 }
 
-void MessagesModel::appendMessages(const QList<MessageData*> newMessages, bool updateIsLastInSequence) {
+void MessagesModel::appendMessages(const QList<MessageData*> newMessages) {
     const int oldSize = messages.size();
     const int count = newMessages.size();
     LOG("Appending" << count << "new messages...");
 
     beginInsertRows(QModelIndex(), oldSize, oldSize + count - 1);
     messages.append(newMessages);
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
         // Append new indices to the map
         messageIndexMap.insert(newMessages.at(i)->messageId, oldSize + i);
-    }
     endInsertRows();
-
-
-    if (updateIsLastInSequence && oldSize > 0) {
-        QModelIndex modelIndex = index(oldSize - 1);
-        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsLastInSequence});
-    }
 }
 
-void MessagesModel::prependMessages(const QList<MessageData*> newMessages, bool updateIsFirstInSequence) {
+void MessagesModel::prependMessages(const QList<MessageData*> newMessages) {
     const int insertCount = newMessages.size();
     const int totalCount = messages.size() + insertCount;
     LOG("Prepending" << insertCount << "messages...");
@@ -459,12 +424,6 @@ void MessagesModel::prependMessages(const QList<MessageData*> newMessages, bool 
         messageIndexMap.insert(messages.at(i)->messageId, i);
     }
     endInsertRows();
-
-
-    if (updateIsFirstInSequence && totalCount > insertCount) { // in other words if updateIsFirstInSequence and previously messages was not empty
-        QModelIndex modelIndex = index(insertCount);
-        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsFirstInSequence});
-    }
 }
 
 void MessagesModel::updateAlbumMessages(qlonglong albumId, bool checkDeleted) {
@@ -502,7 +461,7 @@ void MessagesModel::handleAlbumMessageUpdated(qlonglong albumId) {
     if (albumId != 0 && albumMessageMap.contains(albumId)) {
         QVariantList &messageIds = albumMessageMap[albumId];
         if (messageIds.isEmpty()) return;
-        qlonglong messageId = std::min_element(messageIds.begin(), messageIds.end(), &compareQlonglongVariant)->toLongLong();
+        qlonglong messageId = std::min_element(messageIds.begin(), messageIds.end(), &Utilities::compareQlonglongVariant)->toLongLong();
 
         if (messageIndexMap.contains(messageId)) {
             const QModelIndex i = index(messageIndexMap.value(messageId));
@@ -575,28 +534,6 @@ bool MessagesModel::handleInsertMessages(const QVariantList &messages, QList<Mes
     const bool reloadNeeded = !newMessagesList.isEmpty() && (newMessagesList.size() + messages.size()) < 10;
     if (reloadNeeded) LOG("Only a few messages received in first call, requesting to load more...");
     return reloadNeeded;
-}
-
-bool MessagesModel::messageIsFirstInSequence(const int index, const MessageData *message) const {
-    if (index == 0) return true;
-    if (message->albumEntryFilter) return false;
-    return !MessageData::areTogether(message, this->messages.at(index - 1));
-}
-
-bool MessagesModel::messageIsLastInSequence(const int index, const MessageData *message) const {
-    if (index == messages.size() - 1) return true;
-    if (message->albumEntryFilter) return false;
-
-    if (!message->albumMessageIds.isEmpty()) {
-        qlonglong lastMessageId = std::max_element(message->albumMessageIds.begin(), message->albumMessageIds.end(), &compareQlonglongVariant)->toLongLong();
-        if (messageIndexMap.contains(lastMessageId)) {
-            const int lastMessageIndex = messageIndexMap.value(lastMessageId);
-            if (lastMessageIndex ==  messages.size() - 1) return true;
-            return !MessageData::areTogether(messages.at(lastMessageIndex), messages.at(lastMessageIndex + 1));
-        }
-    }
-
-    return !MessageData::areTogether(message, this->messages.at(index + 1));
 }
 
 void MessagesModel::markGeneratedContentAsRead(int i) {

@@ -225,7 +225,7 @@ ChatManager::ChatManager(QObject *parent)
 {
     LOG("Created");
     connect(this, &ChatManager::chatIdChanged, this, &ChatManager::infoInitializedChanged);
-    connect(this, &ChatManager::chatIdChanged, this, &ChatManager::smallPhotoChanged);
+    connect(this, &ChatManager::chatIdChanged, this, &ChatManager::photoChanged);
     connect(this, &ChatManager::chatIdChanged, this, &ChatManager::chatInformationChanged);
     connect(this, &ChatManager::chatIdChanged, this, &ChatManager::viewAsTopicsChanged);
     connect(this, &ChatManager::chatIdChanged, this, &ChatManager::userInfoChanged);
@@ -281,8 +281,11 @@ void ChatManager::handleChatReadOutboxUpdated(const QString &id) {
         emit this->chatMessagesModel->lastReadSentMessageUpdated();
 }
 
-QVariantMap ChatManager::smallPhoto() const {
-    return chatInformation().value(PHOTO).toMap().value(SMALL).toMap();
+QVariantMap ChatManager::photo() const {
+    ChatData *data = getChatData();
+    if (data)
+        return data->photo();
+    return QVariantMap();
 }
 
 QVariantMap ChatManager::pendingJoinRequests() const {
@@ -294,16 +297,10 @@ void ChatManager::handleChatPendingJoinRequestsUpdated(qlonglong chatId) {
         emit pendingJoinRequestsChanged();
 }
 
-bool ChatManager::infoInitialized() {
-    return chatId && tdLibWrapper && tdLibWrapper->hasChatData(chatId);
-}
-
 TDLibWrapper::ChatType ChatManager::chatType() const {
-    if (tdLibWrapper) {
-        ChatData* chatData = tdLibWrapper->getChatData(chatId);
-        if (chatData)
-            return chatData->chatType;
-    }
+    ChatData *data = getChatData();
+    if (data)
+        return data->chatType;
     return TDLibWrapper::ChatTypeUnknown;
 }
 
@@ -359,15 +356,15 @@ void ChatManager::handleNewChatDiscovered(qlonglong chatId) {
         LOG("Chat information for the current chat discovered");
         emit infoInitializedChanged();
         emit chatInformationChanged();
-        emit smallPhotoChanged();
+        emit photoChanged();
     }
 }
 
 void ChatManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles) {
     if (this->chatId == chatId) {
-        if (changedRoles.contains(ChatData::RolePhotoSmall)) {
+        if (changedRoles.contains(ChatData::RolePhoto)) {
             LOG("Chat photo updated" << chatId);
-            emit smallPhotoChanged();
+            emit photoChanged();
         }
         LOG("Chat roles updated" << chatId << changedRoles);
         emit chatInformationChanged();

@@ -1601,6 +1601,11 @@ ChatData* TDLibWrapper::getChatData(qlonglong chatId) {
     return nullptr;
 }
 
+ChatData* TDLibWrapper::getExistingChatData(qlonglong chatId) {
+    LOG("Returning existing chat data for ID" << chatId);
+    return this->chats.value(chatId);
+}
+
 ChatData* TDLibWrapper::getChatDataForce(qlonglong chatId) {
     LOG("Forcefully returning chat data for ID" << chatId);
     if (!this->chats.contains(chatId))
@@ -1989,7 +1994,7 @@ void TDLibWrapper::handleChatTitleUpdated(qlonglong chatId, const QString &title
 
 void TDLibWrapper::handleChatPhotoUpdated(qlonglong chatId, const QVariantMap &photo) {
     this->getChatDataForce(chatId)->chatData.insert(PHOTO, photo);
-    emit chatRolesUpdated(chatId, QVector<int>{ChatData::RolePhotoSmall});
+    emit chatRolesUpdated(chatId, QVector<int>{ChatData::RolePhoto});
     emit chatPhotoUpdated(chatId, photo);
 }
 

@@ -31,7 +31,7 @@ class ContactsListModel : public QAbstractListModel {
 public:
     enum ContactRole {
         RoleDisplay = Qt::DisplayRole,
-        RolePhotoSmall,
+        RolePhoto,
         RoleTitle,
         RoleUserId,
         RoleUsername,

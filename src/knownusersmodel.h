@@ -35,7 +35,7 @@ public:
         RoleTitle,
         RoleUsername,
         RoleUserHandle,
-        RolePhotoSmall,
+        RolePhoto,
         RoleFilter
     };
 

@@ -40,7 +40,7 @@ namespace {
         {ContactsListModel::ContactRole::RoleUserId, "user_id"},
         {ContactsListModel::ContactRole::RoleUsername, "username"},
         {ContactsListModel::ContactRole::RolePhoneNumber, "phone_number"},
-        {ContactsListModel::ContactRole::RolePhotoSmall, "photo_small"},
+        {ContactsListModel::ContactRole::RolePhoto, "photo_data"},
         {ContactsListModel::ContactRole::RoleUserStatus, "user_status"},
         {ContactsListModel::ContactRole::RoleUserLastOnline, "user_last_online"},
         {ContactsListModel::ContactRole::RoleIsSupport, "is_support"},
@@ -74,7 +74,7 @@ QVariant ContactsListModel::data(const QModelIndex &index, int role) const {
             case ContactRole::RoleUserId: return requestedContact.value(ID);
             case ContactRole::RoleUsername: return requestedContact.value(USERNAMES).toMap().value(EDITABLE_USERNAME).toString();
             case ContactRole::RolePhoneNumber: return requestedContact.value(PHONE_NUMBER);
-            case ContactRole::RolePhotoSmall: return requestedContact.value("profile_photo").toMap().value("small");
+            case ContactRole::RolePhoto: return requestedContact.value("profile_photo");
             case ContactRole::RoleUserStatus: return requestedContact.value(STATUS).toMap().value(_TYPE);
             case ContactRole::RoleUserLastOnline: return requestedContact.value(STATUS).toMap().value("was_online");
             case ContactRole::RoleIsSupport: return requestedContact.value("is_support").toBool();

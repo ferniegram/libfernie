@@ -13,7 +13,7 @@ public:
         RoleChatType,
         RoleGroupId,
         RoleTitle,
-        RolePhotoSmall,
+        RolePhoto,
         RoleUnreadCount,
         RoleUnreadMentionCount,
         RoleUnreadReactionCount,
@@ -47,7 +47,7 @@ public:
     int unreadMentionCount() const;
     int unreadReactionCount() const;
     QVariant availableReactions() const;
-    QVariant photoSmall() const;
+    QVariantMap photo() const;
     virtual qlonglong lastReadInboxMessageId() const override;
     virtual qlonglong lastReadOutboxMessageId() const override;
 

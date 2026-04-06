@@ -3,6 +3,7 @@
 
 #include "readablemessagesmodel.h"
 #include "forumtopicsmodel.h"
+#include "chatdata.h"
 
 class ChatMessagesModel : public ReadableMessagesModel {
     Q_OBJECT
@@ -61,7 +62,7 @@ class ChatManager : public QObject {
     Q_PROPERTY(QVariant groupInfo READ groupInfo NOTIFY groupInfoChanged)
     Q_PROPERTY(bool isBot READ isBot NOTIFY userInfoChanged)
 
-    Q_PROPERTY(QVariantMap smallPhoto READ smallPhoto NOTIFY smallPhotoChanged)
+    Q_PROPERTY(QVariantMap photo READ photo NOTIFY photoChanged)
     Q_PROPERTY(QVariantMap pendingJoinRequests READ pendingJoinRequests NOTIFY pendingJoinRequestsChanged)
 
     Q_PROPERTY(QVariantMap botSponsoredMessage MEMBER botSponsoredMessage NOTIFY botSponsoredMessageChanged)
@@ -84,8 +85,10 @@ public:
     void setChatId(qlonglong chatId);
     Q_INVOKABLE void initializeMainModels(qlonglong fromMessageId = 0);
     bool viewAsTopics();
-    inline qlonglong getChatId() { return chatId; }
-    bool infoInitialized();
+    inline qlonglong getChatId() const { return chatId; }
+    inline bool infoInitialized() const {
+        return chatId && tdLibWrapper && tdLibWrapper->hasChatData(chatId);
+    }
     inline QVariantMap chatInformation() const {
         if (tdLibWrapper)
             return tdLibWrapper->getChat(chatId);
@@ -98,7 +101,7 @@ public:
     QVariant groupInfo() const;
     bool isBot() const;
 
-    QVariantMap smallPhoto() const;
+    QVariantMap photo() const;
     QVariantMap pendingJoinRequests() const;
 
 signals:
@@ -114,7 +117,7 @@ signals:
     void userInfoChanged();
     void groupInfoChanged();
 
-    void smallPhotoChanged();
+    void photoChanged();
     void pendingJoinRequestsChanged();
 
     void botSponsoredMessageChanged();
@@ -136,6 +139,10 @@ private slots:
 private:
     qlonglong userId() const;
     qlonglong groupId() const;
+
+    inline ChatData* getChatData() const {
+        return chatId && tdLibWrapper ? tdLibWrapper->getChatData(chatId) : nullptr;
+    }
 
     void finishInitialization();
 

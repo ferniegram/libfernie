@@ -74,6 +74,8 @@ struct MessageData {
 
     qlonglong mediaAlbumId() const;
 
+    QVariantMap getContent() const;
+
 
 
     QVariantMap messageData;

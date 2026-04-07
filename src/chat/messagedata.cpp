@@ -51,7 +51,7 @@ MessageData::MessageData(const QVariantMap &data, qlonglong msgid) :
     generatedContentUnread(false)
 {
     if (messageContentType == TYPE_MESSAGE_DICE)
-        generatedContentUnread = !messageData.value(CONTENT).toMap().contains(FINAL_STATE);
+        generatedContentUnread = !getContent().contains(FINAL_STATE);
 }
 
 QVector<int> MessageData::flagsToRoles(uint flags) {
@@ -95,6 +95,10 @@ bool MessageData::lastMessageSenderIsChat() const {
 
 qlonglong MessageData::mediaAlbumId() const {
     return messageData.value(MEDIA_ALBUM_ID).toLongLong();
+}
+
+QVariantMap MessageData::getContent() const {
+    return messageData.value(CONTENT).toMap();
 }
 
 QVector<int> MessageData::diff(const MessageData *message) const {
@@ -233,16 +237,16 @@ QVector<int> MessageData::setMentionRead() {
 
 uint MessageData::updateContentOpened() {
     if (messageContentType == TYPE_MESSAGE_VOICE_NOTE) {
-        if (messageData.value(CONTENT).toMap().value(IS_LISTENED).toBool())
+        QVariantMap content = getContent();
+        if (content.value(IS_LISTENED).toBool())
             return 0;
-        QVariantMap content = messageData.value(CONTENT).toMap();
         content.insert(IS_LISTENED, true);
         messageData.insert(CONTENT, content);
         return RoleFlagDisplay;
     } else if (messageContentType == TYPE_MESSAGE_VIDEO_NOTE) {
-        if (messageData.value(CONTENT).toMap().value(IS_VIEWED).toBool())
+        QVariantMap content = getContent();
+        if (content.value(IS_VIEWED).toBool())
             return 0;
-        QVariantMap content = messageData.value(CONTENT).toMap();
         content.insert(IS_VIEWED, true);
         messageData.insert(CONTENT, content);
         return RoleFlagDisplay;

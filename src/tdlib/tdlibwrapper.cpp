@@ -1412,6 +1412,11 @@ void TDLibWrapper::setPreviousProfilePhoto(const QString &photoId) {
     });
 }
 
+void TDLibWrapper::setChatPhoto(qlonglong chatId) {
+    LOG("Set empty chat photo" << chatId);
+    this->sendRequest({{_TYPE, "setChatPhoto"}});
+}
+
 void TDLibWrapper::setChatPhoto(qlonglong chatId, const QString &filePath) {
     LOG("Set chat photo" << chatId << filePath);
     this->sendRequest({

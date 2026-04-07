@@ -332,6 +332,7 @@ public:
     Q_INVOKABLE void getUserPrivacySettingRules(UserPrivacySetting setting);
     Q_INVOKABLE void setProfilePhoto(const QString &filePath);
     Q_INVOKABLE void setPreviousProfilePhoto(const QString &photoId);
+    Q_INVOKABLE void setChatPhoto(qlonglong chatId);
     Q_INVOKABLE void setChatPhoto(qlonglong chatId, const QString &filePath);
     Q_INVOKABLE void setPreviousChatPhoto(qlonglong chatId, const QString &photoId);
     Q_INVOKABLE void deleteProfilePhoto(const QString &profilePhotoId);

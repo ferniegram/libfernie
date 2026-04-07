@@ -52,10 +52,10 @@ bool MediaMessagesModel::clear() {
 
 void MediaMessagesModel::loadMessagesWithLimit(int extra, qlonglong fromMessageId, int offset, int limit) {
     if (!tdLibWrapper) {
-        LOG("Can't load messages, tdLibWrapper is not set" << extra << fromMessageId << offset);
+        LOG("Can't load messages, tdLibWrapper is not set" << extra << fromMessageId << offset << limit);
         return;
     }
-    LOG("Loading messages" << extra << fromMessageId << offset);
+    LOG("Loading messages" << extra << fromMessageId << offset << limit);
     this->tdLibWrapper->searchChatMessages(this->chatId, QString(), extra, fromMessageId, this->searchMessagesFilter, limit, offset);
 }
 
@@ -77,7 +77,7 @@ void MediaMessagesModel::init(qlonglong chatId, qlonglong fromMessageId) {
                 return;
             }
         } else {
-            if (this->messages.size() > 0 && this->messageIndexMap.contains(fromMessageId)) {
+            if (!messages.isEmpty() && messageIndexMap.contains(fromMessageId)) {
                 LOG("Message is already loaded, skipping initialization");
                 this->highlightedMessageId = fromMessageId;
                 emit alreadyLoaded();

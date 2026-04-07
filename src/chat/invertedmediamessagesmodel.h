@@ -10,13 +10,13 @@ public:
 
 protected:
     inline virtual void appendMessages(const QList<MessageData*> newMessages) override {
-        MessagesModel::prependMessages(newMessages);
+        MediaMessagesModel::prependMessages(newMessages);
     }
     inline virtual void prependMessages(const QList<MessageData*> newMessages) override {
-        MessagesModel::appendMessages(newMessages);
+        MediaMessagesModel::appendMessages(newMessages);
     }
     inline virtual bool handleInsertMessages(const QVariantList &messages, QList<MessageData*> &newMessagesList, bool setAlbum = true, bool reverseOrder = true) override {
-        return MessagesModel::handleInsertMessages(messages, newMessagesList, setAlbum, true);
+        return MediaMessagesModel::handleInsertMessages(messages, newMessagesList, setAlbum, true);
     }
 
 protected slots:

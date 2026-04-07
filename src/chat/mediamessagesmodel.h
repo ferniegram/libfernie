@@ -27,10 +27,6 @@ private slots:
     void handleMessagesReceived(qlonglong chatId, TDLibWrapper::SearchMessagesFilter filter, int extra, const QVariantList &messages, int totalCount, qlonglong nextFromMessageId);
     void handleNewMessageReceived(qlonglong chatId, const QVariantMap &message);
 
-private:
-    inline virtual void loadMessages(int extra = 0, qlonglong fromMessageId = 0, int offset = 0) override { loadMessagesWithLimit(extra, fromMessageId, offset); }
-    void loadMessagesWithLimit(int extra = 0, qlonglong fromMessageId = 0, int offset = 0, int limit = 100);
-
 protected:
     virtual void setupTDLibWrapper() override;
 
@@ -38,7 +34,11 @@ protected:
     virtual void loadMoreFutureImpl() override;
     virtual void loadHistoryForMessageImpl(qlonglong messageId) override;
 
-private:
+
+    inline virtual void loadMessages(int extra = 0, qlonglong fromMessageId = 0, int offset = 0) override { loadMessagesWithLimit(extra, fromMessageId, offset); }
+    void loadMessagesWithLimit(int extra = 0, qlonglong fromMessageId = 0, int offset = 0, int limit = 100);
+
+
     TDLibWrapper::SearchMessagesFilter searchMessagesFilter;
 
     qlonglong nextFromMessageId;

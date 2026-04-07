@@ -85,7 +85,7 @@ void JumpableMessagesModel::handleMessagesReceived(int extra, const QVariantList
 
     auto notifyMessagesLoaded = [&]() {
         this->waitingFor.insert(fromUpdate, false);
-        this->handlePrepareMessagesReceived(totalCount, fromUpdate); // emits loadingChanged() as well ;;;; UPD: FIXME!!!!! no it doesn't actually!!???
+        this->handlePrepareMessagesReceived(totalCount, fromUpdate); // emits loadingChanged() as well (through endReachedChanged)
         const bool fromSliceUpdate = fromUpdate == UpdatePreviousSlice || fromUpdate == UpdateNextSlice;
         emit messagesReceived(totalCount, fromSliceUpdate);
     };

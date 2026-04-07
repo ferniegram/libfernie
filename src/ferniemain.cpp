@@ -34,6 +34,7 @@
 #include "chat/mediamessagesmodel.h"
 #include "chat/invertedmediamessagesmodel.h"
 #include "userprofilepicturesmodel.h"
+#include "chat/chatphotosmodel.h"
 
 #ifdef QT_QML_DEBUG
 #include <QtQuick>
@@ -84,6 +85,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     qmlRegisterType<MediaMessagesModel>(uri, 1, 0, "MediaMessagesModel");
     qmlRegisterType<InvertedMediaMessagesModel>(uri, 1, 0, "InvertedMediaMessagesModel");
     qmlRegisterType<UserProfilePicturesModel>(uri, 1, 0, "UserProfilePicturesModel");
+    qmlRegisterType<ChatPhotosModel>(uri, 1, 0, "ChatPhotosModel");
     qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
 
     AppSettings *appSettings = new AppSettings(view.data());

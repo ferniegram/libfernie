@@ -860,7 +860,7 @@ void TDLibWrapper::getSupergroupMembers(qlonglong groupId, int limit, int offset
     });
 }
 
-void TDLibWrapper::getGroupFullInfo(const QString &groupId, bool isSupergroup) {
+void TDLibWrapper::getGroupFullInfo(qlonglong groupId, bool isSupergroup) {
     QVariantMap requestObject{{_EXTRA, groupId}};
     if (isSupergroup) {
         LOG("Retrieving supergroup full info" << groupId);

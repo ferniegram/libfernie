@@ -3163,3 +3163,8 @@ void TDLibWrapper::getInternalLink(const QVariantMap &type, bool isHttp) {
     LOG("Getting internal link HTTP:" << isHttp);
     sendRequest({{_TYPE, "getInternalLink"}, {TYPE, type}, {"is_http", isHttp}});
 }
+
+void TDLibWrapper::destroyInstance() {
+    LOG("Destroying the TDLib instance");
+    sendRequest({{_TYPE, "destroy"}});
+}

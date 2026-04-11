@@ -396,6 +396,7 @@ public:
         pingProxy(getProxyObject(server, port, type));
     }
     Q_INVOKABLE void getInternalLink(const QVariantMap &type, bool isHttp = false);
+    Q_INVOKABLE void destroyInstance();
 
     // Others (candidates for extraction ;))
     Q_INVOKABLE void initializeOpenWith();

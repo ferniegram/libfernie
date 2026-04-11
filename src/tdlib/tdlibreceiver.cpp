@@ -113,137 +113,32 @@ namespace {
     const QString TYPE_VOICE_NOTE("voiceNote");
 }
 
-TDLibReceiver::TDLibReceiver(int tdLibClientId, QObject *parent) : QThread(parent) {
-    this->tdLibClientId = tdLibClientId;
-    this->isActive = true;
+TDLibReceiver::TDLibReceiver(int clientId, QObject *parent)
+    : QThread(parent), clientId(clientId)
+{}
 
-    handlers.insert("updateOption", &TDLibReceiver::processUpdateOption);
-    handlers.insert("updateAuthorizationState", &TDLibReceiver::processUpdateAuthorizationState);
-    handlers.insert("updateConnectionState", &TDLibReceiver::processUpdateConnectionState);
-    handlers.insert("updateUser", &TDLibReceiver::processUpdateUser);
-    handlers.insert("updateUserStatus", &TDLibReceiver::processUpdateUserStatus);
-    handlers.insert("updateFile", &TDLibReceiver::processUpdateFile);
-    handlers.insert("file", &TDLibReceiver::processFile);
-    handlers.insert("updateNewChat", &TDLibReceiver::processUpdateNewChat);
-    handlers.insert("updateChatAddedToList", &TDLibReceiver::processUpdateChatAddedToList);
-    handlers.insert("updateChatRemovedFromList", &TDLibReceiver::processUpdateChatRemovedFromList);
-    handlers.insert("updateUnreadMessageCount", &TDLibReceiver::processUpdateUnreadMessageCount);
-    handlers.insert("updateUnreadChatCount", &TDLibReceiver::processUpdateUnreadChatCount);
-    handlers.insert("updateChatLastMessage", &TDLibReceiver::processUpdateChatLastMessage);
-    handlers.insert("updateChatPosition", &TDLibReceiver::processUpdateChatPosition);
-    handlers.insert("updateChatReadInbox", &TDLibReceiver::processUpdateChatReadInbox);
-    handlers.insert("updateChatReadOutbox", &TDLibReceiver::processUpdateChatReadOutbox);
-    handlers.insert("updateChatAvailableReactions", &TDLibReceiver::processUpdateChatAvailableReactions);
-    handlers.insert("updateBasicGroup", &TDLibReceiver::processUpdateBasicGroup);
-    handlers.insert("updateSupergroup", &TDLibReceiver::processUpdateSuperGroup);
-    handlers.insert("updateChatOnlineMemberCount", &TDLibReceiver::processChatOnlineMemberCountUpdated);
-    handlers.insert("messages", &TDLibReceiver::processMessages);
-    handlers.insert("foundChatMessages", &TDLibReceiver::processFoundChatMessages);
-    handlers.insert("sponsoredMessages", &TDLibReceiver::processSponsoredMessages);
-    handlers.insert("updateNewMessage", &TDLibReceiver::processUpdateNewMessage);
-    handlers.insert("message", &TDLibReceiver::processMessage);
-    handlers.insert("messageLinkInfo", &TDLibReceiver::processMessageLinkInfo);
-    handlers.insert("updateMessageSendSucceeded", &TDLibReceiver::processMessageSendSucceeded);
-    handlers.insert("updateActiveNotifications", &TDLibReceiver::processUpdateActiveNotifications);
-    handlers.insert("updateNotificationGroup", &TDLibReceiver::processUpdateNotificationGroup);
-    handlers.insert("updateChatNotificationSettings", &TDLibReceiver::processUpdateChatNotificationSettings);
-    handlers.insert("updateMessageContent", &TDLibReceiver::processUpdateMessageContent);
-    handlers.insert("updateDeleteMessages", &TDLibReceiver::processUpdateDeleteMessages);
-    handlers.insert("chats", &TDLibReceiver::processChats);
-    handlers.insert("chat", &TDLibReceiver::processChat);
-    handlers.insert("updateRecentStickers", &TDLibReceiver::processUpdateRecentStickers);
-    handlers.insert("updateFavoriteStickers", &TDLibReceiver::processUpdateFavoriteStickers);
-    handlers.insert("stickers", &TDLibReceiver::processStickers);
-    handlers.insert("updateInstalledStickerSets", &TDLibReceiver::processUpdateInstalledStickerSets);
-    handlers.insert("stickerSets", &TDLibReceiver::processStickerSets);
-    handlers.insert("stickerSet", &TDLibReceiver::processStickerSet);
-    handlers.insert("chatMembers", &TDLibReceiver::processChatMembers);
-    handlers.insert("userFullInfo", &TDLibReceiver::processUserFullInfo);
-    handlers.insert("updateUserFullInfo", &TDLibReceiver::processUpdateUserFullInfo);
-    handlers.insert("basicGroupFullInfo", &TDLibReceiver::processBasicGroupFullInfo);
-    handlers.insert("updateBasicGroupFullInfo", &TDLibReceiver::processUpdateBasicGroupFullInfo);
-    handlers.insert("supergroupFullInfo", &TDLibReceiver::processSupergroupFullInfo);
-    handlers.insert("updateSupergroupFullInfo", &TDLibReceiver::processUpdateSupergroupFullInfo);
-    handlers.insert("chatPhotos", &TDLibReceiver::processChatPhotos);
-    handlers.insert("updateChatPermissions", &TDLibReceiver::processUpdateChatPermissions);
-    handlers.insert("updateChatPhoto", &TDLibReceiver::processUpdateChatPhoto);
-    handlers.insert("updateChatTitle", &TDLibReceiver::processUpdateChatTitle);
-    handlers.insert("updateMessageIsPinned", &TDLibReceiver::processUpdateMessageIsPinned);
-    handlers.insert("users", &TDLibReceiver::processUsers);
-    handlers.insert("messageSenders", &TDLibReceiver::processMessageSenders);
-    handlers.insert("error", &TDLibReceiver::processError);
-    handlers.insert("ok", &TDLibReceiver::ok);
-    handlers.insert("updateServiceNotification", &TDLibReceiver::processUpdateServiceNotification);
-    handlers.insert("secretChat", &TDLibReceiver::processSecretChat);
-    handlers.insert("updateSecretChat", &TDLibReceiver::processUpdateSecretChat);
-    handlers.insert("importedContacts", &TDLibReceiver::processImportedContacts);
-    handlers.insert("updateMessageEdited", &TDLibReceiver::processUpdateMessageEdited);
-    handlers.insert("updateChatIsMarkedAsUnread", &TDLibReceiver::processUpdateChatIsMarkedAsUnread);
-    handlers.insert("updateChatDraftMessage", &TDLibReceiver::processUpdateChatDraftMessage);
-    handlers.insert("inlineQueryResults", &TDLibReceiver::processInlineQueryResults);
-    handlers.insert("callbackQueryAnswer", &TDLibReceiver::processCallbackQueryAnswer);
-    handlers.insert("userPrivacySettingRules", &TDLibReceiver::processUserPrivacySettingRules);
-    handlers.insert("updateUserPrivacySettingRules", &TDLibReceiver::processUpdateUserPrivacySettingRules);
-    handlers.insert("updateMessageInteractionInfo", &TDLibReceiver::processUpdateMessageInteractionInfo);
-    handlers.insert("sessions", &TDLibReceiver::processSessions);
-    handlers.insert("availableReactions", &TDLibReceiver::processAvailableReactions);
-    handlers.insert("updateChatUnreadMentionCount", &TDLibReceiver::processUpdateChatUnreadMentionCount);
-    handlers.insert("updateMessageMentionRead", &TDLibReceiver::processUpdateMessageMentionRead);
-    handlers.insert("updateChatUnreadReactionCount", &TDLibReceiver::processUpdateChatUnreadReactionCount);
-    handlers.insert("updateActiveEmojiReactions", &TDLibReceiver::processUpdateActiveEmojiReactions);
-    handlers.insert("messageProperties", &TDLibReceiver::processMessageProperties);
-    handlers.insert("storageStatisticsFast", &TDLibReceiver::processStorageStatisticsFast);
-    handlers.insert("storageStatistics", &TDLibReceiver::processStorageStatistics);
-    handlers.insert("formattedText", &TDLibReceiver::processFormattedText);
-    handlers.insert("updateChatAction", &TDLibReceiver::processUpdateChatAction);
-    handlers.insert("emojiKeywords", &TDLibReceiver::processEmojiKeywords);
-    handlers.insert("updateDiceEmojis", &TDLibReceiver::processUpdateDiceEmojis);
-    handlers.insert("updateSuggestedActions", &TDLibReceiver::processUpdateSuggestedActions);
-    handlers.insert("count", &TDLibReceiver::processCount);
-    handlers.insert("chatLists", &TDLibReceiver::processChatLists);
-    handlers.insert("archiveChatListSettings", &TDLibReceiver::processArchiveChatListSettings);
-    handlers.insert("updateChatFolders", &TDLibReceiver::processUpdateChatFolders);
-    handlers.insert("forumTopics", &TDLibReceiver::processForumTopics);
-    handlers.insert("updateForumTopic", &TDLibReceiver::processUpdateForumTopic);
-    handlers.insert("updateForumTopicInfo", &TDLibReceiver::processUpdateForumTopicInfo);
-    handlers.insert("updateChatPendingJoinRequests", &TDLibReceiver::processUpdateChatPendingJoinRequests);
-    handlers.insert("chatJoinRequests", &TDLibReceiver::processChatJoinRequests);
-    handlers.insert("internalLinkType", &TDLibReceiver::processInternalLinkType);
-    handlers.insert("deepLinkInfo", &TDLibReceiver::processDeepLinkInfo);
-    handlers.insert("user", &TDLibReceiver::processUser);
-    handlers.insert("chatInviteLinkInfo", &TDLibReceiver::processChatInviteLinkInfo);
-    handlers.insert("updateChatViewAsTopics", &TDLibReceiver::processUpdateChatViewAsTopics);
-    handlers.insert("forumTopic", &TDLibReceiver::processForumTopic);
-    handlers.insert("updateMessageSuggestedPostInfo", &TDLibReceiver::processUpdateMessageSuggestedPostInfo);
-    handlers.insert("updateMessageContentOpened", &TDLibReceiver::processUpdateMessageContentOpened);
-    handlers.insert("updateMessageFactCheck", &TDLibReceiver::processUpdateMessageFactCheck);
-    handlers.insert("updateStickerSet", &TDLibReceiver::processUpdateStickerSet);
-    handlers.insert("pollVoters", &TDLibReceiver::processPollVoters);
-    handlers.insert("seconds", &TDLibReceiver::processSeconds);
-    handlers.insert("addedProxies", &TDLibReceiver::processAddedProxies);
-    handlers.insert("addedProxy", &TDLibReceiver::processAddedProxy);
-}
-
-void TDLibReceiver::setActive(bool active)
-{
-    if (active) {
+void TDLibReceiver::setActive(bool active) {
+    if (active)
         LOG("Activating receiver loop...");
-    } else {
+    else
         LOG("Deactivating receiver loop, this may take a while...");
-    }
     this->isActive = active;
 }
 
-void TDLibReceiver::receiverLoop()
-{
+void TDLibReceiver::setClientId(int clientId) {
+    LOG("Current client ID changed from" << this->clientId << "to" << clientId);
+    this->clientId = clientId;
+}
+
+void TDLibReceiver::receiverLoop() {
     LOG("Starting receiver loop");
     while (this->isActive) {
-      const char *result = td_receive(WAIT_TIMEOUT);
-      if (result) {
-          QJsonDocument receivedJsonDocument = QJsonDocument::fromJson(QByteArray(result));
-          VERBOSE("Raw result:" << receivedJsonDocument.toJson(QJsonDocument::Indented).constData());
-          processReceivedDocument(receivedJsonDocument);
-      }
+        const char *result = td_receive(WAIT_TIMEOUT);
+        if (result) {
+            QJsonDocument receivedJsonDocument = QJsonDocument::fromJson(QByteArray(result));
+            VERBOSE("Raw result:" << receivedJsonDocument.toJson(QJsonDocument::Indented).constData());
+            processReceivedDocument(receivedJsonDocument);
+        }
     }
     LOG("Stopping receiver loop");
 }
@@ -251,6 +146,12 @@ void TDLibReceiver::receiverLoop()
 void TDLibReceiver::processReceivedDocument(const QJsonDocument &receivedJsonDocument) {
     QVariantMap receivedInformation = receivedJsonDocument.object().toVariantMap();
     QString objectTypeName = receivedInformation.value(_TYPE).toString();
+
+    int clientId = receivedInformation.value("@client_id").toInt();
+    if (clientId != this->clientId) {
+        LOG("Received document for non-current client ID; ignoring" << clientId);
+        return;
+    }
 
     QString objectExtra = receivedInformation.value(_EXTRA).toString();
     const QRegularExpression requestWithIdExtraRe("^R(\\d+)$");
@@ -263,14 +164,17 @@ void TDLibReceiver::processReceivedDocument(const QJsonDocument &receivedJsonDoc
         return;
     }
 
-    Handler handler = handlers.value(objectTypeName);
-    if (handler) {
+    if (Handler handler = handlers.value(objectTypeName))
         (this->*handler)(receivedInformation);
-    } else if (objectTypeName.startsWith("internalLinkType")) {
-        // InternalLinkType return type can only be a subclass, so passing it to normal handlers list wouldn't work
-        this->processInternalLinkType(receivedInformation);
-    } else {
-        LOG("Unhandled object type" << objectTypeName);
+    else {
+        auto it = abstractHandlers.begin();
+        while (it != abstractHandlers.end() && !objectTypeName.startsWith(it.key()))
+            ++it;
+
+        if (it != abstractHandlers.end())
+            (this->*it.value())(receivedInformation);
+        else
+            LOG("Unhandled object type" << objectTypeName);
     }
 }
 
@@ -281,23 +185,20 @@ void TDLibReceiver::processUpdateOption(const QVariantMap &receivedInformation) 
     emit optionUpdated(currentOption, value);
 }
 
-void TDLibReceiver::processUpdateAuthorizationState(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processUpdateAuthorizationState(const QVariantMap &receivedInformation) {
     QVariantMap authorizationState = receivedInformation.value("authorization_state").toMap();
     QString authorizationStateType = authorizationState.take(_TYPE).toString();
     LOG("Authorization state changed: " << authorizationStateType);
     emit authorizationStateChanged(authorizationStateType, authorizationState);
 }
 
-void TDLibReceiver::processUpdateConnectionState(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processUpdateConnectionState(const QVariantMap &receivedInformation) {
     QString connectionState = receivedInformation.value("state").toMap().value(_TYPE).toString();
     LOG("Connection state changed: " << connectionState);
     emit connectionStateChanged(connectionState);
 }
 
-void TDLibReceiver::processUpdateUser(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processUpdateUser(const QVariantMap &receivedInformation) {
     QVariantMap userInformation = receivedInformation.value("user").toMap();
     VERBOSE("User was updated: " << userInformation.value("username").toString() << userInformation.value("first_name").toString() << userInformation.value("last_name").toString());
     emit userUpdated(userInformation);
@@ -310,15 +211,13 @@ void TDLibReceiver::processUpdateUserStatus(const QVariantMap &receivedInformati
     emit userStatusUpdated(userId, userStatusInformation);
 }
 
-void TDLibReceiver::processUpdateFile(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processUpdateFile(const QVariantMap &receivedInformation) {
     const QVariantMap fileInformation = receivedInformation.value("file").toMap();
     LOG("File was updated: " << fileInformation.value(ID).toString());
     emit fileUpdated(fileInformation);
 }
 
-void TDLibReceiver::processFile(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processFile(const QVariantMap &receivedInformation) {
     LOG("File was updated: " << receivedInformation.value(ID).toString());
     emit fileUpdated(receivedInformation);
 }

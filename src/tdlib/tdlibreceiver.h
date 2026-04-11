@@ -33,8 +33,9 @@ class TDLibReceiver : public QThread {
         receiverLoop();
     }
 public:
-    explicit TDLibReceiver(int tdLibClientId, QObject *parent = nullptr);
+    explicit TDLibReceiver(int clientId, QObject *parent = nullptr);
     void setActive(bool active);
+    void setClientId(int clientId);
 
 signals:
     void responseForRequestIdReceived(qlonglong requestId, const QVariantMap &response);
@@ -151,9 +152,117 @@ signals:
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
 
-    QHash<QString, Handler> handlers;
-    int tdLibClientId;
-    bool isActive;
+    const QHash<QString, Handler> handlers = {
+        {"updateOption", &TDLibReceiver::processUpdateOption},
+        {"updateAuthorizationState", &TDLibReceiver::processUpdateAuthorizationState},
+        {"updateConnectionState", &TDLibReceiver::processUpdateConnectionState},
+        {"updateUser", &TDLibReceiver::processUpdateUser},
+        {"updateUserStatus", &TDLibReceiver::processUpdateUserStatus},
+        {"updateFile", &TDLibReceiver::processUpdateFile},
+        {"file", &TDLibReceiver::processFile},
+        {"updateNewChat", &TDLibReceiver::processUpdateNewChat},
+        {"updateChatAddedToList", &TDLibReceiver::processUpdateChatAddedToList},
+        {"updateChatRemovedFromList", &TDLibReceiver::processUpdateChatRemovedFromList},
+        {"updateUnreadMessageCount", &TDLibReceiver::processUpdateUnreadMessageCount},
+        {"updateUnreadChatCount", &TDLibReceiver::processUpdateUnreadChatCount},
+        {"updateChatLastMessage", &TDLibReceiver::processUpdateChatLastMessage},
+        {"updateChatPosition", &TDLibReceiver::processUpdateChatPosition},
+        {"updateChatReadInbox", &TDLibReceiver::processUpdateChatReadInbox},
+        {"updateChatReadOutbox", &TDLibReceiver::processUpdateChatReadOutbox},
+        {"updateChatAvailableReactions", &TDLibReceiver::processUpdateChatAvailableReactions},
+        {"updateBasicGroup", &TDLibReceiver::processUpdateBasicGroup},
+        {"updateSupergroup", &TDLibReceiver::processUpdateSuperGroup},
+        {"updateChatOnlineMemberCount", &TDLibReceiver::processChatOnlineMemberCountUpdated},
+        {"messages", &TDLibReceiver::processMessages},
+        {"foundChatMessages", &TDLibReceiver::processFoundChatMessages},
+        {"sponsoredMessages", &TDLibReceiver::processSponsoredMessages},
+        {"updateNewMessage", &TDLibReceiver::processUpdateNewMessage},
+        {"message", &TDLibReceiver::processMessage},
+        {"messageLinkInfo", &TDLibReceiver::processMessageLinkInfo},
+        {"updateMessageSendSucceeded", &TDLibReceiver::processMessageSendSucceeded},
+        {"updateActiveNotifications", &TDLibReceiver::processUpdateActiveNotifications},
+        {"updateNotificationGroup", &TDLibReceiver::processUpdateNotificationGroup},
+        {"updateChatNotificationSettings", &TDLibReceiver::processUpdateChatNotificationSettings},
+        {"updateMessageContent", &TDLibReceiver::processUpdateMessageContent},
+        {"updateDeleteMessages", &TDLibReceiver::processUpdateDeleteMessages},
+        {"chats", &TDLibReceiver::processChats},
+        {"chat", &TDLibReceiver::processChat},
+        {"updateRecentStickers", &TDLibReceiver::processUpdateRecentStickers},
+        {"updateFavoriteStickers", &TDLibReceiver::processUpdateFavoriteStickers},
+        {"stickers", &TDLibReceiver::processStickers},
+        {"updateInstalledStickerSets", &TDLibReceiver::processUpdateInstalledStickerSets},
+        {"stickerSets", &TDLibReceiver::processStickerSets},
+        {"stickerSet", &TDLibReceiver::processStickerSet},
+        {"chatMembers", &TDLibReceiver::processChatMembers},
+        {"userFullInfo", &TDLibReceiver::processUserFullInfo},
+        {"updateUserFullInfo", &TDLibReceiver::processUpdateUserFullInfo},
+        {"basicGroupFullInfo", &TDLibReceiver::processBasicGroupFullInfo},
+        {"updateBasicGroupFullInfo", &TDLibReceiver::processUpdateBasicGroupFullInfo},
+        {"supergroupFullInfo", &TDLibReceiver::processSupergroupFullInfo},
+        {"updateSupergroupFullInfo", &TDLibReceiver::processUpdateSupergroupFullInfo},
+        {"chatPhotos", &TDLibReceiver::processChatPhotos},
+        {"updateChatPermissions", &TDLibReceiver::processUpdateChatPermissions},
+        {"updateChatPhoto", &TDLibReceiver::processUpdateChatPhoto},
+        {"updateChatTitle", &TDLibReceiver::processUpdateChatTitle},
+        {"updateMessageIsPinned", &TDLibReceiver::processUpdateMessageIsPinned},
+        {"users", &TDLibReceiver::processUsers},
+        {"messageSenders", &TDLibReceiver::processMessageSenders},
+        {"error", &TDLibReceiver::processError},
+        {"ok", &TDLibReceiver::ok},
+        {"updateServiceNotification", &TDLibReceiver::processUpdateServiceNotification},
+        {"secretChat", &TDLibReceiver::processSecretChat},
+        {"updateSecretChat", &TDLibReceiver::processUpdateSecretChat},
+        {"importedContacts", &TDLibReceiver::processImportedContacts},
+        {"updateMessageEdited", &TDLibReceiver::processUpdateMessageEdited},
+        {"updateChatIsMarkedAsUnread", &TDLibReceiver::processUpdateChatIsMarkedAsUnread},
+        {"updateChatDraftMessage", &TDLibReceiver::processUpdateChatDraftMessage},
+        {"inlineQueryResults", &TDLibReceiver::processInlineQueryResults},
+        {"callbackQueryAnswer", &TDLibReceiver::processCallbackQueryAnswer},
+        {"userPrivacySettingRules", &TDLibReceiver::processUserPrivacySettingRules},
+        {"updateUserPrivacySettingRules", &TDLibReceiver::processUpdateUserPrivacySettingRules},
+        {"updateMessageInteractionInfo", &TDLibReceiver::processUpdateMessageInteractionInfo},
+        {"sessions", &TDLibReceiver::processSessions},
+        {"availableReactions", &TDLibReceiver::processAvailableReactions},
+        {"updateChatUnreadMentionCount", &TDLibReceiver::processUpdateChatUnreadMentionCount},
+        {"updateMessageMentionRead", &TDLibReceiver::processUpdateMessageMentionRead},
+        {"updateChatUnreadReactionCount", &TDLibReceiver::processUpdateChatUnreadReactionCount},
+        {"updateActiveEmojiReactions", &TDLibReceiver::processUpdateActiveEmojiReactions},
+        {"messageProperties", &TDLibReceiver::processMessageProperties},
+        {"storageStatisticsFast", &TDLibReceiver::processStorageStatisticsFast},
+        {"storageStatistics", &TDLibReceiver::processStorageStatistics},
+        {"formattedText", &TDLibReceiver::processFormattedText},
+        {"updateChatAction", &TDLibReceiver::processUpdateChatAction},
+        {"emojiKeywords", &TDLibReceiver::processEmojiKeywords},
+        {"updateDiceEmojis", &TDLibReceiver::processUpdateDiceEmojis},
+        {"updateSuggestedActions", &TDLibReceiver::processUpdateSuggestedActions},
+        {"count", &TDLibReceiver::processCount},
+        {"chatLists", &TDLibReceiver::processChatLists},
+        {"archiveChatListSettings", &TDLibReceiver::processArchiveChatListSettings},
+        {"updateChatFolders", &TDLibReceiver::processUpdateChatFolders},
+        {"forumTopics", &TDLibReceiver::processForumTopics},
+        {"updateForumTopic", &TDLibReceiver::processUpdateForumTopic},
+        {"updateForumTopicInfo", &TDLibReceiver::processUpdateForumTopicInfo},
+        {"updateChatPendingJoinRequests", &TDLibReceiver::processUpdateChatPendingJoinRequests},
+        {"chatJoinRequests", &TDLibReceiver::processChatJoinRequests},
+        {"deepLinkInfo", &TDLibReceiver::processDeepLinkInfo},
+        {"user", &TDLibReceiver::processUser},
+        {"chatInviteLinkInfo", &TDLibReceiver::processChatInviteLinkInfo},
+        {"updateChatViewAsTopics", &TDLibReceiver::processUpdateChatViewAsTopics},
+        {"forumTopic", &TDLibReceiver::processForumTopic},
+        {"updateMessageSuggestedPostInfo", &TDLibReceiver::processUpdateMessageSuggestedPostInfo},
+        {"updateMessageContentOpened", &TDLibReceiver::processUpdateMessageContentOpened},
+        {"updateMessageFactCheck", &TDLibReceiver::processUpdateMessageFactCheck},
+        {"updateStickerSet", &TDLibReceiver::processUpdateStickerSet},
+        {"pollVoters", &TDLibReceiver::processPollVoters},
+        {"seconds", &TDLibReceiver::processSeconds},
+        {"addedProxies", &TDLibReceiver::processAddedProxies},
+        {"addedProxy", &TDLibReceiver::processAddedProxy},
+    };
+    const QMap<QString, Handler> abstractHandlers = {
+        {"internalLinkType", &TDLibReceiver::processInternalLinkType},
+    };
+    int clientId;
+    bool isActive = true;
 
 private:
     static const QVariantList cleanupList(const QVariantList& list, bool *updated = Q_NULLPTR);

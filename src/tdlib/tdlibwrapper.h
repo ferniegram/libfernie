@@ -44,9 +44,9 @@ class TDLibWrapper : public QObject
     Q_PROPERTY(QVariantMap authorizationStateData MEMBER authorizationStateData NOTIFY authorizationStateChanged)
     Q_PROPERTY(ConnectionState connectionState MEMBER connectionState NOTIFY connectionStateChanged)
     Q_PROPERTY(QString connectionStateText READ connectionStateText NOTIFY connectionStateChanged)
-    Q_PROPERTY(QVariantMap userInformation READ getUserInformation NOTIFY ownUserUpdated)
+    Q_PROPERTY(QVariantMap userInformation READ getUserInformation NOTIFY myUserUpdated)
     Q_PROPERTY(QQmlPropertyMap* options MEMBER options CONSTANT)
-    Q_PROPERTY(qlonglong myUserId READ myUserId NOTIFY ownUserIdFound)
+    Q_PROPERTY(qlonglong myUserId READ myUserId NOTIFY myUserIdUpdated)
 
 public:
     explicit TDLibWrapper(AppSettings *appSettings, MceInterface *mceInterface, QObject *parent = nullptr);
@@ -408,7 +408,7 @@ public:
     static SecretChatState secretChatStateFromString(const QString &state);
 
 signals:
-    void ownUserIdFound(const QString &ownUserId);
+    void myUserIdUpdated();
     void authorizationStateChanged(const TDLibWrapper::AuthorizationState &authorizationState, const QVariantMap &authorizationStateData);
     void optionUpdated(const QString &optionName, const QVariant &optionValue);
     void connectionStateChanged(const TDLibWrapper::ConnectionState &connectionState);
@@ -442,7 +442,7 @@ signals:
     void chatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
     void chatAvailableReactionsUpdated(qlonglong chatId, const QVariantMap &availableReactions);
     void userUpdated(qlonglong userId, const QVariantMap &userInformation);
-    void ownUserUpdated(const QVariantMap &userInformation);
+    void myUserUpdated();
     void basicGroupUpdated(qlonglong groupId);
     void supergroupUpdated(qlonglong groupId);
     void chatOnlineMemberCountUpdated(const QString &chatId, int onlineMemberCount);

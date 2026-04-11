@@ -1773,9 +1773,10 @@ void TDLibWrapper::handleOptionUpdated(const QString &optionName, const QVariant
             versionNumber = VERSION_NUMBER(major, minor, release);
         }
     } else if (optionName == MY_ID) {
-        QString ownUserId = optionValue.toString();
-        this->userInformation = this->getUserInformation(ownUserId);
-        emit ownUserIdFound(ownUserId);
+        QString id = optionValue.toString();
+        this->userInformation = this->getUserInformation(id);
+        emit myUserIdUpdated();
+        emit myUserUpdated();
     }
 }
 
@@ -1808,7 +1809,7 @@ void TDLibWrapper::handleUserUpdated(const QVariantMap &updatedUserInformation) 
     if (updatedUserId == this->options->value(MY_ID).toLongLong()) {
         LOG("Current user information updated");
         this->userInformation = updatedUserInformation;
-        emit ownUserUpdated(updatedUserInformation);
+        emit myUserUpdated();
     }
     LOG("User information updated:" << updatedUserInformation.value(USERNAMES).toMap().value(EDITABLE_USERNAME).toString() << updatedUserInformation.value(FIRST_NAME).toString() << updatedUserInformation.value(LAST_NAME).toString());
     updateUserInformation(updatedUserId, updatedUserInformation);

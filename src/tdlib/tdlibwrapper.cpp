@@ -2268,40 +2268,28 @@ void TDLibWrapper::handleActiveEmojiReactionsUpdated(const QStringList& emojis) 
 }
 
 void TDLibWrapper::handleNetworkConfigurationChanged(const QNetworkConfiguration &config) {
-    LOG("A network configuration changed: " << config.bearerTypeName() << config.state());
-    LOG("Checking overall network state...");
-
-    bool wifiFound = false;
-    bool mobileFound = false;
+    LOG("A network configuration changed, updating network type" << config.bearerTypeName() << config.state());
 
     QList<QNetworkConfiguration> activeConfigurations = networkConfigurationManager->allConfigurations(QNetworkConfiguration::Active);
-    QListIterator<QNetworkConfiguration> configurationIterator(activeConfigurations);
-    while (configurationIterator.hasNext()) {
-        QNetworkConfiguration activeConfiguration = configurationIterator.next();
-        if (activeConfiguration.bearerType() == QNetworkConfiguration::BearerWLAN
-                || activeConfiguration.bearerType() == QNetworkConfiguration::BearerEthernet) {
-            LOG("Active WiFi found...");
-            wifiFound = true;
-        }
-        if (activeConfiguration.bearerType() == QNetworkConfiguration::Bearer2G
-                || activeConfiguration.bearerType() == QNetworkConfiguration::Bearer3G
-                || activeConfiguration.bearerType() == QNetworkConfiguration::Bearer4G
-                || activeConfiguration.bearerType() == QNetworkConfiguration::BearerCDMA2000
-                || activeConfiguration.bearerType() == QNetworkConfiguration::BearerEVDO
-                || activeConfiguration.bearerType() == QNetworkConfiguration::BearerHSPA
-                || activeConfiguration.bearerType() == QNetworkConfiguration::BearerLTE
-                || activeConfiguration.bearerType() == QNetworkConfiguration::BearerWCDMA) {
-            LOG("Active mobile connection found...");
-            mobileFound = true;
+    for (const QNetworkConfiguration &configuration : activeConfigurations) {
+        switch (configuration.bearerTypeFamily()) {
+        case QNetworkConfiguration::BearerWLAN:
+            setNetworkType(NetworkType::WiFi);
+            return;
+        case QNetworkConfiguration::Bearer2G:
+        case QNetworkConfiguration::Bearer3G:
+        case QNetworkConfiguration::Bearer4G:
+            setNetworkType(NetworkType::Mobile);
+            return;
+        case QNetworkConfiguration::BearerEthernet:
+            setNetworkType(NetworkType::Other);
+            return;
+        default:
+            break;
         }
     }
-    if (wifiFound) {
-        this->setNetworkType(NetworkType::WiFi);
-    } else if (mobileFound) {
-        this->setNetworkType(NetworkType::Mobile);
-    } else {
-        this->setNetworkType(NetworkType::None);
-    }
+
+    this->setNetworkType(NetworkType::None);
 }
 
 void TDLibWrapper::setInitialParameters() {

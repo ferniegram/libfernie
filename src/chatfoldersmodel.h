@@ -81,6 +81,8 @@ public:
 
 public slots:
     void handleFolderChatListUnreadChatCountUpdated(int folderId);
+    void handleReady();
+    void reset();
 
 private slots:
     void handleChatAddedToFolderList(int folderId, ChatData *chatData, qlonglong order, bool isPinned);
@@ -116,9 +118,9 @@ private:
     ChatListModel *mainChatListModel;
     ChatListModel *archiveChatListModel;
 
-    QList<ChatFolderData*> chatFolders;
+    QList<ChatFolderData*> chatFolders{new ChatFolderData()};
     QHash<int, int> chatFoldersIndexMap;
-    int mainChatListIndex;
+    int mainChatListIndex = 0;
     QHash<int, FolderChatListModel*> chatModels;
 };
 

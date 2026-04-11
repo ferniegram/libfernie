@@ -222,12 +222,6 @@ public:
     Q_INVOKABLE bool getJoinChatRequested();
     Q_INVOKABLE void registerJoinChat();
     Q_INVOKABLE bool isDiceEmoji(const QString &text);
-    Q_INVOKABLE void getChatListsToAddChat(qlonglong chatId);
-    Q_INVOKABLE void addChatToList(qlonglong chatId, bool archive);
-    Q_INVOKABLE void getArchiveChatListSettings();
-    Q_INVOKABLE void setArchiveChatListSettings(bool archiveAndMuteNewChatsFromUnknownUsers, bool keepUnmutedChatsArchived, bool keepChatsFromFoldersArchived);
-    Q_INVOKABLE void readChatList(bool archive = false);
-    Q_INVOKABLE void readFolderChatList(int folderId);
     SearchMessagesFilter getSearchMessagesFilterForType(const QString &type);
     static QString getSearchMessagesFilterType(SearchMessagesFilter filter);
     QString connectionStateText();
@@ -249,6 +243,12 @@ public:
     Q_INVOKABLE void logout();
     Q_INVOKABLE void loadChats(bool archive = false);
     Q_INVOKABLE void loadChatsForFolder(int folderId);
+    Q_INVOKABLE void getChatListsToAddChat(qlonglong chatId);
+    Q_INVOKABLE void addChatToList(qlonglong chatId, bool archive);
+    Q_INVOKABLE void getArchiveChatListSettings();
+    Q_INVOKABLE void setArchiveChatListSettings(bool archiveAndMuteNewChatsFromUnknownUsers, bool keepUnmutedChatsArchived, bool keepChatsFromFoldersArchived);
+    Q_INVOKABLE void readChatList(bool archive = false);
+    Q_INVOKABLE void readFolderChatList(int folderId);
     Q_INVOKABLE void downloadFile(int fileId);
     Q_INVOKABLE void openChat(qlonglong chatId);
     Q_INVOKABLE void closeChat(qlonglong chatId);
@@ -556,7 +556,6 @@ signals:
     void linkUnsupportedByApp(const QString &type);
 
     // Signals not directly used by TDLibWrapper
-    void chatListsReset();
     void chatListsCalculateUnreadState();
 
 public slots:

@@ -109,7 +109,6 @@ ChatListModel::ChatListModel(TDLibWrapper *tdLibWrapper, AppSettings *appSetting
     //connect(tdLibWrapper, &TDLibWrapper::chatPinnedMessageUpdated, this, &ChatListModel::handleChatPinnedMessageUpdated); // also disabled for now
     //connect(tdLibWrapper, &TDLibWrapper::messageSendSucceeded, this, &ChatListModel::handleMessageSendSucceeded); // disabled for now, let's see if it will fix (or break) anything
 
-    connect(tdLibWrapper, &TDLibWrapper::chatListsReset, this, &ChatListModel::reset);
     connect(tdLibWrapper, &TDLibWrapper::chatListsCalculateUnreadState, this, &ChatListModel::calculateUnreadState);
 
     connect(appSettings, &AppSettings::unreadCountIncludeMutedChanged, this, &ChatListModel::unreadChatCountChanged);
@@ -131,10 +130,13 @@ ChatListModel::~ChatListModel()
     qDeleteAll(chatList);
 }
 
-void ChatListModel::reset()
-{
-    qDeleteAll(chatList);
-    chatList.clear();
+void ChatListModel::reset() {
+    if (!chatList.isEmpty()) {
+        beginResetModel();
+        qDeleteAll(chatList);
+        chatList.clear();
+        endResetModel();
+    }
 }
 
 QHash<int,QByteArray> ChatListModel::roleNames() const

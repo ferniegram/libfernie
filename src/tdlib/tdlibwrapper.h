@@ -52,17 +52,20 @@ public:
     ~TDLibWrapper();
 
     enum AuthorizationState {
-        Closed,
-        Closing,
-        LoggingOut,
-        AuthorizationReady,
-        WaitCode,
-        WaitEncryptionKey,
-        WaitOtherDeviceConfirmation,
-        WaitPassword,
+        AuthorizationUnknown,
+        WaitTdlibParameters,
         WaitPhoneNumber,
+        WaitPremiumPurchase,
+        WaitEmailAddress,
+        WaitEmailCode,
+        WaitCode,
+        WaitOtherDeviceConfirmation,
         WaitRegistration,
-        WaitTdlibParameters
+        WaitPassword,
+        AuthorizationReady,
+        LoggingOut,
+        Closing,
+        Closed,
     };
     Q_ENUM(AuthorizationState)
 
@@ -229,6 +232,7 @@ public:
     static QString getSearchMessagesFilterType(SearchMessagesFilter filter);
     QString connectionStateText();
     Q_INVOKABLE bool canSkipChatJoinDialog(qlonglong chatId);
+    Q_INVOKABLE void reset();
 
     inline Utilities *getUtilities() const { return this->utilities; }
     DBusAdaptor *getDBusAdaptor();
@@ -411,6 +415,8 @@ public:
 signals:
     void myUserIdUpdated();
     void authorizationStateChanged(const TDLibWrapper::AuthorizationState &authorizationState, const QVariantMap &authorizationStateData);
+    void ready();
+    void clearContent();
     void optionUpdated(const QString &optionName, const QVariant &optionValue);
     void connectionStateChanged(const TDLibWrapper::ConnectionState &connectionState);
     void fileUpdated(int fileId, const QVariantMap &fileInformation);
@@ -562,7 +568,7 @@ public slots:
     // options QQmlPropertyMap
     void handleOptionsValueChanged(const QString &name, const QVariant &value);
 
-    void handleAuthorizationStateChanged(const QString &authorizationState, const QVariantMap authorizationStateData);
+    void handleAuthorizationStateChanged(const QString &authorizationState, const QVariantMap &authorizationStateData);
     void handleOptionUpdated(const QString &optionName, const QVariant &optionValue);
     void handleConnectionStateChanged(const QString &connectionState);
     void handleUserUpdated(const QVariantMap &updatedUserInformation);
@@ -611,12 +617,12 @@ public slots:
 
 private:
     void setOption(const QString &name, const QString &type, const QVariant &value);
-    void setInitialParameters();
-    void setEncryptionKey();
+    void setTdlibParameters();
     void setLogVerbosityLevel();
     const Group *updateGroup(qlonglong groupId, const QVariantMap &groupInfo, QHash<qlonglong,Group*> *groups);
     void sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content);
     void initializeTDLibReceiver();
+    void setInitialOptions();
     void updateUserInformation(qlonglong userId, const QVariantMap &userInformation);
     void updateChatPositions(qlonglong chatId, const QVariantList &positions);
     static QString getTopChatCategoryType(TopChatCategory category);
@@ -634,7 +640,7 @@ private:
     TDLibReceiver *tdLibReceiver;
     DBusInterface *dbusInterface;
     Utilities *utilities;
-    TDLibWrapper::AuthorizationState authorizationState;
+    TDLibWrapper::AuthorizationState authorizationState = TDLibWrapper::AuthorizationUnknown;
     QVariantMap authorizationStateData;
     TDLibWrapper::ConnectionState connectionState;
     QQmlPropertyMap* options;
@@ -654,6 +660,7 @@ private:
 
     int versionNumber = 0;
     bool joinChatRequested = false;
+    bool isClosing = false;
     qlonglong nextRequestId = 0;
 };
 

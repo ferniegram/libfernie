@@ -226,24 +226,21 @@ TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *pa
 
     connect(options, &QQmlPropertyMap::valueChanged, this, &TDLibWrapper::handleOptionsValueChanged);
 
-    this->setLogVerbosityLevel();
-    this->setOptionInteger("notification_group_count_max", 5);
-    // set initial option states
-    this->handleStorageOptimizerChanged();
-    this->handleSendMarkdownChanged();
-    this->setOptionBoolean("online", true);
+    setInitialOptions();
 }
 
 TDLibWrapper::~TDLibWrapper() {
     LOG("Closing TDLib instance...");
-    this->close();
-    while (this->authorizationState != AuthorizationState::Closed) {
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 1000);
+    if (this->authorizationState != AuthorizationState::Closed) {
+        this->isClosing = true;
+        this->close();
+        while (this->authorizationState != AuthorizationState::Closed)
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 1000);
     }
+
     this->tdLibReceiver->setActive(false);
-    while (this->tdLibReceiver->isRunning()) {
+    while (this->tdLibReceiver->isRunning())
         QCoreApplication::processEvents(QEventLoop::AllEvents, 1000);
-    }
     qDeleteAll(basicGroups.values());
     qDeleteAll(superGroups.values());
     qDeleteAll(chats.values());
@@ -365,6 +362,15 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::proxyPingReceived, this, &TDLibWrapper::proxyPingReceived);
 
     this->tdLibReceiver->start();
+}
+
+void TDLibWrapper::setInitialOptions() {
+    this->setLogVerbosityLevel();
+    this->setOptionInteger("notification_group_count_max", 5);
+    // set initial option states
+    this->handleStorageOptimizerChanged();
+    this->handleSendMarkdownChanged();
+    this->setOptionBoolean("online", true);
 }
 
 QByteArray serializeRequestJson(const QVariantMap &requestObject) {
@@ -1706,52 +1712,75 @@ DBusAdaptor *TDLibWrapper::getDBusAdaptor() {
     return this->dbusInterface->getDBusAdaptor();
 }
 
-void TDLibWrapper::handleAuthorizationStateChanged(const QString &authorizationState, const QVariantMap authorizationStateData) {
-    if (authorizationState == "authorizationStateClosed") {
-        this->authorizationState = AuthorizationState::Closed;
-    }
+void TDLibWrapper::reset() {
+    delete options;
+    options = new QQmlPropertyMap(this);
+    userInformation.clear();
+    userPrivacySettingRules.clear();
+    usersById.clear();
+    usersByName.clear();
+    qDeleteAll(chats);
+    chats.clear();
+    secretChats.clear();
+    unreadMessageInformation.clear();
+    unreadChatInformation.clear();
+    qDeleteAll(basicGroups);
+    basicGroups.clear();
+    qDeleteAll(superGroups);
+    superGroups.clear();
+    superGroupsByName.clear();
+    activeEmojiReactions.clear();
+    diceEmojis.clear();
+}
 
-    if (authorizationState == "authorizationStateClosing") {
-        this->authorizationState = AuthorizationState::Closing;
-    }
-
-    if (authorizationState == "authorizationStateLoggingOut") {
-        this->authorizationState = AuthorizationState::LoggingOut;
-    }
-
-    if (authorizationState == "authorizationStateReady") {
-        this->authorizationState = AuthorizationState::AuthorizationReady;
-    }
-
-    if (authorizationState == "authorizationStateWaitCode") {
-        this->authorizationState = AuthorizationState::WaitCode;
-    }
-
-    if (authorizationState == "authorizationStateWaitEncryptionKey") {
-        this->setEncryptionKey();
-        this->authorizationState = AuthorizationState::WaitEncryptionKey;
-    }
-
-    if (authorizationState == "authorizationStateWaitOtherDeviceConfirmation") {
-        this->authorizationState = AuthorizationState::WaitOtherDeviceConfirmation;
-    }
-
-    if (authorizationState == "authorizationStateWaitPassword") {
-        this->authorizationState = AuthorizationState::WaitPassword;
-    }
-
-    if (authorizationState == "authorizationStateWaitPhoneNumber") {
-        this->authorizationState = AuthorizationState::WaitPhoneNumber;
-    }
-
-    if (authorizationState == "authorizationStateWaitRegistration") {
-        this->authorizationState = AuthorizationState::WaitRegistration;
-    }
-
+void TDLibWrapper::handleAuthorizationStateChanged(const QString &authorizationState, const QVariantMap &authorizationStateData) {
     if (authorizationState == "authorizationStateWaitTdlibParameters") {
-        this->setInitialParameters();
+        this->setTdlibParameters();
         this->authorizationState = AuthorizationState::WaitTdlibParameters;
     }
+    if (authorizationState == "authorizationStateWaitPhoneNumber")
+        this->authorizationState = AuthorizationState::WaitPhoneNumber;
+    if (authorizationState == "authorizationStateWaitPremiumPurchase")
+        this->authorizationState = AuthorizationState::WaitPremiumPurchase;
+    if (authorizationState == "authorizationStateWaitEmailAddress")
+        this->authorizationState = AuthorizationState::WaitEmailAddress;
+    if (authorizationState == "authorizationStateWaitEmailCode")
+        this->authorizationState = AuthorizationState::WaitEmailCode;
+    if (authorizationState == "authorizationStateWaitCode")
+        this->authorizationState = AuthorizationState::WaitCode;
+    if (authorizationState == "authorizationStateWaitOtherDeviceConfirmation")
+        this->authorizationState = AuthorizationState::WaitOtherDeviceConfirmation;
+    if (authorizationState == "authorizationStateWaitRegistration")
+        this->authorizationState = AuthorizationState::WaitRegistration;
+    if (authorizationState == "authorizationStateWaitPassword")
+        this->authorizationState = AuthorizationState::WaitPassword;
+    if (authorizationState == "authorizationStateReady") {
+        this->authorizationState = AuthorizationState::AuthorizationReady;
+
+        emit ready();
+    }
+    if (authorizationState == "authorizationStateLoggingOut") {
+        this->authorizationState = AuthorizationState::LoggingOut;
+        emit clearContent();
+    }
+    if (authorizationState == "authorizationStateClosing") {
+        this->authorizationState = AuthorizationState::Closing;
+        if (!isClosing) {
+            LOG("TDLib instance closing without TDLibWrapper destruction");
+            emit clearContent();
+            reset();
+        }
+    }
+    if (authorizationState == "authorizationStateClosed") {
+        this->authorizationState = AuthorizationState::Closed;
+        if (!isClosing) {
+            LOG("TDLib instance closed without TDLibWrapper destruction, creating a new instance");
+            this->clientId = td_create_client_id();
+            tdLibReceiver->setClientId(this->clientId);
+            setInitialOptions();
+        }
+    }
+
     this->authorizationStateData = authorizationStateData;
     emit authorizationStateChanged(this->authorizationState, this->authorizationStateData);
 }
@@ -2290,41 +2319,32 @@ void TDLibWrapper::handleNetworkConfigurationChanged(const QNetworkConfiguration
     this->setNetworkType(NetworkType::None);
 }
 
-void TDLibWrapper::setInitialParameters() {
+void TDLibWrapper::setTdlibParameters() {
     LOG("Setting TDLib initial parameters");
-    QVariantMap parameters;
-    parameters.insert(_TYPE, "setTdlibParameters");
-
-    parameters.insert("api_id", TDLIB_API_ID);
-    parameters.insert("api_hash", TDLIB_API_HASH);
-    parameters.insert("database_directory", QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tdlib");
-    parameters.insert("files_directory", QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/tdlib");
+    
     bool onlineOnlyMode = this->appSettings->onlineOnlyMode();
-    parameters.insert("use_file_database", !onlineOnlyMode);
-    parameters.insert("use_chat_info_database", !onlineOnlyMode);
-    parameters.insert("use_message_database", !onlineOnlyMode);
-    parameters.insert("use_secret_chats", true);
-    parameters.insert("system_language_code", QLocale::system().name());
     QSettings hardwareSettings("/etc/hw-release", QSettings::NativeFormat);
-    parameters.insert("device_model", hardwareSettings.value("NAME", "Unknown Mobile Device").toString());
-    parameters.insert("system_version", QSysInfo::prettyProductName());
-    parameters.insert("application_version", "0.17");
-    // parameters.insert("use_test_dc", true);
 
-    this->sendRequest(parameters);
-}
-
-void TDLibWrapper::setEncryptionKey() {
-    LOG("Setting database encryption key");
-    QVariantMap requestObject;
-    requestObject.insert(_TYPE, "checkDatabaseEncryptionKey");
-    // see https://github.com/tdlib/td/issues/188#issuecomment-379536139
-    requestObject.insert("encryption_key", "");
-    this->sendRequest(requestObject);
+    this->sendRequest({
+        {_TYPE, "setTdlibParameters"},
+        {"api_id", TDLIB_API_ID},
+        {"api_hash", TDLIB_API_HASH},
+        {"database_directory", QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tdlib"},
+        {"files_directory", QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/tdlib"},
+        {"use_file_database", !onlineOnlyMode},
+        {"use_chat_info_database", !onlineOnlyMode},
+        {"use_message_database", !onlineOnlyMode},
+        {"use_secret_chats", true},
+        {"system_language_code", QLocale::system().name()},
+        {"device_model", hardwareSettings.value("NAME", "Unknown Mobile Device").toString()},
+        {"system_version", QSysInfo::prettyProductName()},
+        {"application_version", "0.17"},
+        //{"use_test_dc", true},
+    });
 }
 
 void TDLibWrapper::setLogVerbosityLevel() {
-    LOG("Setting log verbosity level to something less chatty");
+    LOG("Setting log verbosity level");
     this->sendRequest({{_TYPE, "setLogVerbosityLevel"}, {"new_verbosity_level", 2}});
 }
 

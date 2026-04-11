@@ -37,8 +37,7 @@
 class Utilities;
 class ChatData;
 
-class TDLibWrapper : public QObject
-{
+class TDLibWrapper : public QObject {
     Q_OBJECT
     Q_PROPERTY(AuthorizationState authorizationState MEMBER authorizationState NOTIFY authorizationStateChanged)
     Q_PROPERTY(QVariantMap authorizationStateData MEMBER authorizationStateData NOTIFY authorizationStateChanged)
@@ -236,6 +235,7 @@ public:
 
     // Direct TDLib functions
     Q_INVOKABLE void sendRequest(const QVariantMap &requestObject);
+    Q_INVOKABLE QVariantMap executeRequest(const QVariantMap &requestObject);
     Q_INVOKABLE TDLibResponse *sendRequestWithId(const QVariantMap &requestObject);
     void close();
     Q_INVOKABLE void setAuthenticationPhoneNumber(const QString &phoneNumber);
@@ -625,7 +625,7 @@ private:
     static QVariantMap getProxyObject(const QString &server, int port, const QVariantMap &type);
 
 private:
-    int tdLibClientId;
+    int clientId;
     QNetworkAccessManager *manager;
     QNetworkConfigurationManager *networkConfigurationManager;
     AppSettings *appSettings;
@@ -651,11 +651,9 @@ private:
     QStringList activeEmojiReactions;
     QStringList diceEmojis;
 
-    int versionNumber;
-    bool joinChatRequested;
-    bool isLoggingOut;
-    bool closing;
-    qlonglong nextRequestId;
+    int versionNumber = 0;
+    bool joinChatRequested = false;
+    qlonglong nextRequestId = 0;
 };
 
 #endif // TDLIBWRAPPER_H

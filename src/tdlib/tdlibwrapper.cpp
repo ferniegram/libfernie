@@ -195,7 +195,7 @@ QVariantMap findChatPositionForFolder(const QVariantList &positions, int folderI
 
 TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *parent)
     : QObject(parent)
-    , tdLibClientId(td_create_client_id())
+    , clientId(td_create_client_id())
     , manager(new QNetworkAccessManager(this))
     , networkConfigurationManager(new QNetworkConfigurationManager(this))
     , appSettings(settings)
@@ -203,21 +203,13 @@ TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *pa
     , utilities(new Utilities(this))
     , authorizationState(AuthorizationState::Closed)
     , options(new QQmlPropertyMap(this))
-    , diceEmojis()
-    , versionNumber(0)
-    , joinChatRequested(false)
-    , isLoggingOut(false)
-    , nextRequestId(1)
 {
-    LOG("Initializing TD Lib...");
+    LOG("Initializing");
 
     initializeTDLibReceiver();
 
-    QString tdLibDatabaseDirectoryPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tdlib";
-    QDir tdLibDatabaseDirectory(tdLibDatabaseDirectoryPath);
-    if (!tdLibDatabaseDirectory.exists()) {
-        tdLibDatabaseDirectory.mkpath(tdLibDatabaseDirectoryPath);
-    }
+    const QString databasePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tdlib";
+    QDir().mkpath(databasePath);
 
     this->dbusInterface = new DBusInterface(this);
     if (appSettings->useOpenWith()) {
@@ -258,7 +250,7 @@ TDLibWrapper::~TDLibWrapper() {
 }
 
 void TDLibWrapper::initializeTDLibReceiver() {
-    this->tdLibReceiver = new TDLibReceiver(this->tdLibClientId, this);
+    this->tdLibReceiver = new TDLibReceiver(this->clientId, this);
     connect(this->tdLibReceiver, &TDLibReceiver::authorizationStateChanged, this, &TDLibWrapper::handleAuthorizationStateChanged);
     connect(this->tdLibReceiver, &TDLibReceiver::optionUpdated, this, &TDLibWrapper::handleOptionUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::connectionStateChanged, this, &TDLibWrapper::handleConnectionStateChanged);
@@ -375,15 +367,23 @@ void TDLibWrapper::initializeTDLibReceiver() {
     this->tdLibReceiver->start();
 }
 
+QByteArray serializeRequestJson(const QVariantMap &requestObject) {
+    QByteArray request = QJsonDocument::fromVariant(requestObject).toJson();
+    VERBOSE(request.constData());
+    return request;
+}
+
 void TDLibWrapper::sendRequest(const QVariantMap &requestObject) {
-    if (this->isLoggingOut) {
-        LOG("Sending request to TD Lib skipped as logging out is in progress, object type name:" << requestObject.value(_TYPE).toString());
-        return;
-    }
-    LOG("Sending request to TD Lib, object type name:" << requestObject.value(_TYPE).toString());
-    QJsonDocument requestDocument = QJsonDocument::fromVariant(requestObject);
-    VERBOSE(requestDocument.toJson().constData());
-    td_send(this->tdLibClientId, requestDocument.toJson().constData());
+    LOG("Sending request to TDLib" << requestObject.value(_TYPE).toString());
+    td_send(clientId, serializeRequestJson(requestObject).constData());
+}
+
+QVariantMap TDLibWrapper::executeRequest(const QVariantMap &requestObject) {
+    LOG("Executing synchronous TDLib request" << requestObject.value(_TYPE).toString());
+    const char *result = td_execute(serializeRequestJson(requestObject).constData());
+    QJsonDocument receivedJsonDocument = QJsonDocument::fromJson(QByteArray(result));
+    VERBOSE("Raw result:" << receivedJsonDocument.toJson(QJsonDocument::Indented).constData());
+    return receivedJsonDocument.object().toVariantMap();
 }
 
 TDLibResponse *TDLibWrapper::sendRequestWithId(const QVariantMap &requestObject) {
@@ -429,8 +429,6 @@ void TDLibWrapper::registerUser(const QString &firstName, const QString &lastNam
 void TDLibWrapper::logout() {
     LOG("Logging out");
     this->sendRequest(QVariantMap{{_TYPE, "logOut"}});
-    this->isLoggingOut = true;
-
 }
 
 void TDLibWrapper::loadChats(bool archive) {

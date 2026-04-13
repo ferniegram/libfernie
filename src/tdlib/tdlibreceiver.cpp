@@ -446,8 +446,8 @@ void TDLibReceiver::processSponsoredChats(const QVariantMap &receivedInformation
     emit sponsoredChatsReceived(cleanupList(receivedInformation.value("chats").toList()));
 }
 
-void TDLibReceiver::processChat(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processChat(const QVariantMap &receivedInformation) {
+    LOG("Chat received" << receivedInformation.value(ID).toLongLong());
     emit chat(receivedInformation);
 }
 

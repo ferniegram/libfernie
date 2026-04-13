@@ -211,7 +211,7 @@ public:
     Q_INVOKABLE QVariantMap getBasicGroup(qlonglong groupId) const;
     Q_INVOKABLE QVariantMap getSuperGroup(qlonglong groupId) const;
     Q_INVOKABLE QVariantMap getChat(qlonglong chatId);
-    bool hasChatData(qlonglong chatId);
+    Q_INVOKABLE bool hasChatData(qlonglong chatId);
     ChatData* getChatData(qlonglong chatId);
     ChatData* getExistingChatData(qlonglong chatId);
     ChatData* getChatDataForce(qlonglong chatId);

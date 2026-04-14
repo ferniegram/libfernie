@@ -2402,7 +2402,7 @@ void TDLibWrapper::initializeOpenWith() {
         }
     }
 
-    const QString desktopFilePath(applicationsLocation + "/harbour-fernschreiber2-open-url.desktop");
+    const QString desktopFilePath(applicationsLocation + "/harbour-ferniegram-open-url.desktop");
     QFile desktopFile(desktopFilePath);
     if (desktopFile.exists()) {
         LOG("Fernschreiber open-with file existing, removing...");
@@ -2416,16 +2416,16 @@ void TDLibWrapper::initializeOpenWith() {
         fileOut << QString("[Desktop Entry]").toUtf8() << "\n";
         fileOut << QString("Type=Application").toUtf8() << "\n";
         fileOut << QString("Name=Ferniegram").toUtf8() << "\n";
-        fileOut << QString("Icon=harbour-fernschreiber2").toUtf8() << "\n";
+        fileOut << QString("Icon=harbour-ferniegram").toUtf8() << "\n";
         fileOut << QString("NotShowIn=X-MeeGo;").toUtf8() << "\n";
         if (sailfishOSMajorVersion < 4 || ( sailfishOSMajorVersion == 4 && sailfishOSMinorVersion < 1 )) {
             fileOut << QString("MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/tg;").toUtf8() << "\n";
         } else {
             fileOut << QString("MimeType=x-url-handler/t.me;x-scheme-handler/tg;").toUtf8() << "\n";
         }
-        fileOut << QString("X-Maemo-Service=io.github.roundedrectangle.fernschreiber2").toUtf8() << "\n";
-        fileOut << QString("X-Maemo-Object-Path=/io/github/roundedrectangle/fernschreiber2").toUtf8() << "\n";
-        fileOut << QString("X-Maemo-Method=io.github.roundedrectangle.fernschreiber2.openUrl").toUtf8() << "\n";
+        fileOut << QString("X-Maemo-Service=io.ferniegram.ferniegram").toUtf8() << "\n";
+        fileOut << QString("X-Maemo-Object-Path=/io/ferniegram/ferniegram").toUtf8() << "\n";
+        fileOut << QString("X-Maemo-Method=io.ferniegram.ferniegram.openUrl").toUtf8() << "\n";
         fileOut << QString("Hidden=true;").toUtf8() << "\n";
         fileOut.flush();
         desktopFile.close();
@@ -2438,7 +2438,7 @@ void TDLibWrapper::initializeOpenWith() {
         LOG("Creating D-Bus directory" << dbusPathName);
         dbusPath.mkpath(dbusPathName);
     }
-    QString dbusServiceFileName = dbusPathName + "/io.github.roundedrectangle.fernschreiber2.service";
+    QString dbusServiceFileName = dbusPathName + "/io.ferniegram.ferniegram.service";
     QFile dbusServiceFile(dbusServiceFileName);
     if (dbusServiceFile.exists()) {
         LOG("D-BUS service file existing, removing to ensure proper re-creation...");
@@ -2449,8 +2449,8 @@ void TDLibWrapper::initializeOpenWith() {
         QTextStream fileOut(&dbusServiceFile);
         fileOut.setCodec("UTF-8");
         fileOut << QString("[D-BUS Service]").toUtf8() << "\n";
-        fileOut << QString("Name=io.github.roundedrectangle.fernschreiber2").toUtf8() << "\n";
-        fileOut << QString("Exec=/usr/bin/sailjail -- /usr/bin/harbour-fernschreiber2").toUtf8() << "\n";
+        fileOut << QString("Name=io.ferniegram.ferniegram").toUtf8() << "\n";
+        fileOut << QString("Exec=/usr/bin/sailjail -- /usr/bin/harbour-ferniegram").toUtf8() << "\n";
         fileOut.flush();
         dbusServiceFile.close();
     }
@@ -2458,7 +2458,7 @@ void TDLibWrapper::initializeOpenWith() {
 
 void TDLibWrapper::removeOpenWith() {
     LOG("Remove open-with");
-    QFile::remove(QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + "/harbour-fernschreiber2-open-url.desktop");
+    QFile::remove(QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + "/harbour-ferniegram-open-url.desktop");
     QProcess::startDetached("update-desktop-database " + QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation));
 }
 

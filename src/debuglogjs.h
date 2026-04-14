@@ -30,7 +30,7 @@ class DebugLogJS : public QObject
     Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
 public:
 
-    DebugLogJS(QObject* parent = Q_NULLPTR) : QObject(parent), category("fernschreiber2.JS") {
+    DebugLogJS(QObject* parent = Q_NULLPTR) : QObject(parent), category("ferniegram.JS") {
         enabled = category.isDebugEnabled();
     }
     static QObject* createSingleton(QQmlEngine*, QJSEngine*) { return new DebugLogJS(); }

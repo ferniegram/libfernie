@@ -54,9 +54,9 @@ namespace {
     const QString APP_NAME("Ferniegram");
 
     // Notification hints
-    const QString HINT_GROUP_ID("x-fernschreiber2.group_id");        // int
-    const QString HINT_CHAT_ID("x-fernschreiber2.chat_id");          // qlonglong
-    const QString HINT_TOTAL_COUNT("x-fernschreiber2.total_count");  // int
+    const QString HINT_GROUP_ID("x-ferniegram.group_id");        // int
+    const QString HINT_CHAT_ID("x-ferniegram.chat_id");          // qlonglong
+    const QString HINT_TOTAL_COUNT("x-ferniegram.total_count");  // int
 
     const QString HINT_IMAGE_PATH("image-path");                    // QString
     const QString HINT_VIBRA("x-nemo-vibrate");                     // bool
@@ -128,7 +128,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings
     appSettings(appSettings),
     mceInterface(mceInterface),
     utilities(utilities),
-    appIconFile(PlatformApp::pathTo("images/fernschreiber2-notification.png").toLocalFile()),
+    appIconFile(PlatformApp::pathTo("images/ferniegram-notification.png").toLocalFile()),
     activeChatId(0)
 {
     LOG("Initializing...");
@@ -336,7 +336,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
             messageMap.value(ID).toString()
         };
         nemoNotification->setRemoteActions(QVariantList{Notification::remoteAction("default", "",
-            "io.github.roundedrectangle.fernschreiber2", "/io/github/roundedrectangle/fernschreiber2", "io.github.roundedrectangle.fernschreiber2",
+            "io.ferniegram.ferniegram", "/io/ferniegram/ferniegram", "io.ferniegram.ferniegram",
             "openMessage", remoteActionArguments)});
     }
 

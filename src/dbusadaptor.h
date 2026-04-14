@@ -22,11 +22,10 @@
 
 #include <QDBusAbstractAdaptor>
 
-class DBusAdaptor : public QDBusAbstractAdaptor
-{
+class DBusAdaptor : public QDBusAbstractAdaptor {
 
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "io.github.roundedrectangle.fernschreiber2")
+    Q_CLASSINFO("D-Bus Interface", "io.ferniegram.ferniegram")
 
 public:
     DBusAdaptor(QObject *parent);

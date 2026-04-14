@@ -29,7 +29,7 @@
 #define LOG_CATEGORY__(x) x##Log
 #define LOG_CATEGORY_(x) LOG_CATEGORY__(x)
 #define LOG_CATEGORY LOG_CATEGORY_(DEBUG_MODULE)
-static const QLoggingCategory LOG_CATEGORY("fernschreiber2." QT_STRINGIFY(DEBUG_MODULE));
+static const QLoggingCategory LOG_CATEGORY("ferniegram." QT_STRINGIFY(DEBUG_MODULE));
 #define LOG(x) qCDebug(LOG_CATEGORY) << "[" QT_STRINGIFY(DEBUG_MODULE) "]" << x
 #define WARN(x) qCWarning(LOG_CATEGORY) << "[" QT_STRINGIFY(DEBUG_MODULE) "]" << x
 

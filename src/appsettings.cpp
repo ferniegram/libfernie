@@ -85,7 +85,7 @@ namespace {
 
 AppSettings::AppSettings(QObject *parent) :
     QObject(parent),
-    settings(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/io.ferniegram/ferniegram/settings.conf", QSettings::NativeFormat)
+    settings(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/" + QGuiApplication::organizationName() + "/" + QGuiApplication::applicationName() + "/libfernie-settings.conf", QSettings::NativeFormat)
 {
     if (sponsoredMess() != SponsoredMessHandle) {
         settings.remove(SPONSORED_MESS);

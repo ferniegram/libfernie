@@ -22,6 +22,7 @@
 
 #include <QAbstractListModel>
 #include <QVariantList>
+#include <QSortFilterProxyModel>
 
 #include "tdlib/tdlibwrapper.h"
 

@@ -1,5 +1,7 @@
 #include "appsettings.h"
 
+#include <QGuiApplication>
+
 #define DEBUG_MODULE AppSettings
 #include "debuglog.h"
 

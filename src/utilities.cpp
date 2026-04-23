@@ -28,6 +28,7 @@
 #include <QGeoLocation>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QRegularExpression>
 
 #include <zlib.h>
 

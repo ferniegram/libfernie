@@ -2,6 +2,7 @@
 #define FORUMTOPICSMODEL_H
 
 #include <QAbstractListModel>
+#include <QTimer>
 
 #include "tdlib/tdlibwrapper.h"
 #include "forumtopic.h"

@@ -21,6 +21,8 @@
 #define CHATLISTMODEL_H
 
 #include <QAbstractListModel>
+#include <QTimer>
+
 #include "tdlib/tdlibwrapper.h"
 #include "appsettings.h"
 #include "utilities.h"

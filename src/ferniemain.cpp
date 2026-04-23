@@ -36,11 +36,11 @@
 #include "userprofilepicturesmodel.h"
 #include "chat/chatphotosmodel.h"
 
+#include <QLoggingCategory>
+
 #ifdef QT_QML_DEBUG
 #include <QtQuick>
 #endif
-
-#include <QLoggingCategory>
 
 // The default filter can be overridden by QT_LOGGING_RULES envinronment variable, e.g.
 // QT_LOGGING_RULES="ferniegram.*=true" harbour-ferniegram
@@ -52,13 +52,13 @@
 
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
-FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface) :
+FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     uri(uri),
     appSettings(appSettings),
     tdLibWrapper(tdLibWrapper),
     waveformManager(view.data()),
     chatFoldersModel(tdLibWrapper, appSettings, utilities, view.data()),
-    notificationManager(tdLibWrapper, appSettings, mceInterface, utilities),
+    notificationManager(tdLibWrapper, appSettings, mceInterface, utilities, dbusPath, dbusServiceName, dbusInterface),
     processLauncher(),
     stickerManager(tdLibWrapper),
     knownUsersModel(tdLibWrapper, view.data()),
@@ -71,8 +71,8 @@ void FernieMain::setupLogging() {
     QLoggingCategory::setFilterRules(DEFAULT_LOG_FILTER);
 }
 
-FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view) {
-    QQmlContext *context = view.data()->rootContext();
+FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) {
+    QQmlContext *context = view->rootContext();
 
     const char *uri = "App.Logic";
     qmlRegisterType<TDLibFile>(uri, 1, 0, "TDLibFile");
@@ -103,10 +103,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("utilities", utilities);
     qmlRegisterUncreatableType<Utilities>(uri, 1, 0, "Utilities", QString());
 
-    DBusAdaptor *dBusAdaptor = tdLibWrapper->getDBusAdaptor();
-    context->setContextProperty("dBusAdaptor", dBusAdaptor);
-
-    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, appSettings, utilities, mceInterface);
+    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, appSettings, utilities, mceInterface, dbusPath, dbusServiceName, dbusInterface);
 
     context->setContextProperty("chatFoldersModel", &appContext->chatFoldersModel);
     qmlRegisterUncreatableType<ChatFoldersModel>(uri, 1, 0, "ChatFoldersModel", QString());
@@ -130,4 +127,40 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("suggestedActionsManager", &appContext->suggestedActionsManager);
 
     return appContext;
+}
+
+
+DBusAdaptor *FernieMain::registerDBusAdaptor(QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper) {
+    DBusAdaptor *adaptor = new DBusAdaptor(view.data());
+    view->rootContext()->setContextProperty("dBusAdaptor", adaptor);
+
+    if (tdLibWrapper)
+        QObject::connect(adaptor, &DBusAdaptor::doOpenUrl, [view, tdLibWrapper](const QString &url) {
+            LOG("Opening URL" << url);
+            tdLibWrapper->getInternalLinkType(url);
+        });
+
+    return adaptor;
+}
+
+void FernieMain::registerDBusService(QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName) {
+    LOG("Initializing DBus connectivity");
+    QDBusConnection sessionBusConnection = QDBusConnection::sessionBus();
+
+    if (!sessionBusConnection.isConnected()) {
+        WARN("Error connecting to D-BUS");
+        return;
+    }
+
+    if (!sessionBusConnection.registerObject(path, view.data())) {
+        WARN("Error registering root object to D-BUS" << sessionBusConnection.lastError().message());
+        return;
+    }
+
+    if (!sessionBusConnection.registerService(serviceName)) {
+        WARN("Error registering interface to D-BUS" << sessionBusConnection.lastError().message());
+        return;
+    }
+
+    LOG("DBus service registered successfully");
 }

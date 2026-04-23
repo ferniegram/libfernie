@@ -29,8 +29,6 @@
 #include <td/telegram/td_json_client.h>
 #include "tdlibreceiver.h"
 #include "tdlibresponse.h"
-#include "dbusadaptor.h"
-#include "dbusinterface.h"
 #include "appsettings.h"
 #include "mceinterface.h"
 
@@ -229,7 +227,6 @@ public:
     Q_INVOKABLE void reset();
 
     inline Utilities *getUtilities() const { return this->utilities; }
-    DBusAdaptor *getDBusAdaptor();
 
     // Direct TDLib functions
     Q_INVOKABLE void sendRequest(const QVariantMap &requestObject);
@@ -402,10 +399,6 @@ public:
     Q_INVOKABLE void getInternalLink(const QVariantMap &type, bool isHttp = false);
     Q_INVOKABLE void destroyInstance();
 
-    // Others (candidates for extraction ;))
-    Q_INVOKABLE void initializeOpenWith();
-    Q_INVOKABLE void removeOpenWith();
-
 public:
     const Group* getGroup(qlonglong groupId) const;
     static ChatType chatTypeFromString(const QString &type);
@@ -560,7 +553,6 @@ signals:
 
 public slots:
     // appSettings
-    void handleOpenWithChanged();
     void handleStorageOptimizerChanged();
     void handleSendMarkdownChanged();
 
@@ -637,7 +629,6 @@ private:
     AppSettings *appSettings;
     MceInterface *mceInterface;
     TDLibReceiver *tdLibReceiver;
-    DBusInterface *dbusInterface;
     Utilities *utilities;
     TDLibWrapper::AuthorizationState authorizationState = TDLibWrapper::AuthorizationUnknown;
     QVariantMap authorizationStateData;

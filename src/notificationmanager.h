@@ -27,8 +27,7 @@
 #include "mceinterface.h"
 #include "utilities.h"
 
-class NotificationManager : public QObject
-{
+class NotificationManager : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(qlonglong activeChatId MEMBER activeChatId WRITE setActiveChatId)
@@ -37,8 +36,7 @@ class NotificationManager : public QObject
     class NotificationGroup;
 
 public:
-
-    NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities);
+    NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
     ~NotificationManager() override;
 
     void setActiveChatId(qlonglong chatId);
@@ -61,11 +59,13 @@ private:
         AppSettings::NotificationFeedback feedback = AppSettings::NotificationFeedbackNone);
 
 private:
-
     TDLibWrapper *tdLibWrapper;
     AppSettings *appSettings;
     MceInterface *mceInterface;
     Utilities *utilities;
+    QString dbusPath;
+    QString dbusServiceName;
+    QString dbusInterface;
     QMap<qlonglong,ChatInfo*> chatMap;
     QMap<int,NotificationGroup*> notificationGroups;
     QString appIconFile;

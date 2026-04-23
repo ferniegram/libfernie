@@ -37,7 +37,6 @@ public:
 
     BOOL_SETTING_DEFINE(sendByEnter)
     BOOL_SETTING_DEFINE(focusTextAreaAfterSend)
-    BOOL_SETTING_DEFINE(useOpenWith)
     BOOL_SETTING_DEFINE(showStickersAsEmojis)
     BOOL_SETTING_DEFINE(showStickersAsImages)
     BOOL_SETTING_DEFINE(animateStickers)
@@ -86,7 +85,6 @@ public:
 signals:
     void sendByEnterChanged();
     void focusTextAreaAfterSendChanged();
-    void useOpenWithChanged();
     void showStickersAsEmojisChanged();
     void showStickersAsImagesChanged();
     void animateStickersChanged();

@@ -47,7 +47,6 @@ SETTING_SETTER(F, KEY, TYPE)
 namespace {
     const QString SEND_BY_ENTER("sendByEnter");
     const QString FOCUS_TEXTAREA_AFTER_SEND("focusTextAreaAfterSend");
-    const QString USE_OPEN_WITH("useOpenWith");
     const QString SHOW_STICKERS_AS_EMOJIS("showStickersAsEmojis");
     const QString SHOW_STICKERS_AS_IMAGES("showStickersAsImages");
     const QString ANIMATE_STICKERS("animateStickers");
@@ -97,7 +96,6 @@ AppSettings::AppSettings(QObject *parent) :
 
 BOOL_SETTING(sendByEnter, SEND_BY_ENTER)
 BOOL_SETTING(focusTextAreaAfterSend, FOCUS_TEXTAREA_AFTER_SEND)
-BOOL_SETTING2(useOpenWith, USE_OPEN_WITH, true)
 BOOL_SETTING(showStickersAsEmojis, SHOW_STICKERS_AS_EMOJIS)
 BOOL_SETTING(showStickersAsImages, SHOW_STICKERS_AS_IMAGES)
 BOOL_SETTING2(animateStickers, ANIMATE_STICKERS, true)

@@ -29,8 +29,6 @@
 #include <QSysInfo>
 #include <QJsonDocument>
 #include <QStandardPaths>
-#include <QDBusConnection>
-#include <QDBusInterface>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 #include <QRegularExpressionMatchIterator>
@@ -211,14 +209,6 @@ TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *pa
     const QString databasePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tdlib";
     QDir().mkpath(databasePath);
 
-    this->dbusInterface = new DBusInterface(this);
-    if (appSettings->useOpenWith()) {
-        initializeOpenWith();
-    } else {
-        removeOpenWith();
-    }
-
-    connect(appSettings, &AppSettings::useOpenWithChanged, this, &TDLibWrapper::handleOpenWithChanged);
     connect(appSettings, &AppSettings::storageOptimizerChanged, this, &TDLibWrapper::handleStorageOptimizerChanged);
     connect(appSettings, &AppSettings::sendMarkdownChanged, this, &TDLibWrapper::handleSendMarkdownChanged);
 
@@ -1708,10 +1698,6 @@ void TDLibWrapper::registerJoinChat() {
     this->joinChatRequested = false;
 }
 
-DBusAdaptor *TDLibWrapper::getDBusAdaptor() {
-    return this->dbusInterface->getDBusAdaptor();
-}
-
 void TDLibWrapper::reset() {
     delete options;
     options = new QQmlPropertyMap(this);
@@ -2118,14 +2104,6 @@ void TDLibWrapper::handleStickerSets(const QVariantList &stickerSets, int totalC
     }
 }
 
-void TDLibWrapper::handleOpenWithChanged() {
-    if (this->appSettings->useOpenWith()) {
-        this->initializeOpenWith();
-    } else {
-        this->removeOpenWith();
-    }
-}
-
 void TDLibWrapper::handleSecretChatReceived(qlonglong secretChatId, const QVariantMap &secretChat) {
     this->secretChats.insert(secretChatId, secretChat);
     emit secretChatReceived(secretChatId, secretChat);
@@ -2346,120 +2324,6 @@ void TDLibWrapper::setTdlibParameters() {
 void TDLibWrapper::setLogVerbosityLevel() {
     LOG("Setting log verbosity level");
     this->sendRequest({{_TYPE, "setLogVerbosityLevel"}, {"new_verbosity_level", 2}});
-}
-
-void TDLibWrapper::initializeOpenWith() {
-    LOG("Initialize open-with");LOG("Checking standard open URL file...");
-
-    const QStringList sailfishOSVersion = QSysInfo::productVersion().split(".");
-    int sailfishOSMajorVersion = sailfishOSVersion.value(0).toInt();
-    int sailfishOSMinorVersion = sailfishOSVersion.value(1).toInt();
-
-    const QString applicationsLocation(QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation));
-    const QString openUrlFilePath(applicationsLocation + "/open-url.desktop");
-    if (sailfishOSMajorVersion < 4 || ( sailfishOSMajorVersion == 4 && sailfishOSMinorVersion < 2 )) {
-        if (QFile::exists(openUrlFilePath)) {
-            LOG("Standard open URL file exists, good!");
-        } else {
-            LOG("Copying standard open URL file to " << openUrlFilePath);
-            QFile::copy("/usr/share/applications/open-url.desktop", openUrlFilePath);
-            QProcess::startDetached("update-desktop-database " + applicationsLocation);
-        }
-    } else {
-        const QString sailfishBrowserFilePath(applicationsLocation + "/sailfish-browser.desktop");
-        if (QFile::exists(sailfishBrowserFilePath)) {
-            LOG("Removing existing local Sailfish browser file, that was not working as expected in 0.10...!");
-            QFile::remove(sailfishBrowserFilePath);
-            QProcess::startDetached("update-desktop-database " + applicationsLocation);
-        }
-        if (QFile::exists(openUrlFilePath)) {
-            LOG("Old open URL file exists, that needs to go away...!");
-            QFile::remove(openUrlFilePath);
-            QProcess::startDetached("update-desktop-database " + applicationsLocation);
-        }
-        // Something special for Verla...
-        if (sailfishOSMajorVersion == 4 && sailfishOSMinorVersion == 2) {
-            LOG("Creating open URL file at " << openUrlFilePath);
-            QFile openUrlFile(openUrlFilePath);
-            if (openUrlFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                QTextStream fileOut(&openUrlFile);
-                fileOut.setCodec("UTF-8");
-                fileOut << QString("[Desktop Entry]").toUtf8() << "\n";
-                fileOut << QString("Type=Application").toUtf8() << "\n";
-                fileOut << QString("Name=Browser").toUtf8() << "\n";
-                fileOut << QString("Icon=icon-launcher-browser").toUtf8() << "\n";
-                fileOut << QString("NoDisplay=true").toUtf8() << "\n";
-                fileOut << QString("X-MeeGo-Logical-Id=sailfish-browser-ap-name").toUtf8() << "\n";
-                fileOut << QString("X-MeeGo-Translation-Catalog=sailfish-browser").toUtf8() << "\n";
-                fileOut << QString("MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;").toUtf8() << "\n";
-                fileOut << QString("X-Maemo-Service=org.sailfishos.browser.ui").toUtf8() << "\n";
-                fileOut << QString("X-Maemo-Object-Path=/ui").toUtf8() << "\n";
-                fileOut << QString("X-Maemo-Method=org.sailfishos.browser.ui.openUrl").toUtf8() << "\n";
-                fileOut.flush();
-                openUrlFile.close();
-                QProcess::startDetached("update-desktop-database " + applicationsLocation);
-            }
-        }
-    }
-
-    const QString desktopFilePath(applicationsLocation + "/harbour-ferniegram-open-url.desktop");
-    QFile desktopFile(desktopFilePath);
-    if (desktopFile.exists()) {
-        LOG("Fernschreiber open-with file existing, removing...");
-        desktopFile.remove();
-        QProcess::startDetached("update-desktop-database " + applicationsLocation);
-    }
-    LOG("Creating Fernschreiber open-with file at " << desktopFile.fileName());
-    if (desktopFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream fileOut(&desktopFile);
-        fileOut.setCodec("UTF-8");
-        fileOut << QString("[Desktop Entry]").toUtf8() << "\n";
-        fileOut << QString("Type=Application").toUtf8() << "\n";
-        fileOut << QString("Name=Ferniegram").toUtf8() << "\n";
-        fileOut << QString("Icon=harbour-ferniegram").toUtf8() << "\n";
-        fileOut << QString("NotShowIn=X-MeeGo;").toUtf8() << "\n";
-        if (sailfishOSMajorVersion < 4 || ( sailfishOSMajorVersion == 4 && sailfishOSMinorVersion < 1 )) {
-            fileOut << QString("MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/tg;").toUtf8() << "\n";
-        } else {
-            fileOut << QString("MimeType=x-url-handler/t.me;x-scheme-handler/tg;").toUtf8() << "\n";
-        }
-        fileOut << QString("X-Maemo-Service=io.ferniegram.ferniegram").toUtf8() << "\n";
-        fileOut << QString("X-Maemo-Object-Path=/io/ferniegram/ferniegram").toUtf8() << "\n";
-        fileOut << QString("X-Maemo-Method=io.ferniegram.ferniegram.openUrl").toUtf8() << "\n";
-        fileOut << QString("Hidden=true;").toUtf8() << "\n";
-        fileOut.flush();
-        desktopFile.close();
-        QProcess::startDetached("update-desktop-database " + applicationsLocation);
-    }
-
-    QString dbusPathName = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/dbus-1/services";
-    QDir dbusPath(dbusPathName);
-    if (!dbusPath.exists()) {
-        LOG("Creating D-Bus directory" << dbusPathName);
-        dbusPath.mkpath(dbusPathName);
-    }
-    QString dbusServiceFileName = dbusPathName + "/io.ferniegram.ferniegram.service";
-    QFile dbusServiceFile(dbusServiceFileName);
-    if (dbusServiceFile.exists()) {
-        LOG("D-BUS service file existing, removing to ensure proper re-creation...");
-        dbusServiceFile.remove();
-    }
-    LOG("Creating D-Bus service file at" << dbusServiceFile.fileName());
-    if (dbusServiceFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream fileOut(&dbusServiceFile);
-        fileOut.setCodec("UTF-8");
-        fileOut << QString("[D-BUS Service]").toUtf8() << "\n";
-        fileOut << QString("Name=io.ferniegram.ferniegram").toUtf8() << "\n";
-        fileOut << QString("Exec=/usr/bin/sailjail -- /usr/bin/harbour-ferniegram").toUtf8() << "\n";
-        fileOut.flush();
-        dbusServiceFile.close();
-    }
-}
-
-void TDLibWrapper::removeOpenWith() {
-    LOG("Remove open-with");
-    QFile::remove(QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + "/harbour-ferniegram-open-url.desktop");
-    QProcess::startDetached("update-desktop-database " + QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation));
 }
 
 const TDLibWrapper::Group *TDLibWrapper::updateGroup(qlonglong groupId, const QVariantMap &groupInfo, QHash<qlonglong,Group*> *groups) {

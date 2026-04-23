@@ -15,6 +15,7 @@
 #include "chatfoldersmodel.h"
 #include "waveformmanager.h"
 #include "suggestedactionsmanager.h"
+#include "dbusadaptor.h"
 
 namespace FernieMain {
     void setupLogging();
@@ -33,7 +34,11 @@ namespace FernieMain {
         ContactsModel contactsModel;
         SuggestedActionsManager suggestedActionsManager;
 
-        AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface);
+        AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
     };
-    AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view);
+    AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
+
+    // If TDLibWrapper is provided, the default link handler will be registered
+    DBusAdaptor *registerDBusAdaptor(QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper = nullptr);
+    void registerDBusService(QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName);
 }

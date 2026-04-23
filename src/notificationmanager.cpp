@@ -123,11 +123,14 @@ NotificationManager::NotificationGroup::~NotificationGroup()
     delete nemoNotification;
 }
 
-NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities) :
+NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     tdLibWrapper(tdLibWrapper),
     appSettings(appSettings),
     mceInterface(mceInterface),
     utilities(utilities),
+    dbusPath(dbusPath),
+    dbusServiceName(dbusServiceName),
+    dbusInterface(dbusInterface),
     appIconFile(PlatformApp::pathTo("images/ferniegram-notification.png").toLocalFile()),
     activeChatId(0)
 {
@@ -335,9 +338,10 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
             QString::number(notificationGroup->chatId),
             messageMap.value(ID).toString()
         };
-        nemoNotification->setRemoteActions(QVariantList{Notification::remoteAction("default", "",
-            "io.ferniegram.ferniegram", "/io/ferniegram/ferniegram", "io.ferniegram.ferniegram",
-            "openMessage", remoteActionArguments)});
+        if (!dbusPath.isEmpty() && !dbusServiceName.isEmpty())
+            nemoNotification->setRemoteActions(QVariantList{Notification::remoteAction("default", "",
+                dbusPath, dbusServiceName, dbusInterface,
+                "openMessage", remoteActionArguments)});
     }
 
     QString notificationBody;

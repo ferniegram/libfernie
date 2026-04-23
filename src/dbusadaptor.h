@@ -23,21 +23,19 @@
 #include <QDBusAbstractAdaptor>
 
 class DBusAdaptor : public QDBusAbstractAdaptor {
-
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "io.ferniegram.ferniegram")
+    Q_CLASSINFO("D-Bus Interface", "io.libfernie.default")
 
 public:
     DBusAdaptor(QObject *parent);
 
 signals:
-    void pleaseOpenMessage(const QString &chatId, const QString &messageId);
-    void pleaseOpenUrl(const QString &url);
+    void doOpenMessage(const QString &chatId, const QString &messageId);
+    void doOpenUrl(const QString &url);
 
 public slots:
     void openMessage(const QString &chatId, const QString &messageId);
     void openUrl(const QStringList &arguments);
-
 };
 
 #endif // DBUSADAPTOR_H

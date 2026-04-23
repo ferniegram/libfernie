@@ -19,23 +19,24 @@
 
 #include "dbusadaptor.h"
 
+#include <QQuickView>
+
 #define DEBUG_MODULE DBusAdaptor
 #include "debuglog.h"
 
-DBusAdaptor::DBusAdaptor(QObject *parent): QDBusAbstractAdaptor(parent)
-{
+DBusAdaptor::DBusAdaptor(QObject *parent): QDBusAbstractAdaptor(parent) {}
+
+void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId) {
+    LOG("Opening message" << chatId << messageId);
+    emit doOpenMessage(chatId, messageId);
 }
 
-void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId)
-{
-    LOG("Open Message" << chatId << messageId);
-    emit pleaseOpenMessage(chatId, messageId);
-}
+void DBusAdaptor::openUrl(const QStringList &arguments) {
+    LOG("Opening URL" << arguments);
+    if (arguments.isEmpty())
+        return;
 
-void DBusAdaptor::openUrl(const QStringList &arguments)
-{
-    LOG("Open Url" << arguments);
-    if (arguments.length() >= 1) {
-        emit pleaseOpenUrl(arguments.first());
-    }
+    const QString url = arguments.first();
+    if (!url.isEmpty())
+        emit doOpenUrl(url);
 }

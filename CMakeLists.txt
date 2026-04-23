@@ -119,7 +119,6 @@ target_sources(libfernie PRIVATE
     src/chatlistmodel.cpp
     src/contactsmodel.cpp
     src/dbusadaptor.cpp
-    src/dbusinterface.cpp
     src/folderchatlistmodel.cpp
     src/chat/forumtopicsmodel.cpp
     src/chat/mediamessagesmodel.cpp
@@ -159,7 +158,6 @@ target_sources(libfernie PRIVATE
     src/chatlistmodel.h
     src/contactsmodel.h
     src/dbusadaptor.h
-    src/dbusinterface.h
     src/debuglog.h
     src/debuglogjs.h
     src/folderchatlistmodel.h

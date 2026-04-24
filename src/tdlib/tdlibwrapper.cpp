@@ -140,7 +140,6 @@ namespace {
     const QString SERVER("server");
     const QString PORT("port");
     const QString OPTIONS("options");
-    const QString FROM_BACKGROUND("from_background");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -542,19 +541,15 @@ void TDLibWrapper::sendMessage(qlonglong chatId, qlonglong replyToMessageId, con
         });
     if (!topicId.isEmpty())
         request.insert(TOPIC_ID, topicId);
-
-    if (!options.isEmpty()) {
+    if (!options.isEmpty())
         request.insert(OPTIONS, options);
-        if (options.value(FROM_BACKGROUND).toBool())
-            request.insert(_EXTRA, FROM_BACKGROUND);
-    }
 
     this->sendRequest(request);
 }
 
 QVariantMap TDLibWrapper::getMessageSendOptions(bool fromBackground) {
     // Populate with more options when needed
-    return {{_TYPE, "messageSendOptions"}, {FROM_BACKGROUND, fromBackground}};
+    return {{_TYPE, "messageSendOptions"}, {"from_background", fromBackground}};
 }
 
 void TDLibWrapper::sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &options) {
@@ -2199,16 +2194,6 @@ void TDLibWrapper::handleMessageInformation(qlonglong chatId, qlonglong messageI
     QString extra = receivedInformation.value(_EXTRA).toString();
     if (extra.startsWith("getChatPinnedMessage:")) {
         emit chatPinnedMessageUpdated(chatId, messageId);
-    }
-    if (extra == FROM_BACKGROUND) {
-        const ChatData *chat = getChatData(chatId);
-        if (chat && chat->chatType == ChatTypePrivate) {
-            qlonglong lastMessageId = chat->chatData.value(LAST_MESSAGE).toMap().value(ID).toLongLong();
-            if (messageId) {
-                LOG("Message was sent from background in a private chat, marking chat as read" << chatId << messageId);
-                viewMessage(chatId, lastMessageId, true, MessageSourceNotification);
-            }
-        }
     }
 
     emit receivedMessage(chatId, messageId, receivedInformation);

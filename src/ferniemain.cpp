@@ -144,6 +144,11 @@ DBusAdaptor *FernieMain::registerDBusAdaptor(QSharedPointer<QQuickView> view, TD
         });
         QObject::connect(adaptor, &DBusAdaptor::doReplyToMessage, [tdLibWrapper](qlonglong chatId, qlonglong messageId, const QString &messageContent) {
             LOG("Replying to message" << chatId << messageId);
+
+            qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
+            if (lastMessageId)
+                tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
+
             tdLibWrapper->sendTextMessage(chatId, messageContent, messageId, QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
         });
 

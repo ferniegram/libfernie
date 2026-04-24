@@ -340,7 +340,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
         };
         if (!dbusPath.isEmpty() && !dbusServiceName.isEmpty())
             nemoNotification->setRemoteActions(QVariantList{Notification::remoteAction("default", "",
-                dbusPath, dbusServiceName, dbusInterface,
+                dbusServiceName, dbusPath, dbusInterface,
                 "openMessage", remoteActionArguments)});
     }
 

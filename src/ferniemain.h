@@ -38,7 +38,6 @@ namespace FernieMain {
     };
     AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
 
-    // If TDLibWrapper is provided, the default link handler will be registered
-    DBusAdaptor *registerDBusAdaptor(QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper = nullptr);
+    DBusAdaptor *registerDBusAdaptor(QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper = nullptr, bool defaultLinkHandler = true);
     void registerDBusService(QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName);
 }

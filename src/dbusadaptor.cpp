@@ -26,11 +26,6 @@
 
 DBusAdaptor::DBusAdaptor(QObject *parent): QDBusAbstractAdaptor(parent) {}
 
-void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId) {
-    LOG("Opening message" << chatId << messageId);
-    emit doOpenMessage(chatId, messageId);
-}
-
 void DBusAdaptor::openUrl(const QStringList &arguments) {
     LOG("Opening URL" << arguments);
     if (arguments.isEmpty())
@@ -39,4 +34,19 @@ void DBusAdaptor::openUrl(const QStringList &arguments) {
     const QString url = arguments.first();
     if (!url.isEmpty())
         emit doOpenUrl(url);
+}
+
+void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId) {
+    LOG("Opening message" << chatId << messageId);
+    emit doOpenMessage(chatId.toLongLong(), messageId.toLongLong());
+}
+
+void DBusAdaptor::markMessageAsRead(const QString &chatId, const QString &messageId) {
+    LOG("Marking message as read" << chatId << messageId);
+    emit doMarkMessageAsRead(chatId.toLongLong(), messageId.toLongLong());
+}
+
+void DBusAdaptor::replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent) {
+    LOG("Replying to message" << chatId << messageId);
+    emit doReplyToMessage(chatId.toLongLong(), messageId.toLongLong(), messageContent);
 }

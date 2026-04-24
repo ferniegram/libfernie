@@ -334,14 +334,37 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
     if (!messageMap.isEmpty()) {
         nemoNotification->setTimestamp(QDateTime::fromMSecsSinceEpoch(messageMap.value(DATE).toLongLong() * 1000));
 
-        const QVariantList remoteActionArguments{
-            QString::number(notificationGroup->chatId),
-            messageMap.value(ID).toString()
-        };
-        if (!dbusPath.isEmpty() && !dbusServiceName.isEmpty())
-            nemoNotification->setRemoteActions(QVariantList{Notification::remoteAction("default", "",
+        if (!dbusPath.isEmpty() && !dbusServiceName.isEmpty()) {
+            const QVariantList remoteActionArguments{
+                QString::number(notificationGroup->chatId),
+                messageMap.value(ID).toString()
+            };
+
+            QVariantList remoteActions{
+                Notification::remoteAction("default", "",
                 dbusServiceName, dbusPath, dbusInterface,
-                "openMessage", remoteActionArguments)});
+                "openMessage", remoteActionArguments),
+
+                Notification::remoteAction("", tr("Mark as read", "Notification"),
+                dbusServiceName, dbusPath, dbusInterface,
+                "markMessageAsRead", remoteActionArguments),
+            };
+
+            const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
+            // TODO: disable when show preview is off and other stuff
+            // also perhaps check chat permissions
+            if (chat && !chat->isChannel() && chat->chatType != TDLibWrapper::ChatTypeSecret) {
+                QVariantMap replyAction = Notification::remoteAction("", tr("Reply", "Reply to a message in a notification"),
+                                                                    dbusServiceName, dbusPath, dbusInterface,
+                                                                    "replyToMessage", remoteActionArguments).toMap();
+                // See https://github.com/sailfishos/nemo-qml-plugin-notifications/blob/d4d0a0ce8257b90293b8df469830f0e288faeeae/src/notification.cpp#L213
+                replyAction.insert(TYPE, "input");
+
+                remoteActions.append(replyAction);
+            }
+
+            nemoNotification->setRemoteActions(remoteActions);
+        }
     }
 
     QString notificationBody;

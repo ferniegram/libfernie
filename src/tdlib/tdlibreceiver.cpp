@@ -367,7 +367,7 @@ void TDLibReceiver::processMessage(const QVariantMap &receivedInformation)
 {
     const qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong();
     const qlonglong messageId = receivedInformation.value(ID).toLongLong();
-    LOG("Received message " << chatId << messageId);
+    LOG("Received message " << chatId << messageId << receivedInformation.value(_EXTRA).toString());
     emit messageInformation(chatId, messageId, cleanupMap(receivedInformation));
 }
 

@@ -30,12 +30,16 @@ public:
     DBusAdaptor(QObject *parent);
 
 signals:
-    void doOpenMessage(const QString &chatId, const QString &messageId);
     void doOpenUrl(const QString &url);
+    void doOpenMessage(qlonglong chatId, qlonglong messageId);
+    void doMarkMessageAsRead(qlonglong chatId, qlonglong messageId);
+    void doReplyToMessage(qlonglong chatId, qlonglong messageId, const QString &messageContent);
 
 public slots:
-    void openMessage(const QString &chatId, const QString &messageId);
     void openUrl(const QStringList &arguments);
+    void openMessage(const QString &chatId, const QString &messageId);
+    void markMessageAsRead(const QString &chatId, const QString &messageId);
+    void replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent);
 };
 
 #endif // DBUSADAPTOR_H

@@ -139,6 +139,8 @@ namespace {
     const QString TYPE_DISABLE_PROXY("disableProxy");
     const QString SERVER("server");
     const QString PORT("port");
+    const QString OPTIONS("options");
+    const QString FROM_BACKGROUND("from_background");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -497,6 +499,7 @@ void TDLibWrapper::getChatHistory(qlonglong chatId, int extra, qlonglong fromMes
 }
 
 void TDLibWrapper::viewMessage(qlonglong chatId, qlonglong messageId, bool force, MessageSource source) {
+    LOG("Viewing message" << chatId << messageId << force << source);
     QVariantMap request{
         {_TYPE, "viewMessages"},
         {CHAT_ID, chatId},
@@ -530,7 +533,7 @@ void TDLibWrapper::unpinMessage(const QString &chatId, const QString &messageId)
     });
 }
 
-void TDLibWrapper::sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content) {
+void TDLibWrapper::sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content, const QVariantMap &options) {
     QVariantMap request{{_TYPE, "sendMessage"}, {CHAT_ID, chatId}, {INPUT_MESSAGE_CONTENT, content}};
     if (replyToMessageId != 0)
         request.insert(REPLY_TO, QVariantMap{
@@ -540,12 +543,23 @@ void TDLibWrapper::sendMessage(qlonglong chatId, qlonglong replyToMessageId, con
     if (!topicId.isEmpty())
         request.insert(TOPIC_ID, topicId);
 
+    if (!options.isEmpty()) {
+        request.insert(OPTIONS, options);
+        if (options.value(FROM_BACKGROUND).toBool())
+            request.insert(_EXTRA, FROM_BACKGROUND);
+    }
+
     this->sendRequest(request);
 }
 
-void TDLibWrapper::sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId, const QVariantMap &topicId) {
+QVariantMap TDLibWrapper::getMessageSendOptions(bool fromBackground) {
+    // Populate with more options when needed
+    return {{_TYPE, "messageSendOptions"}, {FROM_BACKGROUND, fromBackground}};
+}
+
+void TDLibWrapper::sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &options) {
     LOG("Sending text message" << chatId << message << replyToMessageId);
-    sendMessage(chatId, replyToMessageId, topicId, {{_TYPE, "inputMessageText"}, {TEXT, Utilities::enhanceInputText(message)}});
+    sendMessage(chatId, replyToMessageId, topicId, {{_TYPE, "inputMessageText"}, {TEXT, Utilities::enhanceInputText(message)}}, options);
 }
 
 void TDLibWrapper::sendFileMessage(qlonglong chatId, const QString &messageType, const QString &fileType, const QString &filePath, const QString &caption, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &additionalOptions) {
@@ -593,7 +607,7 @@ void TDLibWrapper::sendPollMessage(qlonglong chatId, const QString &question, co
     QVariantList formattedOptions;
     for (QString option : options)
         formattedOptions.append(Utilities::newFormattedText(option));
-    inputMessageContent.insert("options", formattedOptions);
+    inputMessageContent.insert(OPTIONS, formattedOptions);
 
     QVariantMap pollType;
     if(correctOption > -1) {
@@ -2182,10 +2196,21 @@ void TDLibWrapper::handleErrorReceived(int code, const QString &message, const Q
 }
 
 void TDLibWrapper::handleMessageInformation(qlonglong chatId, qlonglong messageId, const QVariantMap &receivedInformation) {
-    QString extraInformation = receivedInformation.value(_EXTRA).toString();
-    if (extraInformation.startsWith("getChatPinnedMessage:")) {
+    QString extra = receivedInformation.value(_EXTRA).toString();
+    if (extra.startsWith("getChatPinnedMessage:")) {
         emit chatPinnedMessageUpdated(chatId, messageId);
     }
+    if (extra == FROM_BACKGROUND) {
+        const ChatData *chat = getChatData(chatId);
+        if (chat && chat->chatType == ChatTypePrivate) {
+            qlonglong lastMessageId = chat->chatData.value(LAST_MESSAGE).toMap().value(ID).toLongLong();
+            if (messageId) {
+                LOG("Message was sent from background in a private chat, marking chat as read" << chatId << messageId);
+                viewMessage(chatId, lastMessageId, true, MessageSourceNotification);
+            }
+        }
+    }
+
     emit receivedMessage(chatId, messageId, receivedInformation);
 }
 

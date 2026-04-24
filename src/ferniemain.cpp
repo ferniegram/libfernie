@@ -134,30 +134,28 @@ DBusAdaptor *FernieMain::registerDBusAdaptor(QSharedPointer<QQuickView> view, TD
     DBusAdaptor *adaptor = new DBusAdaptor(view.data());
     view->rootContext()->setContextProperty("dBusAdaptor", adaptor);
 
-    if (tdLibWrapper) {
-        QObject::connect(adaptor, &DBusAdaptor::doMarkMessageAsRead, [tdLibWrapper](qlonglong chatId, qlonglong messageId) {
-            qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
-            if (lastMessageId) {
-                LOG("Marking message as read" << chatId << messageId << lastMessageId);
-                tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
-            }
+    QObject::connect(adaptor, &DBusAdaptor::doMarkMessageAsRead, [tdLibWrapper](qlonglong chatId, qlonglong messageId) {
+        qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
+        if (lastMessageId) {
+            LOG("Marking message as read" << chatId << messageId << lastMessageId);
+            tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
+        }
+    });
+    QObject::connect(adaptor, &DBusAdaptor::doReplyToMessage, [tdLibWrapper](qlonglong chatId, qlonglong messageId, const QString &messageContent) {
+        LOG("Replying to message" << chatId << messageId);
+
+        qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
+        if (lastMessageId)
+            tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
+
+        tdLibWrapper->sendTextMessage(chatId, messageContent, messageId, QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
+    });
+
+    if (defaultLinkHandler)
+        QObject::connect(adaptor, &DBusAdaptor::doOpenUrl, [tdLibWrapper](const QString &url) {
+            LOG("Opening URL" << url);
+            tdLibWrapper->getInternalLinkType(url);
         });
-        QObject::connect(adaptor, &DBusAdaptor::doReplyToMessage, [tdLibWrapper](qlonglong chatId, qlonglong messageId, const QString &messageContent) {
-            LOG("Replying to message" << chatId << messageId);
-
-            qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
-            if (lastMessageId)
-                tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
-
-            tdLibWrapper->sendTextMessage(chatId, messageContent, messageId, QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
-        });
-
-        if (defaultLinkHandler)
-            QObject::connect(adaptor, &DBusAdaptor::doOpenUrl, [tdLibWrapper](const QString &url) {
-                LOG("Opening URL" << url);
-                tdLibWrapper->getInternalLinkType(url);
-            });
-    }
 
     return adaptor;
 }

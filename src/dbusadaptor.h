@@ -22,24 +22,27 @@
 
 #include <QDBusAbstractAdaptor>
 
+#include "tdlib/tdlibwrapper.h"
+
 class DBusAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "io.libfernie.default")
 
 public:
-    DBusAdaptor(QObject *parent);
+    DBusAdaptor(TDLibWrapper *tdLibWrapper, QObject *parent = nullptr);
 
 signals:
-    void doOpenUrl(const QString &url);
     void doOpenMessage(qlonglong chatId, qlonglong messageId);
-    void doMarkMessageAsRead(qlonglong chatId, qlonglong messageId);
-    void doReplyToMessage(qlonglong chatId, qlonglong messageId, const QString &messageContent);
 
 public slots:
-    void openUrl(const QStringList &arguments);
+    virtual void openUrl(const QStringList &arguments);
     void openMessage(const QString &chatId, const QString &messageId);
-    void markMessageAsRead(const QString &chatId, const QString &messageId);
-    void replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent);
+    virtual void markMessageAsRead(const QString &chatId, const QString &messageId);
+    virtual void replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent);
+
+private:
+    TDLibWrapper *tdLibWrapper;
+    bool defaultOpenUrl;
 };
 
 #endif // DBUSADAPTOR_H

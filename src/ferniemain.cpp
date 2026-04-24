@@ -52,10 +52,11 @@
 
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
-FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
+FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     uri(uri),
     appSettings(appSettings),
     tdLibWrapper(tdLibWrapper),
+    dbusAdaptor(dbusAdaptor),
     waveformManager(view.data()),
     chatFoldersModel(tdLibWrapper, appSettings, utilities, view.data()),
     notificationManager(tdLibWrapper, appSettings, mceInterface, utilities, dbusPath, dbusServiceName, dbusInterface),
@@ -103,7 +104,10 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("utilities", utilities);
     qmlRegisterUncreatableType<Utilities>(uri, 1, 0, "Utilities", QString());
 
-    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, appSettings, utilities, mceInterface, dbusPath, dbusServiceName, dbusInterface);
+    DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper, view.data());
+    view->rootContext()->setContextProperty("dBusAdaptor", dbusAdaptor);
+
+    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, appSettings, utilities, mceInterface, dbusPath, dbusServiceName, dbusInterface);
 
     context->setContextProperty("chatFoldersModel", &appContext->chatFoldersModel);
     qmlRegisterUncreatableType<ChatFoldersModel>(uri, 1, 0, "ChatFoldersModel", QString());
@@ -127,37 +131,6 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("suggestedActionsManager", &appContext->suggestedActionsManager);
 
     return appContext;
-}
-
-
-DBusAdaptor *FernieMain::registerDBusAdaptor(QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, bool defaultLinkHandler) {
-    DBusAdaptor *adaptor = new DBusAdaptor(view.data());
-    view->rootContext()->setContextProperty("dBusAdaptor", adaptor);
-
-    QObject::connect(adaptor, &DBusAdaptor::doMarkMessageAsRead, [tdLibWrapper](qlonglong chatId, qlonglong messageId) {
-        qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
-        if (lastMessageId) {
-            LOG("Marking message as read" << chatId << messageId << lastMessageId);
-            tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
-        }
-    });
-    QObject::connect(adaptor, &DBusAdaptor::doReplyToMessage, [tdLibWrapper](qlonglong chatId, qlonglong messageId, const QString &messageContent) {
-        LOG("Replying to message" << chatId << messageId);
-
-        qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
-        if (lastMessageId)
-            tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
-
-        tdLibWrapper->sendTextMessage(chatId, messageContent, messageId, QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
-    });
-
-    if (defaultLinkHandler)
-        QObject::connect(adaptor, &DBusAdaptor::doOpenUrl, [tdLibWrapper](const QString &url) {
-            LOG("Opening URL" << url);
-            tdLibWrapper->getInternalLinkType(url);
-        });
-
-    return adaptor;
 }
 
 void FernieMain::registerDBusService(QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName) {

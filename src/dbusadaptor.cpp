@@ -24,16 +24,20 @@
 #define DEBUG_MODULE DBusAdaptor
 #include "debuglog.h"
 
-DBusAdaptor::DBusAdaptor(QObject *parent): QDBusAbstractAdaptor(parent) {}
+DBusAdaptor::DBusAdaptor(TDLibWrapper *tdLibWrapper, QObject *parent)
+    : QDBusAbstractAdaptor(parent), tdLibWrapper(tdLibWrapper)
+{}
 
 void DBusAdaptor::openUrl(const QStringList &arguments) {
-    LOG("Opening URL" << arguments);
+    LOG("Opening URL requested" << arguments);
     if (arguments.isEmpty())
         return;
 
     const QString url = arguments.first();
-    if (!url.isEmpty())
-        emit doOpenUrl(url);
+    if (!url.isEmpty()) {
+        LOG("Opening URL" << url);
+        tdLibWrapper->getInternalLinkType(url);
+    }
 }
 
 void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId) {
@@ -41,12 +45,24 @@ void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId) {
     emit doOpenMessage(chatId.toLongLong(), messageId.toLongLong());
 }
 
-void DBusAdaptor::markMessageAsRead(const QString &chatId, const QString &messageId) {
-    LOG("Marking message as read" << chatId << messageId);
-    emit doMarkMessageAsRead(chatId.toLongLong(), messageId.toLongLong());
+void DBusAdaptor::markMessageAsRead(const QString &chatIdString, const QString &messageId) {
+    LOG("Requested to mark message as read" << chatIdString << messageId);
+
+    qlonglong chatId = chatIdString.toLongLong();
+    qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
+    if (lastMessageId) {
+        LOG("Marking message as read" << chatId << messageId << lastMessageId);
+        tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
+    }
 }
 
-void DBusAdaptor::replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent) {
-    LOG("Replying to message" << chatId << messageId);
-    emit doReplyToMessage(chatId.toLongLong(), messageId.toLongLong(), messageContent);
+void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &messageId, const QString &messageContent) {
+    LOG("Replying to message" << chatIdString << messageId);
+    qlonglong chatId = chatIdString.toLongLong();
+
+    qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
+    if (lastMessageId)
+        tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
+
+    tdLibWrapper->sendTextMessage(chatId, messageContent, messageId.toLongLong(), QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
 }

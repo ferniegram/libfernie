@@ -187,6 +187,13 @@ public:
     };
     Q_ENUM(StickerType)
 
+    enum NotificationSettingsScope {
+        NotificationSettingsScopePrivateChats,
+        NotificationSettingsScopeGroupChats,
+        NotificationSettingsScopeChannelChats
+    };
+    Q_ENUM(NotificationSettingsScope)
+
     class Group {
     public:
         Group(qlonglong id) : groupId(id) { }
@@ -274,7 +281,7 @@ public:
     Q_INVOKABLE void setOptionBoolean(const QString &optionName, bool optionValue);
     Q_INVOKABLE void setOptionString(const QString &optionName, const QString &optionValue);
     Q_INVOKABLE void resetOption(const QString &optionName);
-    Q_INVOKABLE void setChatNotificationSettings(const QString &chatId, const QVariantMap &notificationSettings);
+    Q_INVOKABLE void setChatNotificationSettings(qlonglong chatId, const QVariantMap &settings);
     Q_INVOKABLE void editMessageText(const QString &chatId, const QString &messageId, const QString &message);
     Q_INVOKABLE void editMessageCaption(const QString &chatId, const QString &messageId, const QString &caption);
     Q_INVOKABLE void deleteMessages(const QString &chatId, const QVariantList messageIds, bool revoke = true);
@@ -399,6 +406,16 @@ public:
     }
     Q_INVOKABLE void getInternalLink(const QVariantMap &type, bool isHttp = false);
     Q_INVOKABLE void destroyInstance();
+    Q_INVOKABLE inline QVariantMap scopeNotificationSettings(NotificationSettingsScope scope) {
+        return scopesNotificationSettings.value(scope);
+    }
+    Q_INVOKABLE inline QVariantMap getChatScopeNotificationSettings(qlonglong chatId) {
+        return scopesNotificationSettings.value(getChatNotificationSettingsScope(chatId));
+    }
+    Q_INVOKABLE void getScopeNotificationSettings(NotificationSettingsScope scope);
+    Q_INVOKABLE void setScopeNotificationSettings(NotificationSettingsScope scope, const QVariantMap &settings);
+    Q_INVOKABLE int getChatMuteFor(qlonglong chatId, const QVariantMap &notificationSettings = QVariantMap());
+    Q_INVOKABLE bool chatIsMuted(qlonglong chatId, const QVariantMap &notificationSettings = QVariantMap());
 
 public:
     const Group* getGroup(qlonglong groupId) const;
@@ -459,7 +476,6 @@ signals:
     void activeNotificationsUpdated(const QVariantList notificationGroups);
     void notificationGroupUpdated(const QVariantMap notificationGroupUpdate);
     void notificationUpdated(const QVariantMap updatedNotification);
-    void chatNotificationSettingsUpdated(const QString &chatId, const QVariantMap chatNotificationSettings);
     void messageContentUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &newContent);
     void messageEditedUpdated(qlonglong chatId, qlonglong messageId, int editDate, const QVariantMap &replyMarkup);
     void messagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds);
@@ -544,6 +560,7 @@ signals:
     void proxyPingErrorReceived(const QString &server, int port, const QVariantMap &type);
     void pingReceived(double ping);
     void pingErrorReceived();
+    void scopeNotificationSettingsChanged(NotificationSettingsScope scope);
 
     // Link types
     void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);
@@ -557,7 +574,7 @@ public slots:
     void handleStorageOptimizerChanged();
     void handleSendMarkdownChanged();
 
-    // options QQmlPropertyMap
+    // QQmlPropertyMaps
     void handleOptionsValueChanged(const QString &name, const QVariant &value);
 
     void handleAuthorizationStateChanged(const QString &authorizationState, const QVariantMap &authorizationStateData);
@@ -578,7 +595,7 @@ public slots:
     void handleChatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
     void handleChatTitleUpdated(qlonglong chatId, const QString &title);
     void handleChatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
-    void handleChatNotificationSettingsUpdated(const QString &chatId, const QVariantMap chatNotificationSettings);
+    void handleChatNotificationSettingsUpdated(qlonglong chatId, const QVariantMap &settings);
     void handleChatIsMarkedAsUnreadUpdated(qlonglong chatId, bool chatIsMarkedAsUnread);
     void handleChatUnreadMentionCountUpdated(qlonglong chatId, int unreadMentionCount);
     void handleChatUnreadReactionCountUpdated(qlonglong chatId, int unreadReactionCount);
@@ -606,8 +623,10 @@ public slots:
     void handleUserReceived(const QVariantMap &user, bool doOpenOnFound);
     void handleChatViewAsTopicsUpdated(qlonglong chatId, bool viewAsTopics);
     void handleStickersReceived(const QVariantList &stickers, const QString &extra);
+    void handleScopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings);
 
 private:
+    void initializePropertyMaps();
     void setOption(const QString &name, const QString &type, const QVariant &value);
     void setTdlibParameters();
     void setLogVerbosityLevel();
@@ -622,6 +641,8 @@ private:
     static QString getStickerTypeType(StickerType stickerType);
     static StickerType getStickerTypeForType(const QString &type);
     static QVariantMap getProxyObject(const QString &server, int port, const QVariantMap &type);
+    static QVariantMap getNotificationSettingsScope(NotificationSettingsScope scope);
+    NotificationSettingsScope getChatNotificationSettingsScope(qlonglong chatId);
 
 private:
     int clientId;
@@ -648,6 +669,7 @@ private:
     QVariantMap superGroupsByName;
     QStringList activeEmojiReactions;
     QStringList diceEmojis;
+    QMap<NotificationSettingsScope, QVariantMap> scopesNotificationSettings;
 
     int versionNumber = 0;
     bool joinChatRequested = false;

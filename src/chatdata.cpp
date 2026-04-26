@@ -131,6 +131,10 @@ qlonglong ChatData::lastReadOutboxMessageId() const {
     return chatData.value(LAST_READ_OUTBOX_MESSAGE_ID).toLongLong();
 }
 
+QVariantMap ChatData::notificationSettings() const {
+    return chatData.value(NOTIFICATION_SETTINGS).toMap();
+}
+
 
 
 bool ChatData::isChannel() const
@@ -196,8 +200,7 @@ QVector<int> ChatData::updateLastMessage(const QVariantMap &message) {
     return changedRoles;
 }
 
-QVector<int> ChatData::updateGroup(const TDLibWrapper::Group *group)
-{
+QVector<int> ChatData::updateGroup(const TDLibWrapper::Group *group) {
     QVector<int> changedRoles;
 
     if (group && this->groupId == group->groupId) {
@@ -216,8 +219,7 @@ QVector<int> ChatData::updateGroup(const TDLibWrapper::Group *group)
     return changedRoles;
 }
 
-QVector<int> ChatData::updateSecretChat(const QVariantMap &secretChatDetails)
-{
+QVector<int> ChatData::updateSecretChat(const QVariantMap &secretChatDetails) {
     QVector<int> changedRoles;
 
     TDLibWrapper::SecretChatState newSecretChatState = TDLibWrapper::secretChatStateFromString(secretChatDetails.value("state").toMap().value(_TYPE).toString());

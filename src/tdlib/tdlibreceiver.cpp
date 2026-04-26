@@ -405,10 +405,9 @@ void TDLibReceiver::processUpdateNotification(const QVariantMap &receivedInforma
     emit notificationUpdated(receivedInformation);
 }
 
-void TDLibReceiver::processUpdateChatNotificationSettings(const QVariantMap &receivedInformation)
-{
-    const QString chatId = receivedInformation.value(CHAT_ID).toString();
-    LOG("Received new notification settings for chat " << chatId);
+void TDLibReceiver::processUpdateChatNotificationSettings(const QVariantMap &receivedInformation) {
+    qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong();
+    LOG("Chat notification settings updated" << chatId);
     emit chatNotificationSettingsUpdated(chatId, receivedInformation.value("notification_settings").toMap());
 }
 
@@ -1206,4 +1205,17 @@ void TDLibReceiver::processSeconds(const QVariantMap &receivedInformation) {
         emit proxyPingReceived(extra.value("server").toString(), extra.value("port").toInt(), extra.value(TYPE).toMap(), seconds);
     } else
         LOG("Received unknown seconds, ignoring" << seconds);
+}
+
+void TDLibReceiver::processUpdateScopeNotificationSettings(const QVariantMap &receivedInformation) {
+    const QString type = receivedInformation.value("scope").toMap().value(_TYPE).toString();
+    LOG("Scope notification settings updated" << type);
+    emit scopeNotificationSettingsUpdated(type, receivedInformation.value(NOTIFICATION_SETTINGS).toMap());
+}
+
+void TDLibReceiver::processScopeNotificationSettings(const QVariantMap &receivedInformation) {
+    QVariantMap settings = receivedInformation;
+    const QString type = settings.take(_EXTRA).toString();
+    LOG("Scope notification settings received" << type);
+    emit scopeNotificationSettingsReceived(type, settings);
 }

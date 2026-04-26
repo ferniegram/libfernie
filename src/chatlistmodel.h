@@ -28,8 +28,7 @@
 #include "utilities.h"
 #include "chatdata.h"
 
-class ChatListModel : public QAbstractListModel
-{
+class ChatListModel : public QAbstractListModel {
     Q_OBJECT
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
     Q_PROPERTY(int unreadChatCount READ getUnreadChatCount NOTIFY unreadChatCountChanged)

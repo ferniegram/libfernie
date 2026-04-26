@@ -32,7 +32,8 @@ public:
         RoleIsMarkedAsUnread,
         RoleIsPinned,
         RoleDraftMessageText,
-        RoleDraftMessageDate
+        RoleDraftMessageDate,
+        RoleNotificationSettings
     };
 
     ChatData(TDLibWrapper *tdLibWrapper, Utilities *utilities, const QVariantMap &data);
@@ -50,6 +51,7 @@ public:
     QVariantMap photo() const;
     virtual qlonglong lastReadInboxMessageId() const override;
     virtual qlonglong lastReadOutboxMessageId() const override;
+    QVariantMap notificationSettings() const;
 
     bool isChannel() const;
     bool isMarkedAsUnread() const;

@@ -167,6 +167,7 @@ QHash<int,QByteArray> ChatListModel::roleNames() const
     roles.insert(ChatData::RoleIsPinned, "is_pinned");
     roles.insert(ChatData::RoleDraftMessageDate, "draft_message_date");
     roles.insert(ChatData::RoleDraftMessageText, "draft_message_text");
+    roles.insert(ChatData::RoleNotificationSettings, "notification_settings");
     return roles;
 }
 
@@ -206,6 +207,7 @@ QVariant ChatListModel::data(const QModelIndex &index, int role) const
         case ChatData::RoleIsPinned: return data->isPinned;
         case ChatData::RoleDraftMessageText: return data->data->draftMessageText();
         case ChatData::RoleDraftMessageDate: return data->data->draftMessageDate();
+        case ChatData::RoleNotificationSettings: return data->data->notificationSettings();
         }
     }
     return QVariant();

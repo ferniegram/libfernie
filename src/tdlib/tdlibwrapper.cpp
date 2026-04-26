@@ -201,7 +201,6 @@ TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *pa
     , mceInterface(mce)
     , utilities(new Utilities(this))
     , authorizationState(AuthorizationState::Closed)
-    , options(new QQmlPropertyMap(this))
 {
     LOG("Initializing");
 
@@ -215,8 +214,7 @@ TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *pa
 
     connect(networkConfigurationManager, &QNetworkConfigurationManager::configurationChanged, this, &TDLibWrapper::handleNetworkConfigurationChanged);
 
-    connect(options, &QQmlPropertyMap::valueChanged, this, &TDLibWrapper::handleOptionsValueChanged);
-
+    initializePropertyMaps();
     setInitialOptions();
 }
 
@@ -235,6 +233,11 @@ TDLibWrapper::~TDLibWrapper() {
     qDeleteAll(basicGroups.values());
     qDeleteAll(superGroups.values());
     qDeleteAll(chats.values());
+}
+
+void TDLibWrapper::initializePropertyMaps() {
+    options = new QQmlPropertyMap(this);
+    connect(options, &QQmlPropertyMap::valueChanged, this, &TDLibWrapper::handleOptionsValueChanged);
 }
 
 void TDLibWrapper::initializeTDLibReceiver() {
@@ -351,6 +354,8 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::addedProxyReceived, this, &TDLibWrapper::addedProxyReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::pingReceived, this, &TDLibWrapper::pingReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::proxyPingReceived, this, &TDLibWrapper::proxyPingReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::scopeNotificationSettingsUpdated, this, &TDLibWrapper::handleScopeNotificationSettingsUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::scopeNotificationSettingsReceived, this, &TDLibWrapper::handleScopeNotificationSettingsUpdated);
 
     this->tdLibReceiver->start();
 }
@@ -742,12 +747,12 @@ void TDLibWrapper::handleOptionsValueChanged(const QString &name, const QVariant
     }
 }
 
-void TDLibWrapper::setChatNotificationSettings(const QString &chatId, const QVariantMap &notificationSettings) {
-    LOG("Notification settings for chat " << chatId << notificationSettings);
+void TDLibWrapper::setChatNotificationSettings(qlonglong chatId, const QVariantMap &settings) {
+    LOG("Setting chat notification settings" << chatId);
     this->sendRequest(QVariantMap{
         {_TYPE, "setChatNotificationSettings"},
         {CHAT_ID, chatId},
-        {"notification_settings", notificationSettings}
+        {"notification_settings", settings}
     });
 }
 
@@ -1709,7 +1714,7 @@ void TDLibWrapper::registerJoinChat() {
 
 void TDLibWrapper::reset() {
     delete options;
-    options = new QQmlPropertyMap(this);
+    initializePropertyMaps();
     userInformation.clear();
     userPrivacySettingRules.clear();
     usersById.clear();
@@ -2026,14 +2031,9 @@ void TDLibWrapper::handleChatPhotoUpdated(qlonglong chatId, const QVariantMap &p
     emit chatPhotoUpdated(chatId, photo);
 }
 
-void TDLibWrapper::handleChatNotificationSettingsUpdated(const QString &chatId, const QVariantMap chatNotificationSettings) {
-    bool ok;
-    qlonglong id = chatId.toLongLong(&ok);
-    if (ok) {
-        this->getChatDataForce(id)->chatData.insert(NOTIFICATION_SETTINGS, chatNotificationSettings);
-        emit chatRolesUpdated(id);
-    }
-    emit chatNotificationSettingsUpdated(chatId, chatNotificationSettings);
+void TDLibWrapper::handleChatNotificationSettingsUpdated(qlonglong chatId, const QVariantMap &settings) {
+    this->getChatDataForce(chatId)->chatData.insert(NOTIFICATION_SETTINGS, settings);
+    emit chatRolesUpdated(chatId, {ChatData::RoleNotificationSettings});
 }
 
 void TDLibWrapper::handleChatIsMarkedAsUnreadUpdated(qlonglong chatId, bool chatIsMarkedAsUnread) {
@@ -2859,7 +2859,7 @@ void TDLibWrapper::handleUserReceived(const QVariantMap &user, bool doOpenOnFoun
     } else
         emit userReceived(user);
 }
-
+ 
 void TDLibWrapper::checkChatInviteLink(const QString &link) {
     LOG("Checking chat invite link info" << link);
     this->sendRequest({{_TYPE, "checkChatInviteLink"}, {INVITE_LINK, link}, {_EXTRA, link}});
@@ -3062,3 +3062,84 @@ void TDLibWrapper::destroyInstance() {
     LOG("Destroying the TDLib instance");
     sendRequest({{_TYPE, "destroy"}});
 }
+
+QVariantMap TDLibWrapper::getNotificationSettingsScope(NotificationSettingsScope scope) {
+    QString scopeType;
+    switch (scope) {
+    case NotificationSettingsScopePrivateChats:
+        scopeType = "notificationSettingsScopePrivateChats";
+        break;
+    case NotificationSettingsScopeGroupChats:
+        scopeType = "notificationSettingsScopeGroupChats";
+        break;
+    case NotificationSettingsScopeChannelChats:
+        scopeType = "notificationSettingsScopeChannelChats";
+        break;
+    }
+
+    return {{_TYPE, scopeType}};
+}
+
+void TDLibWrapper::handleScopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings) {
+    NotificationSettingsScope scope;
+    if (scopeType == "notificationSettingsScopePrivateChats")
+        scope = NotificationSettingsScopePrivateChats;
+    else if (scopeType == "notificationSettingsScopeGroupChats")
+        scope = NotificationSettingsScopeGroupChats;
+    else if (scopeType == "notificationSettingsScopeChannelChats")
+        scope = NotificationSettingsScopeChannelChats;
+    else
+        return;
+
+    LOG("Scope notification settings updated" << scope);
+    scopesNotificationSettings.insert(scope, settings);
+    emit scopeNotificationSettingsChanged(scope);
+}
+
+void TDLibWrapper::getScopeNotificationSettings(NotificationSettingsScope scope) {
+    LOG("Getting scope notification settings" << scope);
+    this->sendRequest({{_TYPE, "getScopeNotificationSettings"}, {SCOPE, getNotificationSettingsScope(scope)}});
+}
+
+void TDLibWrapper::setScopeNotificationSettings(NotificationSettingsScope scope, const QVariantMap &settings) {
+    LOG("Setting scope notification settings" << scope);
+    this->sendRequest({
+                          {_TYPE, "setScopeNotificationSettings"},
+                          {SCOPE, getNotificationSettingsScope(scope)},
+                          {NOTIFICATION_SETTINGS, settings}
+                      });
+}
+
+TDLibWrapper::NotificationSettingsScope TDLibWrapper::getChatNotificationSettingsScope(qlonglong chatId) {
+    ChatData *chat = getExistingChatData(chatId);
+    switch (chat->chatType) {
+    case ChatTypePrivate:
+    case ChatTypeSecret:
+        return NotificationSettingsScopePrivateChats;
+    case ChatTypeBasicGroup:
+        return NotificationSettingsScopeGroupChats;
+    case ChatTypeSupergroup:
+        return chat->isChannel() ? NotificationSettingsScopeChannelChats : NotificationSettingsScopeGroupChats;
+    default:
+        // should never happen (TODO: remove ChatTypeUnknown altogether)
+        return NotificationSettingsScopePrivateChats;
+    }
+}
+
+int TDLibWrapper::getChatMuteFor(qlonglong chatId, const QVariantMap &notificationSettings) {
+    // Allow passing notificationSettings directly in a binding
+
+    if (!hasChatData(chatId))
+        return false;
+    const QVariantMap settings = notificationSettings.isEmpty() ? getChatData(chatId)->notificationSettings() : notificationSettings;
+
+    if (settings.value("use_default_mute_for").toBool())
+        return getChatScopeNotificationSettings(chatId).value(MUTE_FOR).toInt();
+    else
+        return settings.value(MUTE_FOR).toInt();
+}
+
+bool TDLibWrapper::chatIsMuted(qlonglong chatId, const QVariantMap &notificationSettings) {
+    return getChatMuteFor(chatId, notificationSettings) > 0;
+}
+// 31622400 + 1 - 366 days and 1 second

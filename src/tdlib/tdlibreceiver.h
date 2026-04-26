@@ -68,7 +68,7 @@ signals:
     void activeNotificationsUpdated(const QVariantList notificationGroups);
     void notificationGroupUpdated(const QVariantMap notificationGroupUpdate);
     void notificationUpdated(const QVariantMap updatedNotification);
-    void chatNotificationSettingsUpdated(const QString &chatId, const QVariantMap updatedChatNotificationSettings);
+    void chatNotificationSettingsUpdated(qlonglong chatId, const QVariantMap &settings);
     void messageContentUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &newContent);
     void messageEditedUpdated(qlonglong chatId, qlonglong messageId, int editDate, const QVariantMap &replyMarkup);
     void messagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds);
@@ -148,6 +148,8 @@ signals:
     void addedProxyReceived(const QVariantMap &proxy, const QString &extra);
     void pingReceived(double ping);
     void proxyPingReceived(const QString &server, int port, const QVariantMap &type, double ping);
+    void scopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings);
+    void scopeNotificationSettingsReceived(const QString &scopeType, const QVariantMap &settings);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -257,6 +259,8 @@ private:
         {"seconds", &TDLibReceiver::processSeconds},
         {"addedProxies", &TDLibReceiver::processAddedProxies},
         {"addedProxy", &TDLibReceiver::processAddedProxy},
+        {"updateScopeNotificationSettings", &TDLibReceiver::processUpdateScopeNotificationSettings},
+        {"scopeNotificationSettings", &TDLibReceiver::processScopeNotificationSettings},
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},
@@ -377,6 +381,8 @@ private:
     void processAddedProxies(const QVariantMap &receivedInformation);
     void processAddedProxy(const QVariantMap &receivedInformation);
     void processSeconds(const QVariantMap &receivedInformation);
+    void processUpdateScopeNotificationSettings(const QVariantMap &receivedInformation);
+    void processScopeNotificationSettings(const QVariantMap &receivedInformation);
 };
 
 #endif // TDLIBRECEIVER_H

@@ -59,7 +59,6 @@ namespace {
     const QString SEND_MARKDOWN("sendMarkdown");
     const QString UNREAD_COUNT_INCLUDE_MUTED("unreadCountIncludeMuted");
     const QString FOLDERS_UNREAD_COUNT_INCLUDE_MUTED("foldersUnreadCountIncludeMuted");
-    const QString FORCE_QT_AUDIO_RECORDER("forceQtAudioRecorder");
 }
 
 Settings::Settings(QObject *parent) :
@@ -81,14 +80,10 @@ ENUM_SETTING(notificationFeedback, NOTIFICATION_FEEDBACK, NotificationFeedback, 
 
 BOOL_SETTING2(storageOptimizer, STORAGE_OPTIMIZER, true)
 
-
 BOOL_SETTING(onlineOnlyMode, ONLINE_ONLY_MODE)
 
 ENUM_SETTING(sponsoredMess, SPONSORED_MESS, SponsoredMess, SponsoredMessHandle)
 SETTING(sponsoredMessagesMessagesBetween, SPONSORED_MESSAGES_MESSAGES_BETWEEN, int, toInt)
-
-SETTING2(voiceNoteVolume, VOICE_NOTE_VOLUME, qreal, toReal, 1)
-BOOL_SETTING(forceQtAudioRecorder, FORCE_QT_AUDIO_RECORDER)
 
 BOOL_SETTING2(sendMarkdown, SEND_MARKDOWN, true)
 

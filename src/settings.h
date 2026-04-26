@@ -48,10 +48,6 @@ public:
     SETTING_DEFINE(SponsoredMess, sponsoredMess)
     SETTING_DEFINE(int, sponsoredMessagesMessagesBetween)
 
-    // TODO: move these somewhere
-    SETTING_DEFINE(qreal, voiceNoteVolume)
-    BOOL_SETTING_DEFINE(forceQtAudioRecorder)
-
     BOOL_SETTING_DEFINE(sendMarkdown)
 
     BOOL_SETTING_DEFINE(unreadCountIncludeMuted)
@@ -66,11 +62,9 @@ signals:
     void onlineOnlyModeChanged();
     void sponsoredMessChanged();
     void sponsoredMessagesMessagesBetweenChanged();
-    void voiceNoteVolumeChanged();
     void sendMarkdownChanged();
     void unreadCountIncludeMutedChanged();
     void foldersUnreadCountIncludeMutedChanged();
-    void forceQtAudioRecorderChanged();
 
 private:
     QSettings settings;

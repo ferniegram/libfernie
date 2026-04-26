@@ -52,12 +52,10 @@ namespace {
     const QString CHAT_TYPE_BASIC_GROUP("chatTypeBasicGroup");
     const QString CHAT_TYPE_SUPERGROUP("chatTypeSupergroup");
 
-    const QString APP_NAME("Ferniegram");
-
     // Notification hints
-    const QString HINT_GROUP_ID("x-ferniegram.group_id");        // int
-    const QString HINT_CHAT_ID("x-ferniegram.chat_id");          // qlonglong
-    const QString HINT_TOTAL_COUNT("x-ferniegram.total_count");  // int
+    const QString HINT_GROUP_ID("x-libfernie.group_id");        // int
+    const QString HINT_CHAT_ID("x-libfernie.chat_id");          // qlonglong
+    const QString HINT_TOTAL_COUNT("x-libfernie.total_count");  // int
 
     const QString HINT_IMAGE_PATH("image-path");                    // QString
     const QString HINT_VIBRA("x-nemo-vibrate");                     // bool
@@ -87,11 +85,12 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
     return activeNotifications.value(notificationOrder.last());
 }
 
-NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
+NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities, const QString &appName = QGuiApplication::applicationName(), const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     tdLibWrapper(tdLibWrapper),
     settings(settings),
     mceInterface(mceInterface),
     utilities(utilities),
+    appName(appName),
     dbusPath(dbusPath),
     dbusServiceName(dbusServiceName),
     dbusInterface(dbusInterface),
@@ -184,7 +183,7 @@ void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId,
             // New notification
             Notification *notification = new Notification(this);
             notification->setCategory("x-nemo.messaging.im");
-            notification->setAppName(APP_NAME);
+            notification->setAppName(this->appName);
             notification->setAppIcon(appIconFile);
             notification->setHintValue(HINT_GROUP_ID, groupId);
             notification->setHintValue(HINT_CHAT_ID, chatId);

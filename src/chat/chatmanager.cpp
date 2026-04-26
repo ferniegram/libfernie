@@ -370,6 +370,20 @@ void ChatManager::handleChatPendingJoinRequestsUpdated(qlonglong chatId) {
         emit pendingJoinRequestsChanged();
 }
 
+QVariantMap ChatManager::permissions() const {
+    return chatInformation().value("permissions").toMap();
+}
+
+void ChatManager::setPermissions(const QVariantMap &permissions) {
+    LOG("Setting chat permissions" << chatId);
+    tdLibWrapper->setChatPermissions(chatId, permissions);
+}
+
+void ChatManager::handleChatPermissionsUpdated(qlonglong chatId) {
+    if (this->chatId == chatId)
+        emit permissionsChanged();
+}
+
 TDLibWrapper::ChatType ChatManager::chatType() const {
     ChatData *data = getChatData();
     if (data)

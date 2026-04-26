@@ -537,9 +537,10 @@ void TDLibReceiver::processChatPhotos(const QVariantMap &receivedInformation) {
     emit chatPhotos(chatId, receivedInformation.value("photos").toList(), receivedInformation.value(TOTAL_COUNT).toInt());
 }
 
-void TDLibReceiver::processUpdateChatPermissions(const QVariantMap &receivedInformation)
-{
-    emit chatPermissionsUpdated(receivedInformation.value(CHAT_ID).toLongLong(), receivedInformation.value("permissions").toMap());
+void TDLibReceiver::processUpdateChatPermissions(const QVariantMap &receivedInformation) {
+    qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong();
+    LOG("Chat permissions updated" << chatId);
+    emit chatPermissionsUpdated(chatId, receivedInformation.value("permissions").toMap());
 }
 
 void TDLibReceiver::processUpdateChatPhoto(const QVariantMap &receivedInformation)

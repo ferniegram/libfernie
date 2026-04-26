@@ -299,7 +299,7 @@ public:
     Q_INVOKABLE void createBasicGroupChat(const QString &basicGroupId, const QString &extra);
     Q_INVOKABLE void getGroupsInCommon(qlonglong userId, int limit, int offset = 0);
     Q_INVOKABLE void getUserProfilePhotos(qlonglong userId, int limit, int offset);
-    Q_INVOKABLE void setChatPermissions(const QString &chatId, const QVariantMap &chatPermissions);
+    Q_INVOKABLE void setChatPermissions(qlonglong chatId, const QVariantMap &chatPermissions);
     Q_INVOKABLE void setChatSlowModeDelay(const QString &chatId, int delay);
     Q_INVOKABLE void setChatDescription(const QString &chatId, const QString &description);
     Q_INVOKABLE void setChatTitle(const QString &chatId, const QString &title);
@@ -501,7 +501,7 @@ signals:
     void basicGroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
     void supergroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
     void chatPhotosReceived(qlonglong chatId, const QVariantList &photos, int totalCount);
-    void chatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions);
+    void chatPermissionsUpdated(qlonglong chatId);
     void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
     void chatTitleUpdated(qlonglong chatId, const QString &title);
     void chatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
@@ -623,6 +623,7 @@ public slots:
     void handleUserReceived(const QVariantMap &user, bool doOpenOnFound);
     void handleChatViewAsTopicsUpdated(qlonglong chatId, bool viewAsTopics);
     void handleStickersReceived(const QVariantList &stickers, const QString &extra);
+    void handleChatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions);
     void handleScopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings);
 
 private:

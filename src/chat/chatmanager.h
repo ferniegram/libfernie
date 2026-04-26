@@ -70,6 +70,7 @@ class ChatManager : public QObject {
 
     Q_PROPERTY(QVariantMap photo READ photo NOTIFY photoChanged)
     Q_PROPERTY(QVariantMap pendingJoinRequests READ pendingJoinRequests NOTIFY pendingJoinRequestsChanged)
+    Q_PROPERTY(QVariantMap permissions READ permissions WRITE setPermissions NOTIFY permissionsChanged)
 
     Q_PROPERTY(QVariantMap botSponsoredMessage MEMBER botSponsoredMessage NOTIFY botSponsoredMessageChanged)
 
@@ -109,6 +110,8 @@ public:
 
     QVariantMap photo() const;
     QVariantMap pendingJoinRequests() const;
+    QVariantMap permissions() const;
+    void setPermissions(const QVariantMap &permissions);
 
 signals:
     void tdlibChanged();
@@ -125,6 +128,7 @@ signals:
 
     void photoChanged();
     void pendingJoinRequestsChanged();
+    void permissionsChanged();
 
     void botSponsoredMessageChanged();
 
@@ -134,6 +138,7 @@ private slots:
     void handleNewChatDiscovered(qlonglong chatId);
     void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles = QVector<int>());
     void handleChatPendingJoinRequestsUpdated(qlonglong chatId);
+    void handleChatPermissionsUpdated(qlonglong chatId);
     void handleChatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
     void handleChatActionUpdated(qlonglong chatId, const QVariantMap &sender, const QVariantMap &chatAction, qlonglong messageThreadId);
     void handleUserUpdated(qlonglong userId);

@@ -304,7 +304,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::supergroupFullInfo, this, &TDLibWrapper::supergroupFullInfoReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::supergroupFullInfoUpdated, this, &TDLibWrapper::supergroupFullInfoUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::chatPhotos, this, &TDLibWrapper::chatPhotosReceived);
-    connect(this->tdLibReceiver, &TDLibReceiver::chatPermissionsUpdated, this, &TDLibWrapper::chatPermissionsUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::chatPermissionsUpdated, this, &TDLibWrapper::handleChatPermissionsUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::messageIsPinnedUpdated, this, &TDLibWrapper::handleMessageIsPinnedUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::usersReceived, this, &TDLibWrapper::usersReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::messageSendersReceived, this, &TDLibWrapper::messageSendersReceived);
@@ -951,13 +951,13 @@ void TDLibWrapper::getUserProfilePhotos(qlonglong userId, int limit, int offset)
     });
 }
 
-void TDLibWrapper::setChatPermissions(const QString &chatId, const QVariantMap &chatPermissions) {
+void TDLibWrapper::setChatPermissions(qlonglong chatId, const QVariantMap &chatPermissions) {
     LOG("Setting Chat Permissions");
     this->sendRequest(QVariantMap{
         {_TYPE, "setChatPermissions"},
-    {_EXTRA, chatId},
-    {CHAT_ID, chatId},
-    {"permissions", chatPermissions}
+        {_EXTRA, chatId},
+        {CHAT_ID, chatId},
+        {"permissions", chatPermissions}
     });
 }
 
@@ -3063,6 +3063,11 @@ void TDLibWrapper::getInternalLink(const QVariantMap &type, bool isHttp) {
 void TDLibWrapper::destroyInstance() {
     LOG("Destroying the TDLib instance");
     sendRequest({{_TYPE, "destroy"}});
+}
+
+void TDLibWrapper::handleChatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions) {
+    this->getChatDataForce(chatId)->chatData.insert("permissions", permissions);
+    emit chatPermissionsUpdated(chatId);
 }
 
 QVariantMap TDLibWrapper::getNotificationSettingsScope(NotificationSettingsScope scope) {

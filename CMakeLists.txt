@@ -109,7 +109,7 @@ target_compile_definitions(libfernie PRIVATE
 )
 
 target_sources(libfernie PRIVATE
-    src/appsettings.cpp
+    src/settings.cpp
     src/boolfiltermodel.cpp
     src/chat/jumpablemessagesmodel.cpp
     src/chatdata.cpp
@@ -148,7 +148,7 @@ target_sources(libfernie PRIVATE
     src/userprofilepicturesmodel.cpp
     src/chat/chatphotosmodel.cpp
 
-    src/appsettings.h
+    src/settings.h
     src/boolfiltermodel.h
     src/chat/jumpablemessagesmodel.h
     src/chatdata.h

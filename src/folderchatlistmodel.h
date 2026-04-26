@@ -9,7 +9,7 @@ class ChatFoldersModel;
 class FolderChatListModel : public ChatListModel {
     Q_OBJECT
 public:
-    FolderChatListModel(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, ChatFoldersModel* chatFoldersModel, int folderId);
+    FolderChatListModel(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, ChatFoldersModel* chatFoldersModel, int folderId);
 
     int getFolderId();
 

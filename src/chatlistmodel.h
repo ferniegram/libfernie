@@ -24,7 +24,7 @@
 #include <QTimer>
 
 #include "tdlib/tdlibwrapper.h"
-#include "appsettings.h"
+#include "settings.h"
 #include "utilities.h"
 #include "chatdata.h"
 
@@ -34,7 +34,7 @@ class ChatListModel : public QAbstractListModel {
     Q_PROPERTY(int unreadChatCount READ getUnreadChatCount NOTIFY unreadChatCountChanged)
     Q_PROPERTY(int unreadMessageCount READ getUnreadMessageCount NOTIFY unreadMessageCountChanged)
 public:
-    ChatListModel(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, bool archive = false, bool doNotConnectChatListSignals = false);
+    ChatListModel(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, bool archive = false, bool doNotConnectChatListSignals = false);
     ~ChatListModel() override;
 
     QHash<int,QByteArray> roleNames() const Q_DECL_OVERRIDE;
@@ -100,7 +100,7 @@ private:
     bool archive;
 
 protected:
-    AppSettings *appSettings;
+    Settings *settings;
 
     int unreadChatCount;
     int unreadUnmutedChatCount;

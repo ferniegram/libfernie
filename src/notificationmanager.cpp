@@ -87,9 +87,9 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
     return activeNotifications.value(notificationOrder.last());
 }
 
-NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
+NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     tdLibWrapper(tdLibWrapper),
-    appSettings(appSettings),
+    settings(settings),
     mceInterface(mceInterface),
     utilities(utilities),
     dbusPath(dbusPath),
@@ -165,12 +165,12 @@ void NotificationManager::handleUpdateNotificationGroup(const QVariantMap &updat
     updateNotificationGroup(groupId, update.value(CHAT_ID).toLongLong(), totalCount,
         update.value(ADDED_NOTIFICATIONS).toList(),
         update.value(REMOVED_NOTIFICATION_IDS).toList(),
-        appSettings->notificationFeedback());
+        settings->notificationFeedback());
 }
 
 void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId, int totalCount,
     const QVariantList &addedNotifications, const QVariantList &removedNotificationIds,
-    AppSettings::NotificationFeedback feedback)
+    Settings::NotificationFeedback feedback)
 {
     bool needFeedback = false;
     NotificationGroup* notificationGroup = notificationGroups.value(groupId);
@@ -215,13 +215,13 @@ void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId,
 
         // Decide if we need a bzzz
         switch (feedback) {
-        case AppSettings::NotificationFeedbackNone:
+        case Settings::NotificationFeedbackNone:
             break;
-        case AppSettings::NotificationFeedbackNew:
+        case Settings::NotificationFeedbackNew:
             // Non-zero replacesId means that notification has already been published
             needFeedback = !notificationGroup->nemoNotification->replacesId();
             break;
-        case AppSettings::NotificationFeedbackAll:
+        case Settings::NotificationFeedbackAll:
             // Even in this case don't alert the user just about removals
             needFeedback = !addedNotifications.isEmpty();
             break;
@@ -302,7 +302,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
                                  ));
     } else {
         // notificationTypeNewMessage
-        const bool showPreview = notificationType.value("show_preview").toBool() && chat && chat->chatType != TDLibWrapper::ChatTypeSecret;
+        const bool showPreview = !settings->notificationSuppressContent() && notificationType.value("show_preview").toBool() && chat && chat->chatType != TDLibWrapper::ChatTypeSecret;
         const QVariantMap message = notificationType.value(MESSAGE).toMap();
 
         if (showPreview) {
@@ -356,11 +356,8 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
         nemoNotification->setHintValue(HINT_VISIBILITY, QString());
         nemoNotification->setUrgency(Notification::Low);
     } else {
-        if (appSettings->notificationSuppressContent())
-            nemoNotification->setPreviewBody(tr("You have a new message", "Notification"));
-
-        nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, !appSettings->notificationSoundsEnabled());
-        nemoNotification->setHintValue(HINT_DISPLAY_ON, appSettings->notificationTurnsDisplayOn());
+        nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, !settings->notificationSoundsEnabled());
+        nemoNotification->setHintValue(HINT_DISPLAY_ON, settings->notificationTurnsDisplayOn());
         nemoNotification->setHintValue(HINT_VISIBILITY, VISIBILITY_PUBLIC);
         nemoNotification->setUrgency(Notification::Normal);
     }

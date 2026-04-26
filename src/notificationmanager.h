@@ -23,7 +23,7 @@
 #include <QObject>
 #include <nemonotifications-qt5/notification.h>
 #include "tdlib/tdlibwrapper.h"
-#include "appsettings.h"
+#include "settings.h"
 #include "mceinterface.h"
 #include "utilities.h"
 
@@ -33,7 +33,7 @@ class NotificationManager : public QObject {
     Q_PROPERTY(qlonglong activeChatId MEMBER activeChatId WRITE setActiveChatId)
 
 public:
-    NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
+    NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
     ~NotificationManager() override;
 
     void setActiveChatId(qlonglong chatId);
@@ -65,11 +65,11 @@ private:
     void controlLedNotification(bool enabled);
     void updateNotificationGroup(int groupId, qlonglong chatId, int totalCount,
         const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
-        AppSettings::NotificationFeedback feedback = AppSettings::NotificationFeedbackNone);
+        Settings::NotificationFeedback feedback = Settings::NotificationFeedbackNone);
 
 private:
     TDLibWrapper *tdLibWrapper;
-    AppSettings *appSettings;
+    Settings *settings;
     MceInterface *mceInterface;
     Utilities *utilities;
     QString dbusPath;

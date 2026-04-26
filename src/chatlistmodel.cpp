@@ -78,11 +78,11 @@ int ChatListModel::ListChatData::compareTo(const ListChatData *other) const {
         return (order < other->order) ? 1 : -1;
 }
 
-ChatListModel::ChatListModel(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, bool archive, bool doNotConnectChatListSignals) :
+ChatListModel::ChatListModel(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, bool archive, bool doNotConnectChatListSignals) :
     tdLibWrapper(tdLibWrapper),
     utilities(utilities),
     archive(archive),
-    appSettings(appSettings),
+    settings(settings),
     unreadChatCount(0),
     unreadUnmutedChatCount(0),
     unreadMessageCount(0),
@@ -111,8 +111,8 @@ ChatListModel::ChatListModel(TDLibWrapper *tdLibWrapper, AppSettings *appSetting
 
     connect(tdLibWrapper, &TDLibWrapper::chatListsCalculateUnreadState, this, &ChatListModel::calculateUnreadState);
 
-    connect(appSettings, &AppSettings::unreadCountIncludeMutedChanged, this, &ChatListModel::unreadChatCountChanged);
-    connect(appSettings, &AppSettings::unreadCountIncludeMutedChanged, this, &ChatListModel::unreadMessageCountChanged);
+    connect(settings, &Settings::unreadCountIncludeMutedChanged, this, &ChatListModel::unreadChatCountChanged);
+    connect(settings, &Settings::unreadCountIncludeMutedChanged, this, &ChatListModel::unreadMessageCountChanged);
 
     // Don't start the timer until we have at least one chat
     relativeTimeRefreshTimer = new QTimer(this);
@@ -300,7 +300,7 @@ void ChatListModel::enableRefreshTimer()
 
 void ChatListModel::calculateUnreadState()
 {
-    if (this->appSettings->onlineOnlyMode()) {
+    if (this->settings->onlineOnlyMode()) {
         LOG("Online-only mode: Calculating unread state on my own...");
         int unreadMessages = 0;
         int unreadChats = 0;
@@ -412,11 +412,11 @@ void ChatListModel::handleUnreadMessageCountUpdated(const QVariantMap &messageCo
 }
 
 int ChatListModel::getUnreadChatCount(bool asFolder) const {
-    return archive || (asFolder ? appSettings->foldersUnreadCountIncludeMuted() : appSettings->unreadCountIncludeMuted())
+    return archive || (asFolder ? settings->foldersUnreadCountIncludeMuted() : settings->unreadCountIncludeMuted())
             ? unreadChatCount : unreadUnmutedChatCount;
 }
 
 int ChatListModel::getUnreadMessageCount(bool asFolder) const {
-    return archive || (asFolder ? appSettings->foldersUnreadCountIncludeMuted() : appSettings->unreadCountIncludeMuted())
+    return archive || (asFolder ? settings->foldersUnreadCountIncludeMuted() : settings->unreadCountIncludeMuted())
             ? unreadMessageCount : unreadUnmutedMessageCount;
 }

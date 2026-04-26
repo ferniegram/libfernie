@@ -67,7 +67,7 @@ public:
     };
     Q_ENUM(FolderType);
 
-    explicit ChatFoldersModel(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, QObject *parent = nullptr);
+    explicit ChatFoldersModel(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, QObject *parent = nullptr);
     ~ChatFoldersModel() override;
 
     ChatListModel* getMainChatListModel();
@@ -112,7 +112,7 @@ private:
     };
 
     TDLibWrapper *tdLibWrapper;
-    AppSettings *appSettings;
+    Settings *settings;
     Utilities *utilities;
 
     ChatListModel *mainChatListModel;

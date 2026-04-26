@@ -52,14 +52,14 @@
 
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
-FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
+FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     uri(uri),
-    appSettings(appSettings),
+    settings(settings),
     tdLibWrapper(tdLibWrapper),
     dbusAdaptor(dbusAdaptor),
     waveformManager(view.data()),
-    chatFoldersModel(tdLibWrapper, appSettings, utilities, view.data()),
-    notificationManager(tdLibWrapper, appSettings, mceInterface, utilities, dbusPath, dbusServiceName, dbusInterface),
+    chatFoldersModel(tdLibWrapper, settings, utilities, view.data()),
+    notificationManager(tdLibWrapper, settings, mceInterface, utilities, dbusPath, dbusServiceName, dbusInterface),
     processLauncher(),
     stickerManager(tdLibWrapper),
     knownUsersModel(tdLibWrapper, view.data()),
@@ -89,12 +89,12 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     qmlRegisterType<ChatPhotosModel>(uri, 1, 0, "ChatPhotosModel");
     qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
 
-    AppSettings *appSettings = new AppSettings(view.data());
-    context->setContextProperty("appSettings", appSettings);
-    qmlRegisterUncreatableType<AppSettings>(uri, 1, 0, "AppSettings", QString());
+    Settings *settings = new Settings(view.data());
+    context->setContextProperty("fernieSettings", settings);
+    qmlRegisterUncreatableType<Settings>(uri, 1, 0, "FernieSettings", QString());
 
     MceInterface *mceInterface = new MceInterface(view.data());
-    TDLibWrapper *tdLibWrapper = new TDLibWrapper(appSettings, mceInterface, view.data());
+    TDLibWrapper *tdLibWrapper = new TDLibWrapper(settings, mceInterface, view.data());
     context->setContextProperty("tdLibWrapper", tdLibWrapper);
     qmlRegisterUncreatableType<TDLibWrapper>(uri, 1, 0, "TDLibAPI", QString());
 
@@ -107,7 +107,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper, view.data());
     view->rootContext()->setContextProperty("dBusAdaptor", dbusAdaptor);
 
-    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, appSettings, utilities, mceInterface, dbusPath, dbusServiceName, dbusInterface);
+    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, settings, utilities, mceInterface, dbusPath, dbusServiceName, dbusInterface);
 
     context->setContextProperty("chatFoldersModel", &appContext->chatFoldersModel);
     qmlRegisterUncreatableType<ChatFoldersModel>(uri, 1, 0, "ChatFoldersModel", QString());

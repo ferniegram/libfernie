@@ -2,7 +2,7 @@
 #include <QQuickView>
 #include <QQmlContext>
 
-#include "appsettings.h"
+#include "settings.h"
 #include "debuglog.h"
 #include "tdlib/tdlibwrapper.h"
 #include "notificationmanager.h"
@@ -22,7 +22,7 @@ namespace FernieMain {
 
     struct AppContext {
         const char *uri;
-        AppSettings *appSettings;
+        Settings *settings;
         TDLibWrapper *tdLibWrapper;
         DBusAdaptor *dbusAdaptor;
         WaveformManager waveformManager;
@@ -35,7 +35,7 @@ namespace FernieMain {
         ContactsModel contactsModel;
         SuggestedActionsManager suggestedActionsManager;
 
-        AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, AppSettings *appSettings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
+        AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
     };
     AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
 

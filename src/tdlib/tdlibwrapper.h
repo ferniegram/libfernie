@@ -29,7 +29,7 @@
 #include <td/telegram/td_json_client.h>
 #include "tdlibreceiver.h"
 #include "tdlibresponse.h"
-#include "appsettings.h"
+#include "settings.h"
 #include "mceinterface.h"
 
 class Utilities;
@@ -46,7 +46,7 @@ class TDLibWrapper : public QObject {
     Q_PROPERTY(qlonglong myUserId READ myUserId NOTIFY myUserIdUpdated)
 
 public:
-    explicit TDLibWrapper(AppSettings *appSettings, MceInterface *mceInterface, QObject *parent = nullptr);
+    explicit TDLibWrapper(Settings *settings, MceInterface *mceInterface, QObject *parent = nullptr);
     ~TDLibWrapper();
 
     enum AuthorizationState {
@@ -570,7 +570,7 @@ signals:
     void chatListsCalculateUnreadState();
 
 private slots:
-    // appSettings
+    // settings
     void handleStorageOptimizerChanged();
     void handleSendMarkdownChanged();
 
@@ -649,7 +649,7 @@ private:
     int clientId;
     QNetworkAccessManager *manager;
     QNetworkConfigurationManager *networkConfigurationManager;
-    AppSettings *appSettings;
+    Settings *settings;
     MceInterface *mceInterface;
     TDLibReceiver *tdLibReceiver;
     Utilities *utilities;

@@ -194,12 +194,12 @@ QVariantMap findChatPositionForFolder(const QVariantList &positions, int folderI
     return QVariantMap();
 }
 
-TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *parent)
+TDLibWrapper::TDLibWrapper(Settings *settings, MceInterface *mce, QObject *parent)
     : QObject(parent)
     , clientId(td_create_client_id())
     , manager(new QNetworkAccessManager(this))
     , networkConfigurationManager(new QNetworkConfigurationManager(this))
-    , appSettings(settings)
+    , settings(settings)
     , mceInterface(mce)
     , utilities(new Utilities(this))
     , authorizationState(AuthorizationState::Closed)
@@ -211,8 +211,8 @@ TDLibWrapper::TDLibWrapper(AppSettings *settings, MceInterface *mce, QObject *pa
     const QString databasePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tdlib";
     QDir().mkpath(databasePath);
 
-    connect(appSettings, &AppSettings::storageOptimizerChanged, this, &TDLibWrapper::handleStorageOptimizerChanged);
-    connect(appSettings, &AppSettings::sendMarkdownChanged, this, &TDLibWrapper::handleSendMarkdownChanged);
+    connect(settings, &Settings::storageOptimizerChanged, this, &TDLibWrapper::handleStorageOptimizerChanged);
+    connect(settings, &Settings::sendMarkdownChanged, this, &TDLibWrapper::handleSendMarkdownChanged);
 
     connect(networkConfigurationManager, &QNetworkConfigurationManager::configurationChanged, this, &TDLibWrapper::handleNetworkConfigurationChanged);
 
@@ -2136,10 +2136,10 @@ void TDLibWrapper::handleSecretChatUpdated(qlonglong secretChatId, const QVarian
 }
 
 void TDLibWrapper::handleStorageOptimizerChanged() {
-    setOptionBoolean("use_storage_optimizer", appSettings->storageOptimizer());
+    setOptionBoolean("use_storage_optimizer", settings->storageOptimizer());
 }
 void TDLibWrapper::handleSendMarkdownChanged() {
-    setOptionBoolean("always_parse_markdown", appSettings->sendMarkdown());
+    setOptionBoolean("always_parse_markdown", settings->sendMarkdown());
 }
 
 void TDLibWrapper::handleErrorReceived(int code, const QString &message, const QVariant &extra) {
@@ -2258,19 +2258,19 @@ void TDLibWrapper::handleUpdatedUserPrivacySettingRules(const QVariantMap &updat
 }
 
 void TDLibWrapper::handleSponsoredMessagesReceived(qlonglong chatId, const QVariantList &messages, int messagesBetween) {
-    switch (appSettings->sponsoredMess()) {
-    case AppSettings::SponsoredMessHandle:
+    switch (settings->sponsoredMess()) {
+    case Settings::SponsoredMessHandle:
         emit sponsoredMessagesReceived(chatId, messages, messagesBetween);
         break;
-    case AppSettings::SponsoredMessHandleCustomMessagesBetween:
+    case Settings::SponsoredMessHandleCustomMessagesBetween:
         LOG("Handling sponsored messages with custom messagesBetween" << messagesBetween);
-        emit sponsoredMessagesReceived(chatId, messages, appSettings->sponsoredMessagesMessagesBetween());
-    case AppSettings::SponsoredMessAutoView:
+        emit sponsoredMessagesReceived(chatId, messages, settings->sponsoredMessagesMessagesBetween());
+    case Settings::SponsoredMessAutoView:
         LOG("Auto-viewing sponsored messages");
         for (const QVariant &message : messages)
             viewMessage(chatId, message.toMap().value(MESSAGE_ID).toULongLong(), false);
         break;
-    case AppSettings::SponsoredMessIgnore:
+    case Settings::SponsoredMessIgnore:
         LOG("Ignoring chat sponsored messages");
         break;
     }
@@ -2312,7 +2312,7 @@ void TDLibWrapper::handleNetworkConfigurationChanged(const QNetworkConfiguration
 void TDLibWrapper::setTdlibParameters() {
     LOG("Setting TDLib initial parameters");
     
-    bool onlineOnlyMode = this->appSettings->onlineOnlyMode();
+    bool onlineOnlyMode = this->settings->onlineOnlyMode();
     QSettings hardwareSettings("/etc/hw-release", QSettings::NativeFormat);
 
     this->sendRequest({

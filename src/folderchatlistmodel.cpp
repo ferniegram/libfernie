@@ -2,8 +2,8 @@
 
 #include "chatfoldersmodel.h"
 
-FolderChatListModel::FolderChatListModel(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, ChatFoldersModel* chatFoldersModel, int folderId) :
-    ChatListModel(tdLibWrapper, appSettings, utilities, false, true),
+FolderChatListModel::FolderChatListModel(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, ChatFoldersModel* chatFoldersModel, int folderId) :
+    ChatListModel(tdLibWrapper, settings, utilities, false, true),
     chatFoldersModel(chatFoldersModel),
     folderId(folderId)
 {

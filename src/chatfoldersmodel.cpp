@@ -84,13 +84,13 @@ QString ChatFoldersModel::ChatFolderData::name() const {
     return QString();
 }
 
-ChatFoldersModel::ChatFoldersModel(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, Utilities *utilities, QObject *parent) :
+ChatFoldersModel::ChatFoldersModel(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, QObject *parent) :
     QAbstractListModel(parent),
     tdLibWrapper(tdLibWrapper),
-    appSettings(appSettings),
+    settings(settings),
     utilities(utilities),
-    mainChatListModel(new ChatListModel(tdLibWrapper, appSettings, utilities)),
-    archiveChatListModel(new ChatListModel(tdLibWrapper, appSettings, utilities, true))
+    mainChatListModel(new ChatListModel(tdLibWrapper, settings, utilities)),
+    archiveChatListModel(new ChatListModel(tdLibWrapper, settings, utilities, true))
 {
     connect(tdLibWrapper, &TDLibWrapper::chatAddedToFolderList, this, &ChatFoldersModel::handleChatAddedToFolderList);
     connect(tdLibWrapper, &TDLibWrapper::chatFoldersUpdated, this, &ChatFoldersModel::handleChatFoldersUpdated);
@@ -99,7 +99,7 @@ ChatFoldersModel::ChatFoldersModel(TDLibWrapper *tdLibWrapper, AppSettings *appS
 
     connect(mainChatListModel, &ChatListModel::unreadChatCountChanged, this, &ChatFoldersModel::handleMainChatListUnreadChatCountUpdated);
 
-    connect(appSettings, &AppSettings::foldersUnreadCountIncludeMutedChanged, this, &ChatFoldersModel::handleFoldersUnreadCountIncludeMutedChanged);
+    connect(settings, &Settings::foldersUnreadCountIncludeMutedChanged, this, &ChatFoldersModel::handleFoldersUnreadCountIncludeMutedChanged);
 }
 
 ChatFoldersModel::~ChatFoldersModel() {
@@ -209,7 +209,7 @@ QVariant ChatFoldersModel::data(const QModelIndex &index, int role) const {
 
 void ChatFoldersModel::handleChatAddedToFolderList(int folderId, ChatData *chatData, qlonglong order, bool isPinned) {
     if (!this->chatModels.contains(folderId)) {
-        FolderChatListModel* chatModel = new FolderChatListModel(tdLibWrapper, appSettings, utilities, this, folderId);
+        FolderChatListModel* chatModel = new FolderChatListModel(tdLibWrapper, settings, utilities, this, folderId);
         this->chatModels.insert(folderId, chatModel);
         chatModel->handleChatAddedToList(chatData, order, isPinned);
     }
@@ -279,7 +279,7 @@ void ChatFoldersModel::handleChatFoldersUpdated(const QVariantList &newChatFolde
         const int id = folder.value(ID).toInt();
 
         if (!this->chatModels.contains(id))
-            this->chatModels.insert(id, new FolderChatListModel(tdLibWrapper, appSettings, utilities, this, id));
+            this->chatModels.insert(id, new FolderChatListModel(tdLibWrapper, settings, utilities, this, id));
 
         int oldIndex = -1;
         for (int j = 0; j < chatFolders.length(); j++) {

@@ -569,7 +569,7 @@ signals:
     // Signals not directly used by TDLibWrapper
     void chatListsCalculateUnreadState();
 
-public slots:
+private slots:
     // appSettings
     void handleStorageOptimizerChanged();
     void handleSendMarkdownChanged();

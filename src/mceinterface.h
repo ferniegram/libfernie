@@ -22,13 +22,11 @@
 
 #include <QDBusInterface>
 
-class MceInterface : public QDBusInterface
-{
+class MceInterface : public QDBusInterface {
 public:
     MceInterface(QObject *parent = Q_NULLPTR);
 
-    void ledPatternActivate(const QString &pattern);
-    void ledPatternDeactivate(const QString &pattern);
+    void setLedPattern(const QString &pattern, bool activate);
 };
 
 #endif // MCE_INTERFACE_H

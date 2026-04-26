@@ -44,6 +44,11 @@ public:
     Q_ENUM(MessageText)
 
     Q_INVOKABLE static QString getUserName(const QVariantMap &userInformation);
+    Q_INVOKABLE QString getChatTitle(const ChatData *chat) const;
+    Q_INVOKABLE inline QString getChatTitleById(qlonglong chatId) const {
+        return getChatTitle(tdLibWrapper->getChatData(chatId));
+    }
+    Q_INVOKABLE QString formatMessageSender(const QVariantMap &messageSender) const;
     static QString formatDuration(int seconds);
     
     Q_INVOKABLE static QString fixReservedHtmlCharacters(const QString &text);
@@ -96,6 +101,8 @@ private:
     static void addInsertionsFor(const QString &messageText, QList<FormattedTextInsertion> &insertions, const QRegularExpression &original, const QString &replacement);
 
     QString getMessageTextInternal(const QVariantMap &messageContent, const QString &messageSenderType, qlonglong messageSenderUserId, bool isSponsored, QList<QVariantMap> *customEntities = nullptr, MessageText type = MessageTextDefault, bool ignoreEntities = false, bool escapeReserved = true, const QString &forumTopicName = QString()) const;
+
+    static QString getUnknownUserName(const QVariantMap &user);
 
 signals:
     void newPositionInformation(const QVariantMap &positionInformation);

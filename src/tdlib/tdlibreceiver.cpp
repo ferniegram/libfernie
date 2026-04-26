@@ -393,16 +393,16 @@ void TDLibReceiver::processUpdateActiveNotifications(const QVariantMap &received
     emit activeNotificationsUpdated(receivedInformation.value("groups").toList());
 }
 
-void TDLibReceiver::processUpdateNotificationGroup(const QVariantMap &receivedInformation)
-{
+void TDLibReceiver::processUpdateNotificationGroup(const QVariantMap &receivedInformation) {
     LOG("Received updated notification group");
     emit notificationGroupUpdated(receivedInformation);
 }
 
-void TDLibReceiver::processUpdateNotification(const QVariantMap &receivedInformation)
-{
-    LOG("Received notification update");
-    emit notificationUpdated(receivedInformation);
+void TDLibReceiver::processUpdateNotification(const QVariantMap &receivedInformation) {
+    int groupId = receivedInformation.value("notification_group_id").toInt();
+    const QVariantMap notification = receivedInformation.value("notification").toMap();
+    LOG("Notification updated" << notification.value(ID).toInt() << "group" << groupId);
+    emit notificationUpdated(groupId, notification);
 }
 
 void TDLibReceiver::processUpdateChatNotificationSettings(const QVariantMap &receivedInformation) {

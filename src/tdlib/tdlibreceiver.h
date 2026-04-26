@@ -65,9 +65,9 @@ signals:
     void newMessageReceived(qlonglong chatId, const QVariantMap &message);
     void messageInformation(qlonglong chatId, qlonglong messageId, const QVariantMap &message);
     void messageSendSucceeded(qlonglong chatId, qlonglong oldMessageId, qlonglong messageId, const QVariantMap &message);
-    void activeNotificationsUpdated(const QVariantList notificationGroups);
-    void notificationGroupUpdated(const QVariantMap notificationGroupUpdate);
-    void notificationUpdated(const QVariantMap updatedNotification);
+    void activeNotificationsUpdated(const QVariantList &notificationGroups);
+    void notificationGroupUpdated(const QVariantMap &update);
+    void notificationUpdated(int groupId, const QVariantMap &notification);
     void chatNotificationSettingsUpdated(qlonglong chatId, const QVariantMap &settings);
     void messageContentUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &newContent);
     void messageEditedUpdated(qlonglong chatId, qlonglong messageId, int editDate, const QVariantMap &replyMarkup);
@@ -184,6 +184,7 @@ private:
         {"updateMessageSendSucceeded", &TDLibReceiver::processMessageSendSucceeded},
         {"updateActiveNotifications", &TDLibReceiver::processUpdateActiveNotifications},
         {"updateNotificationGroup", &TDLibReceiver::processUpdateNotificationGroup},
+        {"updateNotification", &TDLibReceiver::processUpdateNotification},
         {"updateChatNotificationSettings", &TDLibReceiver::processUpdateChatNotificationSettings},
         {"updateMessageContent", &TDLibReceiver::processUpdateMessageContent},
         {"updateDeleteMessages", &TDLibReceiver::processUpdateDeleteMessages},

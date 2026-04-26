@@ -33,12 +33,14 @@ public:
 
 signals:
     void doOpenMessage(qlonglong chatId, qlonglong messageId);
+    void activateWindow();
 
 public slots:
     virtual void openUrl(const QStringList &arguments);
     void openMessage(const QString &chatId, const QString &messageId);
     virtual void markMessageAsRead(const QString &chatId, const QString &messageId);
     virtual void replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent);
+    virtual void closeSecretChat(const QString &chatId);
 
 private:
     TDLibWrapper *tdLibWrapper;

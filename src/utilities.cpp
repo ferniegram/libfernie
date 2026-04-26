@@ -18,6 +18,7 @@
 */
 
 #include "utilities.h"
+#include "chatdata.h"
 #include <QMap>
 #include <QVariant>
 #include <QStandardPaths>
@@ -43,7 +44,9 @@ namespace {
     const QString EMOJI("emoji");
     const QString ANIMATED_EMOJI("animated_emoji");
     const QString STICKER("sticker");
+    const QString CHAT_ID("chat_id");
     const QString USER_ID("user_id");
+    const QString NAME("name");
     const QString SENDING_STATE("sending_state");
     const QString TYPE_MESSAGE_SENDING_STATE_FAILED("messageSendingStateFailed");
     const QString IS_PINNED("is_pinned");
@@ -101,8 +104,6 @@ namespace {
     const QString AUDIO("audio");
     const QString ALBUM_COVER_MINITHUMBNAIL("album_cover_minithumbnail");
     const QString FILE_NAME("file_name");
-
-    const QString NAME("name");
 
     const QChar LT('<');
     const QString HTML_LT("&lt;");
@@ -730,6 +731,11 @@ QVariant Utilities::getMessageMinithumbnail(const QVariantMap &messageContent) {
     return QVariant();
 }
 
+QString Utilities::getUnknownUserName(const QVariantMap &user) {
+    const QString userType = user.value(TYPE).toMap().value(_TYPE).toString();
+    return userType == "userTypeDeleted" || userType == "userTypeUnknown" ? tr("Deleted Account") : tr("Unknown", "A user without a known name");
+}
+
 QString Utilities::getUserName(const QVariantMap &userInformation) {
     const QString firstName = userInformation.value("first_name").toString();
     const QString lastName = userInformation.value("last_name").toString();
@@ -737,8 +743,28 @@ QString Utilities::getUserName(const QVariantMap &userInformation) {
     if (!result.isEmpty())
         return result;
 
-    const QString userType = userInformation.value(TYPE).toMap().value(_TYPE).toString();
-    return userType == "userTypeDeleted" || userType == "userTypeUnknown" ? tr("Deleted Account") : tr("Unknown", "A user without a known name");
+    return getUnknownUserName(userInformation);
+}
+
+QString Utilities::getChatTitle(const ChatData *chat) const {
+    QString title;
+
+    if (chat) {
+        title = chat->title().trimmed();
+        if (title.isEmpty() && (chat->chatType == TDLibWrapper::ChatTypePrivate || chat->chatType == TDLibWrapper::ChatTypeSecret)) {
+            qlonglong userId = chat->chatData.value(TYPE).toMap().value(USER_ID).toLongLong();
+            title = getUnknownUserName(tdLibWrapper->getUserInformation(QString::number(userId)));
+        }
+    }
+
+    return title.isEmpty() ? tr("Unknown", "A chat without a known name") : title;
+}
+
+QString Utilities::formatMessageSender(const QVariantMap &messageSender) const {
+    if (messageSender.value(_TYPE).toString() == "messageSenderChat")
+        return getChatTitleById(messageSender.value(CHAT_ID).toLongLong());
+    else
+        return Utilities::getUserName(tdLibWrapper->getUserInformation(messageSender.value(USER_ID).toString()));
 }
 
 QString Utilities::formatDuration(int seconds) {

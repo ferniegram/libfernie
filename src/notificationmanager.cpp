@@ -47,6 +47,7 @@ namespace {
     const QString NOTIFICATION_GROUP_ID("notification_group_id");
     const QString ADDED_NOTIFICATIONS("added_notifications");
     const QString REMOVED_NOTIFICATION_IDS("removed_notification_ids");
+    const QString NOTIFICATION("notification");
 
     const QString CHAT_TYPE_BASIC_GROUP("chatTypeBasicGroup");
     const QString CHAT_TYPE_SUPERGROUP("chatTypeSupergroup");
@@ -68,59 +69,22 @@ namespace {
     const QString VISIBILITY_PUBLIC("public");
 }
 
-class NotificationManager::ChatInfo
-{
-public:
-    ChatInfo(const QVariantMap &info);
-
-    void setChatInfo(const QVariantMap &info);
-
-public:
-    TDLibWrapper::ChatType type;
-    bool isChannel;
-    QString title;
-};
-
-NotificationManager::ChatInfo::ChatInfo(const QVariantMap &chatInfo)
-{
-    setChatInfo(chatInfo);
-}
-
-void NotificationManager::ChatInfo::setChatInfo(const QVariantMap &chatInfo)
-{
-    const QVariantMap chatTypeInformation = chatInfo.value(TYPE).toMap();
-    type = TDLibWrapper::chatTypeFromString(chatTypeInformation.value(_TYPE).toString());
-    isChannel = chatTypeInformation.value(IS_CHANNEL).toBool();
-    title = chatInfo.value(TITLE).toString();
-}
-
-class NotificationManager::NotificationGroup
-{
-public:
-    NotificationGroup(int groupId, qlonglong chatId, int count, Notification *notification);
-    NotificationGroup(Notification *notification);
-    ~NotificationGroup();
-
-public:
-    int notificationGroupId;
-    qlonglong chatId;
-    int totalCount;
-    Notification *nemoNotification;
-    QMap<int,QVariantMap> activeNotifications;
-    QList<int> notificationOrder;
-};
-
 NotificationManager::NotificationGroup::NotificationGroup(int group, qlonglong chat, int count, Notification *notification) :
     notificationGroupId(group),
     chatId(chat),
     totalCount(count),
     nemoNotification(notification)
-{
+{}
+
+NotificationManager::NotificationGroup::~NotificationGroup() {
+    delete nemoNotification;
 }
 
-NotificationManager::NotificationGroup::~NotificationGroup()
-{
-    delete nemoNotification;
+QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
+    if (notificationOrder.isEmpty())
+        return QVariantMap();
+
+    return activeNotifications.value(notificationOrder.last());
 }
 
 NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
@@ -139,8 +103,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings
     connect(this->tdLibWrapper, &TDLibWrapper::activeNotificationsUpdated, this, &NotificationManager::handleUpdateActiveNotifications);
     connect(this->tdLibWrapper, &TDLibWrapper::notificationGroupUpdated, this, &NotificationManager::handleUpdateNotificationGroup);
     connect(this->tdLibWrapper, &TDLibWrapper::notificationUpdated, this, &NotificationManager::handleUpdateNotification);
-    connect(this->tdLibWrapper, &TDLibWrapper::newChatDiscovered, this, &NotificationManager::handleChatDiscovered);
-    connect(this->tdLibWrapper, &TDLibWrapper::chatTitleUpdated, this, &NotificationManager::handleChatTitleUpdated);
+    connect(this->tdLibWrapper, &TDLibWrapper::chatRolesUpdated, this, &NotificationManager::handleChatRolesUpdated);
 
     this->controlLedNotification(false);
 
@@ -169,7 +132,6 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings
 NotificationManager::~NotificationManager()
 {
     LOG("Destroying myself...");
-    qDeleteAll(chatMap.values());
     qDeleteAll(notificationGroups.values());
 }
 
@@ -178,33 +140,36 @@ void NotificationManager::setActiveChatId(qlonglong chatId) {
     this->activeChatId = chatId;
 }
 
-void NotificationManager::handleUpdateActiveNotifications(const QVariantList &notificationGroups)
-{
-    const int n = notificationGroups.size();
-    LOG("Received active notifications, number of groups:" << n);
-    for (int i = 0; i < n; i++) {
-        const QVariantMap notificationGroupInfo(notificationGroups.at(i).toMap());
-        updateNotificationGroup(notificationGroupInfo.value(ID).toInt(),
-            notificationGroupInfo.value(CHAT_ID).toLongLong(),
-            notificationGroupInfo.value(TOTAL_COUNT).toInt(),
-            notificationGroupInfo.value(NOTIFICATIONS).toList());
+bool NotificationManager::acceptNotificationGroupType(const QVariantMap &groupType) {
+    const QString type = groupType.value(_TYPE).toString();
+    return type != "notificationGroupTypeCalls";
+}
+
+void NotificationManager::handleUpdateActiveNotifications(const QVariantList &notificationGroups) {
+    LOG("Received active notifications" << notificationGroups.size());
+    for (const QVariant &groupVariant : notificationGroups) {
+        const QVariantMap group = groupVariant.toMap();
+        if (!acceptNotificationGroupType(group.value(TYPE).toMap()))
+            continue;
+        updateNotificationGroup(group.value(ID).toInt(),
+            group.value(CHAT_ID).toLongLong(),
+            group.value(TOTAL_COUNT).toInt(),
+            group.value(NOTIFICATIONS).toList());
     }
 }
 
-void NotificationManager::handleUpdateNotificationGroup(const QVariantMap &notificationGroupUpdate)
-{
-    const int notificationGroupId = notificationGroupUpdate.value(NOTIFICATION_GROUP_ID).toInt();
-    const int totalCount = notificationGroupUpdate.value(TOTAL_COUNT).toInt();
-    LOG("Received notification group update, group ID:" << notificationGroupId << "total count" << totalCount);
-    updateNotificationGroup(notificationGroupId,
-        notificationGroupUpdate.value(CHAT_ID).toLongLong(), totalCount,
-        notificationGroupUpdate.value(ADDED_NOTIFICATIONS).toList(),
-        notificationGroupUpdate.value(REMOVED_NOTIFICATION_IDS).toList(),
+void NotificationManager::handleUpdateNotificationGroup(const QVariantMap &update) {
+    const int groupId = update.value(NOTIFICATION_GROUP_ID).toInt();
+    const int totalCount = update.value(TOTAL_COUNT).toInt();
+    LOG("Received notification group update" << groupId << "total count" << totalCount);
+    updateNotificationGroup(groupId, update.value(CHAT_ID).toLongLong(), totalCount,
+        update.value(ADDED_NOTIFICATIONS).toList(),
+        update.value(REMOVED_NOTIFICATION_IDS).toList(),
         appSettings->notificationFeedback());
 }
 
 void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId, int totalCount,
-    const QVariantList &addedNotifications, const QVariantList & removedNotificationIds,
+    const QVariantList &addedNotifications, const QVariantList &removedNotificationIds,
     AppSettings::NotificationFeedback feedback)
 {
     bool needFeedback = false;
@@ -221,7 +186,6 @@ void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId,
             notification->setCategory("x-nemo.messaging.im");
             notification->setAppName(APP_NAME);
             notification->setAppIcon(appIconFile);
-            notification->setIcon(appIconFile);
             notification->setHintValue(HINT_GROUP_ID, groupId);
             notification->setHintValue(HINT_CHAT_ID, chatId);
             notification->setHintValue(HINT_TOTAL_COUNT, totalCount);
@@ -231,26 +195,23 @@ void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId,
                 new NotificationGroup(groupId, chatId, totalCount, notification));
         }
 
-        QListIterator<QVariant> addedNotificationIterator(addedNotifications);
-        while (addedNotificationIterator.hasNext()) {
-            const QVariantMap addedNotification = addedNotificationIterator.next().toMap();
+        for (const QVariant &notificationVariant : addedNotifications) {
+            const QVariantMap addedNotification = notificationVariant.toMap();
             const int addedId = addedNotification.value(ID).toInt();
             notificationGroup->activeNotifications.insert(addedId, addedNotification);
             notificationGroup->notificationOrder.append(addedId);
         }
 
-        QListIterator<QVariant> removedNotificationIdsIterator(removedNotificationIds);
-        while (removedNotificationIdsIterator.hasNext()) {
-            const int removedId = removedNotificationIdsIterator.next().toInt();
+        for (const QVariant &removedVariant : removedNotificationIds) {
+            const int removedId = removedVariant.toInt();
             notificationGroup->activeNotifications.remove(removedId);
             notificationGroup->notificationOrder.removeOne(removedId);
         }
 
         // Make sure that if there's no notifications, order is empty too.
         // That's usually already the case but double-check won't wort. It's cheap.
-        if (notificationGroup->activeNotifications.isEmpty()) {
+        if (notificationGroup->activeNotifications.isEmpty())
             notificationGroup->notificationOrder.clear();
-        }
 
         // Decide if we need a bzzz
         switch (feedback) {
@@ -265,6 +226,7 @@ void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId,
             needFeedback = !addedNotifications.isEmpty();
             break;
         }
+        needFeedback = needFeedback && !notificationGroup->lastNotification().value("is_silent").toBool();
 
         // Publish new or update the existing notification
         LOG("Feedback" << needFeedback);
@@ -284,137 +246,119 @@ void NotificationManager::updateNotificationGroup(int groupId, qlonglong chatId,
     }
 }
 
-void NotificationManager::handleUpdateNotification(const QVariantMap &updatedNotification)
-{
-    LOG("Received notification update, group ID:" << updatedNotification.value(NOTIFICATION_GROUP_ID).toInt());
-}
+void NotificationManager::handleUpdateNotification(int groupId, const QVariantMap &notification) {
+    int notificationId = notification.value(ID).toInt();
+    LOG("Received notification update group ID" << groupId << "notification ID" << notificationId);
 
-void NotificationManager::handleChatDiscovered(qlonglong id, const QVariantMap &chatInformation) {
-    ChatInfo *chat = chatMap.value(id);
-    if (chat) {
-        chat->setChatInfo(chatInformation);
-        LOG("Updated chat information" << id << chat->title);
-    } else {
-        chat = new ChatInfo(chatInformation);
-        chatMap.insert(id, chat);
-        LOG("New chat" << id << chat->title);
+    NotificationGroup *group = notificationGroups.value(groupId);
+    if (group && group->activeNotifications.contains(notificationId)) {
+        LOG("Updating notification" << notificationId << "group" << groupId);
+        group->activeNotifications.insert(notificationId, notification);
+
+        // Silently update notification
+        publishNotification(group, false);
     }
 }
 
-void NotificationManager::handleChatTitleUpdated(qlonglong chatId, const QString &title) {
-    ChatInfo *chat = chatMap.value(chatId);
-    if (chat) {
-        LOG("Chat" << chatId << "title changed to" << title);
-        chat->title = title;
+void NotificationManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles) {
+    if (changedRoles.contains(ChatData::RoleTitle) || changedRoles.contains(ChatData::RolePhoto)) {
+        LOG("Chat" << chatId << "title or photo changed");
 
-        // Silently update notification summary
-        QListIterator<NotificationGroup*> groupsIterator(notificationGroups.values());
-        while (groupsIterator.hasNext()) {
-            const NotificationGroup *group = groupsIterator.next();
+        // Silently update notifications
+        for (NotificationGroup *group : notificationGroups)
             if (group->chatId == chatId) {
-                LOG("Updating summary for group ID" << group->notificationGroupId);
+                LOG("Updating notification for group ID" << group->notificationGroupId);
                 publishNotification(group, false);
                 break;
             }
-        }
     }
 }
 
-void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback)
-{
-    QVariantMap messageMap;
-    const ChatInfo *chatInformation = chatMap.value(notificationGroup->chatId);
-    if (!notificationGroup->notificationOrder.isEmpty()) {
-        const int lastNotificationId = notificationGroup->notificationOrder.last();
-        const QVariantMap lastNotification(notificationGroup->activeNotifications.value(lastNotificationId));
-        messageMap = lastNotification.value(TYPE).toMap().value(MESSAGE).toMap();
-    }
+void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback) {
+    const QVariantMap lastNotification = notificationGroup->lastNotification();
+    const QVariantMap notificationType = lastNotification.value(TYPE).toMap();
+    const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
 
     Notification *nemoNotification = notificationGroup->nemoNotification;
-    if (!messageMap.isEmpty()) {
-        nemoNotification->setTimestamp(QDateTime::fromMSecsSinceEpoch(messageMap.value(DATE).toLongLong() * 1000));
 
-        if (!dbusPath.isEmpty() && !dbusServiceName.isEmpty()) {
-            const QVariantList remoteActionArguments{
-                QString::number(notificationGroup->chatId),
-                messageMap.value(ID).toString()
-            };
+    nemoNotification->setSummary(utilities->getChatTitle(chat));
+    nemoNotification->setTimestamp(QDateTime::fromMSecsSinceEpoch(lastNotification.value(DATE).toLongLong() * 1000));
+    nemoNotification->setItemCount(notificationGroup->totalCount);
 
-            QVariantList remoteActions{
-                Notification::remoteAction("default", "",
-                dbusServiceName, dbusPath, dbusInterface,
-                "openMessage", remoteActionArguments),
+    // TODO: avatar
+    //nemoNotification->setIcon();
 
-                Notification::remoteAction("", tr("Mark as read", "Notification"),
-                dbusServiceName, dbusPath, dbusInterface,
-                "markMessageAsRead", remoteActionArguments),
-            };
 
-            const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
-            // TODO: disable when show preview is off and other stuff
-            // also perhaps check chat permissions
-            if (chat && !chat->isChannel() && chat->chatType != TDLibWrapper::ChatTypeSecret) {
-                QVariantMap replyAction = Notification::remoteAction("", tr("Reply", "Reply to a message in a notification"),
-                                                                    dbusServiceName, dbusPath, dbusInterface,
-                                                                    "replyToMessage", remoteActionArguments).toMap();
-                // See https://github.com/sailfishos/nemo-qml-plugin-notifications/blob/d4d0a0ce8257b90293b8df469830f0e288faeeae/src/notification.cpp#L213
-                replyAction.insert(TYPE, "input");
+    QVariantList remoteActionArguments{QString::number(notificationGroup->chatId), ""};
+    QVariantList remoteActions;
 
-                remoteActions.append(replyAction);
-            }
+    if (notificationType.value(_TYPE).toString() == "notificationTypeNewSecretChat") {
+        nemoNotification->setBody(tr("This secret chat was created", "Notification"));
 
-            nemoNotification->setRemoteActions(remoteActions);
+        remoteActions.append(Notification::remoteAction(
+                                 "", tr("Close", "Notification button for closing a newly created secret chat"),
+                                 dbusServiceName, dbusPath, dbusInterface,
+                                 "closeSecretChat", remoteActionArguments
+                                 ));
+    } else {
+        // notificationTypeNewMessage
+        const bool showPreview = notificationType.value("show_preview").toBool() && chat && chat->chatType != TDLibWrapper::ChatTypeSecret;
+        const QVariantMap message = notificationType.value(MESSAGE).toMap();
+
+        if (showPreview) {
+            QString body;
+
+            if (chat->chatType == TDLibWrapper::ChatTypeBasicGroup || (chat->chatType == TDLibWrapper::ChatTypeSupergroup && !chat->isChannel()))
+                // Add author
+                body = utilities->formatMessageSender(message.value(SENDER_ID).toMap()) + ": ";
+
+            body += utilities->getMessageText(message, Utilities::MessageTextSimple);
+            nemoNotification->setBody(body);
+        } else
+            nemoNotification->setBody(tr("You have a new message", "Notification"));
+
+
+        remoteActionArguments.removeLast();
+        remoteActionArguments.append(message.value(ID).toString());
+
+        remoteActions.append(Notification::remoteAction(
+                                 "", tr("Mark as read", "Notification button"),
+                                 dbusServiceName, dbusPath, dbusInterface,
+                                 "markMessageAsRead", remoteActionArguments
+                                 ));
+
+        // TODO: disable when show preview is off and other stuff
+        // also perhaps check chat permissions
+        if (showPreview && !chat->isChannel()) {
+            QVariantMap replyAction = Notification::remoteAction("", tr("Reply", "Reply to a message in a notification"),
+                                                                dbusServiceName, dbusPath, dbusInterface,
+                                                                "replyToMessage", remoteActionArguments).toMap();
+            // See https://github.com/sailfishos/nemo-qml-plugin-notifications/blob/d4d0a0ce8257b90293b8df469830f0e288faeeae/src/notification.cpp#L213
+            replyAction.insert(TYPE, "input");
+
+            remoteActions.append(replyAction);
         }
     }
 
-    QString notificationBody;
-    const QVariantMap senderInformation = messageMap.value(SENDER_ID).toMap();
-    bool outputMessageCount = notificationGroup->totalCount > 1;
-    bool messageIsEmpty = messageMap.isEmpty();
-    if (outputMessageCount || messageIsEmpty) {
-        // Either we have more than one notification or we have no content to display
-        LOG("Group" << notificationGroup->notificationGroupId << "has" << notificationGroup->totalCount << "notifications");
-        notificationBody = tr("%Ln unread messages", "", notificationGroup->totalCount);
-    }
-    if ((!outputMessageCount || appSettings->notificationAlwaysShowPreview()) && !messageIsEmpty) {
-        LOG("Group" << notificationGroup->notificationGroupId << "has 1 notification");
-        if (outputMessageCount) {
-            notificationBody += "; ";
-        }
-        if (chatInformation && (chatInformation->type == TDLibWrapper::ChatTypeBasicGroup ||
-           (chatInformation->type == TDLibWrapper::ChatTypeSupergroup && !chatInformation->isChannel))) {
-            // Add author
-            QString fullName;
-            if (senderInformation.value(_TYPE).toString() == "messageSenderChat") {
-                fullName = tdLibWrapper->getChat(senderInformation.value(CHAT_ID).toLongLong()).value(TITLE).toString();
-            } else {
-                fullName = Utilities::getUserName(tdLibWrapper->getUserInformation(senderInformation.value(USER_ID).toString()));
-            }
-            notificationBody += fullName.trimmed() + ": ";
-        }
-        notificationBody += utilities->getMessageText(messageMap, Utilities::MessageTextSimple);
-    }
+    remoteActions.append(Notification::remoteAction(
+                             "default", "",
+                             dbusServiceName, dbusPath, dbusInterface,
+                             "openMessage", remoteActionArguments
+                             ));
+    nemoNotification->setRemoteActions(remoteActions);
 
-    const QString summary(chatInformation ? chatInformation->title : QString());
-    nemoNotification->setBody(notificationBody);
-    nemoNotification->setSummary(summary);
     nemoNotification->setHintValue(HINT_VIBRA, needFeedback);
-    nemoNotification->setHintValue(HINT_IMAGE_PATH, QString());
 
     // Don't show popup for currently open chat
-    if (!needFeedback || (activeChatId == notificationGroup->chatId &&
-            qGuiApp->applicationState() == Qt::ApplicationActive)) {
+    if (!needFeedback || (activeChatId == notificationGroup->chatId && QGuiApplication::applicationState() == Qt::ApplicationActive)) {
         nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, true);
         nemoNotification->setHintValue(HINT_DISPLAY_ON, false);
         nemoNotification->setHintValue(HINT_VISIBILITY, QString());
         nemoNotification->setUrgency(Notification::Low);
     } else {
-        if (!appSettings->notificationSuppressContent()) {
-            nemoNotification->setPreviewBody(notificationBody);
-        } else {
-            nemoNotification->setPreviewBody(tr("%Ln unread messages", "", notificationGroup->totalCount));
-        }
-        nemoNotification->setPreviewSummary(summary);
+        if (appSettings->notificationSuppressContent())
+            nemoNotification->setPreviewBody(tr("You have a new message", "Notification"));
+
         nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, !appSettings->notificationSoundsEnabled());
         nemoNotification->setHintValue(HINT_DISPLAY_ON, appSettings->notificationTurnsDisplayOn());
         nemoNotification->setHintValue(HINT_VISIBILITY, VISIBILITY_PUBLIC);
@@ -424,12 +368,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
     nemoNotification->publish();
 }
 
-void NotificationManager::controlLedNotification(bool enabled)
-{
+void NotificationManager::controlLedNotification(bool enabled) {
     static const QString PATTERN("PatternCommunicationIM");
-    if (enabled) {
-        mceInterface->ledPatternActivate(PATTERN);
-    } else {
-        mceInterface->ledPatternDeactivate(PATTERN);
-    }
+    mceInterface->setLedPattern(PATTERN, enabled);
 }

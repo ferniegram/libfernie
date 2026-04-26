@@ -18,6 +18,7 @@
 */
 
 #include "dbusadaptor.h"
+#include "chatdata.h"
 
 #include <QQuickView>
 
@@ -36,12 +37,14 @@ void DBusAdaptor::openUrl(const QStringList &arguments) {
     const QString url = arguments.first();
     if (!url.isEmpty()) {
         LOG("Opening URL" << url);
+        emit activateWindow();
         tdLibWrapper->getInternalLinkType(url);
     }
 }
 
 void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId) {
     LOG("Opening message" << chatId << messageId);
+    emit activateWindow();
     emit doOpenMessage(chatId.toLongLong(), messageId.toLongLong());
 }
 
@@ -65,4 +68,14 @@ void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &mes
         tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
 
     tdLibWrapper->sendTextMessage(chatId, messageContent, messageId.toLongLong(), QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
+}
+
+void DBusAdaptor::closeSecretChat(const QString &chatId) {
+    LOG("Closing secret chat" << chatId);
+
+    ChatData *chat = tdLibWrapper->getChatData(chatId.toLongLong());
+    if (chat && chat->chatType == TDLibWrapper::ChatTypeSecret) {
+        int secretChatId = chat->chatData.value("type").toMap().value("secret_chat_id").toInt();
+        tdLibWrapper->closeSecretChat(secretChatId);
+    }
 }

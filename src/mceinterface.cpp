@@ -26,17 +26,11 @@
 MceInterface::MceInterface(QObject *parent) :
     QDBusInterface("com.nokia.mce", "/com/nokia/mce/request", "com.nokia.mce.request",
     QDBusConnection::systemBus(), parent)
-{
-}
+{}
 
-void MceInterface::ledPatternActivate(const QString &pattern)
-{
-    LOG("Activating pattern" << pattern);
-    call(QStringLiteral("req_led_pattern_activate"), pattern);
-}
+// TODO: find a better way to do this without MCE calls
 
-void MceInterface::ledPatternDeactivate(const QString &pattern)
-{
-    LOG("Deactivating pattern" << pattern);
-    call(QStringLiteral("req_led_pattern_deactivate"), pattern);
+void MceInterface::setLedPattern(const QString &pattern, bool activate) {
+    LOG("Setting pattern" << pattern << activate);
+    call(activate ? QStringLiteral("req_led_pattern_activate") : QStringLiteral("req_led_pattern_deactivate"), pattern);
 }

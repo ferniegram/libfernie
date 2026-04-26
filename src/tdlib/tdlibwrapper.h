@@ -314,7 +314,7 @@ public:
     Q_INVOKABLE void getDeepLinkInfo(const QString &link);
     Q_INVOKABLE void getContacts();
     Q_INVOKABLE void getSecretChat(qlonglong secretChatId);
-    Q_INVOKABLE void closeSecretChat(qlonglong secretChatId);
+    Q_INVOKABLE void closeSecretChat(int secretChatId);
     Q_INVOKABLE void importContacts(const QVariantList &contacts, bool single = false);
     Q_INVOKABLE void addContact(qlonglong userId, const QString &firstName, const QString &lastName, const QString &phone, bool sharePhoneNumber);
     Q_INVOKABLE void removeContacts(QStringList userIds);
@@ -473,9 +473,9 @@ signals:
     void copyToDownloadsError(const QString &fileName, const QString &filePath);
     void receivedMessage(qlonglong chatId, qlonglong messageId, const QVariantMap &message);
     void messageSendSucceeded(qlonglong chatId, qlonglong oldMessageId, qlonglong messageId, const QVariantMap &message);
-    void activeNotificationsUpdated(const QVariantList notificationGroups);
-    void notificationGroupUpdated(const QVariantMap notificationGroupUpdate);
-    void notificationUpdated(const QVariantMap updatedNotification);
+    void activeNotificationsUpdated(const QVariantList &notificationGroups);
+    void notificationGroupUpdated(const QVariantMap &update);
+    void notificationUpdated(int groupId, const QVariantMap &notification);
     void messageContentUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &newContent);
     void messageEditedUpdated(qlonglong chatId, qlonglong messageId, int editDate, const QVariantMap &replyMarkup);
     void messagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds);

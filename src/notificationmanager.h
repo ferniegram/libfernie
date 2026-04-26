@@ -32,30 +32,39 @@ class NotificationManager : public QObject {
 
     Q_PROPERTY(qlonglong activeChatId MEMBER activeChatId WRITE setActiveChatId)
 
-    class ChatInfo;
-    class NotificationGroup;
-
 public:
     NotificationManager(TDLibWrapper *tdLibWrapper, AppSettings *appSettings, MceInterface *mceInterface, Utilities *utilities, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
     ~NotificationManager() override;
 
     void setActiveChatId(qlonglong chatId);
 
-public slots:
-
+private slots:
     void handleUpdateActiveNotifications(const QVariantList &notificationGroups);
-    void handleUpdateNotificationGroup(const QVariantMap &notificationGroupUpdate);
-    void handleUpdateNotification(const QVariantMap &updatedNotification);
-    void handleChatDiscovered(qlonglong chatId, const QVariantMap &chatInformation);
-    void handleChatTitleUpdated(qlonglong chatId, const QString &title);
+    void handleUpdateNotificationGroup(const QVariantMap &update);
+    void handleUpdateNotification(int groupId, const QVariantMap &notification);
+    void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles);
 
 private:
+    struct NotificationGroup {
+        NotificationGroup(int groupId, qlonglong chatId, int count, Notification *notification);
+        NotificationGroup(Notification *notification);
+        ~NotificationGroup();
 
+        QVariantMap lastNotification() const;
+
+        int notificationGroupId;
+        qlonglong chatId;
+        int totalCount;
+        Notification *nemoNotification;
+        QMap<int, QVariantMap> activeNotifications;
+        QList<int> notificationOrder;
+    };
+
+    static bool acceptNotificationGroupType(const QVariantMap &type);
     void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback);
     void controlLedNotification(bool enabled);
     void updateNotificationGroup(int groupId, qlonglong chatId, int totalCount,
-        const QVariantList &addedNotifications,
-        const QVariantList &removedNotificationIds = QVariantList(),
+        const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
         AppSettings::NotificationFeedback feedback = AppSettings::NotificationFeedbackNone);
 
 private:
@@ -66,8 +75,7 @@ private:
     QString dbusPath;
     QString dbusServiceName;
     QString dbusInterface;
-    QMap<qlonglong,ChatInfo*> chatMap;
-    QMap<int,NotificationGroup*> notificationGroups;
+    QMap<int, NotificationGroup*> notificationGroups;
     QString appIconFile;
     qlonglong activeChatId;
 };

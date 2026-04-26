@@ -140,6 +140,8 @@ namespace {
     const QString SERVER("server");
     const QString PORT("port");
     const QString OPTIONS("options");
+    const QString SCOPE("scope");
+    const QString MUTE_FOR("mute_for");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -1086,7 +1088,7 @@ void TDLibWrapper::getSecretChat(qlonglong secretChatId) {
     this->sendRequest(QVariantMap{{_TYPE, "getSecretChat"}, {SECRET_CHAT_ID, secretChatId}});
 }
 
-void TDLibWrapper::closeSecretChat(qlonglong secretChatId) {
+void TDLibWrapper::closeSecretChat(int secretChatId) {
     LOG("Closing secret chat" << secretChatId);
     this->sendRequest(QVariantMap{{_TYPE, "closeSecretChat"}, {SECRET_CHAT_ID, secretChatId}});
 }

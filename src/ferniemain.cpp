@@ -44,11 +44,13 @@
 #endif
 
 // The default filter can be overridden by QT_LOGGING_RULES envinronment variable, e.g.
-// QT_LOGGING_RULES="ferniegram.*=true" harbour-ferniegram
-#if defined (QT_DEBUG) || defined(DEBUG)
-#  define DEFAULT_LOG_FILTER "ferniegram.*=true"
-#else
-#  define DEFAULT_LOG_FILTER "ferniegram.*=false"
+// QT_LOGGING_RULES="libfernie.*=true;myapp.*=true" myapp
+#ifndef DEFAULT_LOG_FILTER
+#  if defined (QT_DEBUG) || defined(DEBUG)
+#    define DEFAULT_LOG_FILTER "libfernie.*=true"
+#  else
+#    define DEFAULT_LOG_FILTER "libfernie.*=false"
+#  endif
 #endif
 
 Q_IMPORT_PLUGIN(TgsIOPlugin)

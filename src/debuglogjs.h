@@ -24,13 +24,16 @@
 #include <QQmlEngine>
 #include <QLoggingCategory>
 
-class DebugLogJS : public QObject
-{
+#ifndef JS_DEBUG_ROOT_MODULE
+#define JS_DEBUG_ROOT_MODULE "libfernie.JS"
+#endif
+
+class DebugLogJS : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
 public:
 
-    DebugLogJS(QObject* parent = Q_NULLPTR) : QObject(parent), category("ferniegram.JS") {
+    DebugLogJS(QObject* parent = Q_NULLPTR) : QObject(parent), category(JS_DEBUG_ROOT_MODULE) {
         enabled = category.isDebugEnabled();
     }
     static QObject* createSingleton(QQmlEngine*, QJSEngine*) { return new DebugLogJS(); }

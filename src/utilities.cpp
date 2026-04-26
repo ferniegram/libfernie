@@ -808,7 +808,7 @@ void Utilities::initiateReverseGeocode(double latitude, double longitude)
     urlQuery.addQueryItem("format", "json");
     url.setQuery(urlQuery);
     QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, "Ferniegram (Sailfish OS)");
+    request.setHeader(QNetworkRequest::UserAgentHeader, "libfernie (Qt)");
     request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Accept-Charset", "utf-8");
     request.setRawHeader("Connection", "close");

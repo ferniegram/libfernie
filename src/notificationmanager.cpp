@@ -94,7 +94,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     dbusPath(dbusPath),
     dbusServiceName(dbusServiceName),
     dbusInterface(dbusInterface),
-    appIconFile(PlatformApp::pathTo("images/ferniegram-notification.png").toLocalFile()),
+    appIconFile(PlatformApp::pathToAppIcon().toLocalFile()),
     activeChatId(0)
 {
     LOG("Initializing...");

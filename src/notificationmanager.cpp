@@ -377,11 +377,19 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
         return;
     }
 
-    if (notificationGroup->type == NotificationGroupTypeMentions)
-        nemoNotification->setSummary(tr("%1 (mentions)",
-                                        "Title for a notification containing messages with mentions from a chat. Mention count is displayed separately",
-                                        notificationGroup->totalCount
-                                        ).arg(nemoNotification->summary()));
+    if (notificationGroup->type == NotificationGroupTypeMentions) {
+        QString summary;
+        if (chat->chatType == TDLibWrapper::ChatTypeBasicGroup || chat->chatType == TDLibWrapper::ChatTypeSupergroup)
+            summary = tr("Mentions in %1",
+                         "Title for a notification containing messages with mentions from a group chat. Mention count is displayed separately",
+                         notificationGroup->totalCount);
+        else
+            summary = tr("Mentions from %1",
+                         "Title for a notification containing messages with mentions from a private chat. Mention count is displayed separately",
+                         notificationGroup->totalCount);
+
+        nemoNotification->setSummary(summary.arg(nemoNotification->summary()));
+    }
 
     remoteActions.append(Notification::remoteAction(
                              "default", "",

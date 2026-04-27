@@ -138,7 +138,6 @@ private slots:
     void handleNewChatDiscovered(qlonglong chatId);
     void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles = QVector<int>());
     void handleChatPendingJoinRequestsUpdated(qlonglong chatId);
-    void handleChatPermissionsUpdated(qlonglong chatId);
     void handleChatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
     void handleChatActionUpdated(qlonglong chatId, const QVariantMap &sender, const QVariantMap &chatAction, qlonglong messageThreadId);
     void handleUserUpdated(qlonglong userId);

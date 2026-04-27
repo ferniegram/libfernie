@@ -21,6 +21,7 @@ namespace {
     const QString UNREAD_REACTION_COUNT("unread_reaction_count");
     const QString AVAILABLE_REACTIONS("available_reactions");
     const QString NOTIFICATION_SETTINGS("notification_settings");
+    const QString PERMISSIONS("permissions");
     const QString LAST_READ_INBOX_MESSAGE_ID("last_read_inbox_message_id");
     const QString LAST_READ_OUTBOX_MESSAGE_ID("last_read_outbox_message_id");
     const QString IS_CHANNEL("is_channel");
@@ -136,6 +137,10 @@ qlonglong ChatData::lastReadOutboxMessageId() const {
 
 QVariantMap ChatData::notificationSettings() const {
     return chatData.value(NOTIFICATION_SETTINGS).toMap();
+}
+
+QVariantMap ChatData::permissions() const {
+    return chatData.value(PERMISSIONS).toMap();
 }
 
 

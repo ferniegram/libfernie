@@ -379,11 +379,6 @@ void ChatManager::setPermissions(const QVariantMap &permissions) {
     tdLibWrapper->setChatPermissions(chatId, permissions);
 }
 
-void ChatManager::handleChatPermissionsUpdated(qlonglong chatId) {
-    if (this->chatId == chatId)
-        emit permissionsChanged();
-}
-
 TDLibWrapper::ChatType ChatManager::chatType() const {
     ChatData *data = getChatData();
     if (data)
@@ -452,6 +447,10 @@ void ChatManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> ch
         if (changedRoles.contains(ChatData::RolePhoto)) {
             LOG("Chat photo updated" << chatId);
             emit photoChanged();
+        }
+        if (changedRoles.contains(ChatData::RolePermissions)) {
+            LOG("Chat permissions updated" << chatId);
+            emit permissionsChanged();
         }
         LOG("Chat roles updated" << chatId << changedRoles);
         emit chatInformationChanged();

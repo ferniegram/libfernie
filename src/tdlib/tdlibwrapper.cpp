@@ -3067,7 +3067,7 @@ void TDLibWrapper::destroyInstance() {
 
 void TDLibWrapper::handleChatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions) {
     this->getChatDataForce(chatId)->chatData.insert("permissions", permissions);
-    emit chatPermissionsUpdated(chatId);
+    emit chatRolesUpdated(chatId, {ChatData::RolePermissions});
 }
 
 QVariantMap TDLibWrapper::getNotificationSettingsScope(NotificationSettingsScope scope) {

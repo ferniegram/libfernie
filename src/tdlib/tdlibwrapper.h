@@ -501,7 +501,6 @@ signals:
     void basicGroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
     void supergroupFullInfoUpdated(qlonglong groupId, const QVariantMap &groupFullInfo);
     void chatPhotosReceived(qlonglong chatId, const QVariantList &photos, int totalCount);
-    void chatPermissionsUpdated(qlonglong chatId);
     void chatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
     void chatTitleUpdated(qlonglong chatId, const QString &title);
     void chatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);

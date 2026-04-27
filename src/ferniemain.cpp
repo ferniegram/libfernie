@@ -19,7 +19,6 @@
 
 #include "ferniemain.h"
 
-#include "debuglogjs.h"
 #include "tdlib/tdlibfile.h"
 #include "tdlib/tdlibresponse.h"
 #include "chatpermissionfiltermodel.h"
@@ -43,16 +42,6 @@
 #include <QtQuick>
 #endif
 
-// The default filter can be overridden by QT_LOGGING_RULES envinronment variable, e.g.
-// QT_LOGGING_RULES="libfernie.*=true;myapp.*=true" myapp
-#ifndef DEFAULT_LOG_FILTER
-#  if defined (QT_DEBUG) || defined(DEBUG)
-#    define DEFAULT_LOG_FILTER "libfernie.*=true"
-#  else
-#    define DEFAULT_LOG_FILTER "libfernie.*=false"
-#  endif
-#endif
-
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
 FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface, const QString &appName, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
@@ -71,10 +60,6 @@ FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> v
     suggestedActionsManager(tdLibWrapper, view.data())
 {}
 
-void FernieMain::setupLogging() {
-    QLoggingCategory::setFilterRules(DEFAULT_LOG_FILTER);
-}
-
 FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view, const QString &appName = QGuiApplication::applicationName(), const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) {
     QQmlContext *context = view->rootContext();
 
@@ -90,7 +75,6 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     qmlRegisterType<InvertedMediaMessagesModel>(uri, 1, 0, "InvertedMediaMessagesModel");
     qmlRegisterType<UserProfilePicturesModel>(uri, 1, 0, "UserProfilePicturesModel");
     qmlRegisterType<ChatPhotosModel>(uri, 1, 0, "ChatPhotosModel");
-    qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
 
     Settings *settings = new Settings(view.data());
     context->setContextProperty("fernieSettings", settings);

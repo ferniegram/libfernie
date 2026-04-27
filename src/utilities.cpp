@@ -378,6 +378,8 @@ QVariantMap Utilities::enhanceMessageTextWithCustomInsertions(const QVariantMap 
 }
 
 QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, const QString &messageSenderType, qlonglong messageSenderUserId, bool isSponsored, QList<QVariantMap> *customEntities, MessageText type, bool ignoreEntities, bool escapeReserved, const QString &forumTopicName) const {
+    // NOTE: currently, if type is MessageTextSimple, ignoreEntities is always true
+
     if (messageContent.isEmpty()) return QString();
 
     const bool simple = type != MessageTextDefault;

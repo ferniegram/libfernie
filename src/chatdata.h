@@ -49,6 +49,7 @@ public:
     int unreadReactionCount() const;
     QVariant availableReactions() const;
     QVariantMap photo() const;
+    QVariantMap photoSmall() const;
     virtual qlonglong lastReadInboxMessageId() const override;
     virtual qlonglong lastReadOutboxMessageId() const override;
     QVariantMap notificationSettings() const;

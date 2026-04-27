@@ -18,11 +18,14 @@
 */
 
 #include "notificationmanager.h"
-#include <platformapp.h>
+#include "chatdata.h"
+#include "tdlib/tdlibfile.h"
 #include <QListIterator>
 #include <QDateTime>
 #include <QDBusConnection>
 #include <QGuiApplication>
+#include <QImage>
+#include <QPainter>
 
 #define DEBUG_MODULE NotificationManager
 #include "debuglog.h"
@@ -256,7 +259,7 @@ void NotificationManager::handleUpdateNotification(int groupId, const QVariantMa
         group->activeNotifications.insert(notificationId, notification);
 
         // Silently update notification
-        publishNotification(group, false);
+        publishNotification(group, false); //settings->notificationFeedback() == Settings::NotificationFeedbackAll
     }
 }
 
@@ -285,8 +288,31 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
     nemoNotification->setTimestamp(QDateTime::fromMSecsSinceEpoch(lastNotification.value(DATE).toLongLong() * 1000));
     nemoNotification->setItemCount(notificationGroup->totalCount);
 
-    // TODO: avatar
-    //nemoNotification->setIcon();
+    const QVariantMap photoSmall = chat->photoSmall();
+    if (!photoSmall.isEmpty()) {
+        TDLibFile file(tdLibWrapper, photoSmall);
+
+        if (file.isDownloadingCompleted()) {
+            QImage image(file.getPath());
+
+            QImage result(image.size(), QImage::Format_ARGB32_Premultiplied);
+            result.fill(Qt::transparent);
+
+            QPainter p(&result);
+            p.setRenderHint(QPainter::Antialiasing, true);
+            p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+            QPainterPath clipPath;
+            clipPath.addEllipse(image.rect());
+
+            p.setClipPath(clipPath);
+            p.drawImage(0, 0, image);
+            p.end();
+
+            nemoNotification->setIconData(result);
+        } else if (file.canBeDownloaded())
+            file.load();
+    }
 
 
     QVariantList remoteActionArguments{QString::number(notificationGroup->chatId), ""};
@@ -312,7 +338,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
                 // Add author
                 body = utilities->formatMessageSender(message.value(SENDER_ID).toMap()) + ": ";
 
-            body += utilities->getMessageText(message, Utilities::MessageTextSimple);
+            body += utilities->getMessageText(message, Utilities::MessageTextSimple, true, false);
             nemoNotification->setBody(body);
         } else
             nemoNotification->setBody(tr("You have a new message", "Notification"));

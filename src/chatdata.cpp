@@ -118,9 +118,12 @@ int ChatData::unreadReactionCount() const
     return chatData.value(UNREAD_REACTION_COUNT).toInt();
 }
 
-QVariantMap ChatData::photo() const
-{
+QVariantMap ChatData::photo() const {
     return chatData.value(PHOTO).toMap();
+}
+
+QVariantMap ChatData::photoSmall() const {
+    return photo().value(SMALL).toMap();
 }
 
 qlonglong ChatData::lastReadInboxMessageId() const {

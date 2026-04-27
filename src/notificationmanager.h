@@ -72,11 +72,12 @@ private:
     };
 
     static bool acceptNotificationGroupType(const QVariantMap &type);
-    void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback);
+    void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString());
     void controlLedNotification(bool enabled);
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
         const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
-        Settings::NotificationFeedback feedback = Settings::NotificationFeedbackNone);
+        Settings::NotificationFeedback feedback = Settings::NotificationFeedbackNone,
+        qlonglong notificationSoundId = 0);
 
 private:
     TDLibWrapper *tdLibWrapper;

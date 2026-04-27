@@ -3164,4 +3164,11 @@ int TDLibWrapper::getChatMuteFor(qlonglong chatId, const QVariantMap &notificati
 bool TDLibWrapper::chatIsMuted(qlonglong chatId, const QVariantMap &notificationSettings) {
     return getChatMuteFor(chatId, notificationSettings) > 0;
 }
-// 31622400 + 1 - 366 days and 1 second
+
+TDLibResponse *TDLibWrapper::getSavedNotificationSound(qlonglong notificationSoundId, QObject *receiver, ResponseSlot slot) {
+    LOG("Getting saved notification sound" << notificationSoundId);
+    return sendRequestWithId({
+        {"@type", "getSavedNotificationSound"},
+        {"notification_sound_id", QString::number(notificationSoundId)}
+    }, receiver, slot);
+}

@@ -50,6 +50,7 @@ namespace {
     const QString ADDED_NOTIFICATIONS("added_notifications");
     const QString REMOVED_NOTIFICATION_IDS("removed_notification_ids");
     const QString NOTIFICATION("notification");
+    const QString NOTIFICATION_SOUND_ID("notification_sound_id");
 
     const QString CHAT_TYPE_BASIC_GROUP("chatTypeBasicGroup");
     const QString CHAT_TYPE_SUPERGROUP("chatTypeSupergroup");
@@ -100,7 +101,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     appIconFile(appIconPath.toLocalFile()),
     activeChatId(0)
 {
-    LOG("Initializing...");
+    LOG("Initializing");
 
     connect(this->tdLibWrapper, &TDLibWrapper::activeNotificationsUpdated, this, &NotificationManager::handleUpdateActiveNotifications);
     connect(this->tdLibWrapper, &TDLibWrapper::notificationGroupUpdated, this, &NotificationManager::handleUpdateNotificationGroup);
@@ -183,12 +184,12 @@ void NotificationManager::handleUpdateNotificationGroup(const QVariantMap &updat
     updateNotificationGroup(update.value(TYPE).toMap(), groupId, update.value(CHAT_ID).toLongLong(), totalCount,
         update.value(ADDED_NOTIFICATIONS).toList(),
         update.value(REMOVED_NOTIFICATION_IDS).toList(),
-        settings->notificationFeedback());
+        settings->notificationFeedback(), update.value(NOTIFICATION_SOUND_ID).toLongLong());
 }
 
 void NotificationManager::updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
     const QVariantList &addedNotifications, const QVariantList &removedNotificationIds,
-    Settings::NotificationFeedback feedback)
+    Settings::NotificationFeedback feedback, qlonglong notificationSoundId)
 {
     bool needFeedback = false;
     NotificationGroup* notificationGroup = notificationGroups.value(groupId);
@@ -234,11 +235,36 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
             needFeedback = !addedNotifications.isEmpty();
             break;
         }
-        needFeedback = needFeedback && !notificationGroup->lastNotification().value("is_silent").toBool();
 
-        // Publish new or update the existing notification
-        LOG("Feedback" << needFeedback);
-        publishNotification(notificationGroup, needFeedback);
+        needFeedback = needFeedback && !notificationGroup->lastNotification().value("is_silent").toBool();
+        LOG("Feedback" << needFeedback << notificationSoundId);
+
+        if (needFeedback && notificationSoundId > 0) {
+            tdLibWrapper->getSavedNotificationSound(notificationSoundId, this,
+                [this, groupId, needFeedback](const QString &type, const QVariantMap &sound) {
+                    NotificationGroup *group = notificationGroups.value(groupId);
+                    if (!group) {
+                        LOG("Notification was deleted before sound info was received");
+                        return;
+                    }
+
+                    if (type == "notificationSound") {
+                        TDLibFile file(tdLibWrapper, sound.value("sound").toMap());
+                        if (file.isDownloadingCompleted()) {
+                            LOG("Publishing notification with custom sound");
+                            publishNotification(group, needFeedback, false, file.getPath());
+                            return;
+                        } else if (file.canBeDownloaded())
+                            file.load();
+                    }
+                    LOG("Publishing notification with default sound");
+                    publishNotification(group, needFeedback);
+                });
+        } else {
+            // -1 means default sound
+            publishNotification(notificationGroup, needFeedback, notificationSoundId == 0);
+            LOG("Publishing notification with default or no sound");
+        }
     } else if (notificationGroup) {
         // No active notifications left in this group
         notificationGroup->nemoNotification->close();
@@ -281,7 +307,7 @@ void NotificationManager::handleChatRolesUpdated(qlonglong chatId, const QVector
     }
 }
 
-void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback) {
+void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound, const QString &soundFilePath) {
     const QVariantMap lastNotification = notificationGroup->lastNotification();
     const QVariantMap notificationType = lastNotification.value(TYPE).toMap();
     const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
@@ -407,10 +433,14 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
         nemoNotification->setHintValue(HINT_VISIBILITY, QString());
         nemoNotification->setUrgency(Notification::Low);
     } else {
-        nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, !settings->notificationSoundsEnabled());
         nemoNotification->setHintValue(HINT_DISPLAY_ON, settings->notificationTurnsDisplayOn());
         nemoNotification->setHintValue(HINT_VISIBILITY, VISIBILITY_PUBLIC);
         nemoNotification->setUrgency(Notification::Normal);
+
+        const bool doSuppressSound = !settings->notificationSoundsEnabled() && suppressSound;
+        nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, doSuppressSound);
+        if (!doSuppressSound && !soundFilePath.isEmpty())
+            nemoNotification->setSound(soundFilePath);
     }
 
     nemoNotification->publish();

@@ -422,6 +422,7 @@ public:
     Q_INVOKABLE void setScopeNotificationSettings(NotificationSettingsScope scope, const QVariantMap &settings);
     Q_INVOKABLE int getChatMuteFor(qlonglong chatId, const QVariantMap &notificationSettings = QVariantMap());
     Q_INVOKABLE bool chatIsMuted(qlonglong chatId, const QVariantMap &notificationSettings = QVariantMap());
+    TDLibResponse *getSavedNotificationSound(qlonglong notificationSoundId, QObject *receiver, ResponseSlot slot);
 
 public:
     const Group* getGroup(qlonglong groupId) const;

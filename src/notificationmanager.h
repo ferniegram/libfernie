@@ -47,13 +47,22 @@ private slots:
     void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles);
 
 private:
+    enum NotificationGroupType {
+        NotificationGroupTypeMessages,
+        NotificationGroupTypeMentions,
+        NotificationGroupTypeSecretChat,
+        NotificationGroupTypeCalls
+    };
+    static NotificationGroupType getGroupType(const QVariantMap &groupType);
+
     struct NotificationGroup {
-        NotificationGroup(int groupId, qlonglong chatId, int count, Notification *notification);
+        NotificationGroup(NotificationGroupType type, int groupId, qlonglong chatId, int count, Notification *notification);
         NotificationGroup(Notification *notification);
         ~NotificationGroup();
 
         QVariantMap lastNotification() const;
 
+        NotificationGroupType type;
         int notificationGroupId;
         qlonglong chatId;
         int totalCount;
@@ -65,7 +74,7 @@ private:
     static bool acceptNotificationGroupType(const QVariantMap &type);
     void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback);
     void controlLedNotification(bool enabled);
-    void updateNotificationGroup(int groupId, qlonglong chatId, int totalCount,
+    void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
         const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
         Settings::NotificationFeedback feedback = Settings::NotificationFeedbackNone);
 

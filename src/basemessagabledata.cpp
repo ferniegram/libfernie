@@ -59,9 +59,9 @@ QString BaseMessagableData::lastMessageStatus() const {
     if (tdLibWrapper->myUserId() != lastMessageSenderUserId())
         return "";
 
-    if (lastMessage(ID) == lastReadOutboxMessageId()) {
+    if (lastReadOutboxMessageId() >= lastMessage(ID).toLongLong())
         return "&nbsp;&nbsp;✅";
-    } else {
+    else {
         QVariantMap message = lastMessage();
         if (message.contains(SENDING_STATE)) {
             QVariantMap sendingState = message.value(SENDING_STATE).toMap();

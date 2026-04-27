@@ -6,8 +6,6 @@
 #include "chatfoldersmodel.h"
 
 namespace PlatformApp {
-    QUrl pathTo(const QString &filename);
-    QUrl pathToAppIcon();
     QUrl pathToChatFolderIcon(ChatFoldersModel::Icon icon);
 }
 

@@ -34,9 +34,14 @@ namespace FernieMain {
         ContactsModel contactsModel;
         SuggestedActionsManager suggestedActionsManager;
 
-        AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface, const QString &appName, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
+        AppContext(const char *uri, QSharedPointer<QQuickView> view,
+                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface,
+                   const QString &appName, const QUrl &appIconPath,
+                   const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
     };
-    AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view, const QString &appName, const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
+    AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view,
+                              const QString &appName, const QUrl &appIconPath = QUrl(),
+                              const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
     inline void registerDebugLogJS(AppContext *context) {
         // Declare in header so definitions would not be ignored
         qmlRegisterSingletonType<DebugLogJS>(context->uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);

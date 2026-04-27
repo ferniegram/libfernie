@@ -44,14 +44,17 @@
 
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
-FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view, TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface, const QString &appName, const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
+FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view,
+                                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface,
+                                   const QString &appName, const QUrl &appIconPath, const QString &dbusPath,
+                                   const QString &dbusServiceName, const QString &dbusInterface) :
     uri(uri),
     settings(settings),
     tdLibWrapper(tdLibWrapper),
     dbusAdaptor(dbusAdaptor),
     waveformManager(view.data()),
     chatFoldersModel(tdLibWrapper, settings, utilities, view.data()),
-    notificationManager(tdLibWrapper, settings, mceInterface, utilities, appName, dbusPath, dbusServiceName, dbusInterface),
+    notificationManager(tdLibWrapper, settings, mceInterface, utilities, appName, appIconPath, dbusPath, dbusServiceName, dbusInterface),
     processLauncher(),
     stickerManager(tdLibWrapper),
     knownUsersModel(tdLibWrapper, view.data()),
@@ -60,7 +63,9 @@ FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> v
     suggestedActionsManager(tdLibWrapper, view.data())
 {}
 
-FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view, const QString &appName = QGuiApplication::applicationName(), const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) {
+FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view,
+                                                  const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
+                                                  const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) {
     QQmlContext *context = view->rootContext();
 
     const char *uri = "App.Logic";
@@ -94,7 +99,8 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper, view.data());
     view->rootContext()->setContextProperty("dBusAdaptor", dbusAdaptor);
 
-    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, settings, utilities, mceInterface, appName, dbusPath, dbusServiceName, dbusInterface);
+    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, settings, utilities, mceInterface,
+                                            appName, appIconPath, dbusPath, dbusServiceName, dbusInterface);
 
     context->setContextProperty("chatFoldersModel", &appContext->chatFoldersModel);
     qmlRegisterUncreatableType<ChatFoldersModel>(uri, 1, 0, "ChatFoldersModel", QString());

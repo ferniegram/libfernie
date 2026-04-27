@@ -20,7 +20,6 @@
 #include "notificationmanager.h"
 #include <platformapp.h>
 #include <QListIterator>
-#include <QUrl>
 #include <QDateTime>
 #include <QDBusConnection>
 #include <QGuiApplication>
@@ -85,7 +84,9 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
     return activeNotifications.value(notificationOrder.last());
 }
 
-NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities, const QString &appName = QGuiApplication::applicationName(), const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
+NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities,
+                                         const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
+                                         const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     tdLibWrapper(tdLibWrapper),
     settings(settings),
     mceInterface(mceInterface),
@@ -94,7 +95,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     dbusPath(dbusPath),
     dbusServiceName(dbusServiceName),
     dbusInterface(dbusInterface),
-    appIconFile(PlatformApp::pathToAppIcon().toLocalFile()),
+    appIconFile(appIconPath.toLocalFile()),
     activeChatId(0)
 {
     LOG("Initializing...");

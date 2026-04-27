@@ -139,45 +139,42 @@ void ChatListModel::reset() {
     }
 }
 
-QHash<int,QByteArray> ChatListModel::roleNames() const
-{
-    QHash<int,QByteArray> roles;
-    roles.insert(ChatData::RoleDisplay, "display");
-    roles.insert(ChatData::RoleChatId, "chat_id");
-    roles.insert(ChatData::RoleChatType, "chat_type");
-    roles.insert(ChatData::RoleGroupId, "group_id");
-    roles.insert(ChatData::RoleTitle, "title");
-    roles.insert(ChatData::RolePhoto, "photo_data");
-    roles.insert(ChatData::RoleUnreadCount, "unread_count");
-    roles.insert(ChatData::RoleUnreadMentionCount, "unread_mention_count");
-    roles.insert(ChatData::RoleUnreadReactionCount, "unread_reaction_count");
-    roles.insert(ChatData::RoleAvailableReactions, "available_reactions");
-    roles.insert(ChatData::RoleLastReadInboxMessageId, "last_read_inbox_message_id");
-    roles.insert(ChatData::RoleLastMessageSenderId, "last_message_sender_id");
-    roles.insert(ChatData::RoleLastMessageDate, "last_message_date");
-    roles.insert(ChatData::RoleLastMessageText, "last_message_text");
-    roles.insert(ChatData::RoleLastMessageMinithumbnail, "last_message_minithumbnail");
-    roles.insert(ChatData::RoleLastMessageIsService, "last_message_is_service");
-    roles.insert(ChatData::RoleLastMessageStatus, "last_message_status");
-    roles.insert(ChatData::RoleChatMemberStatus, "chat_member_status");
-    roles.insert(ChatData::RoleSecretChatState, "secret_chat_state");
-    roles.insert(ChatData::RoleVerificationStatus, "verification_status");
-    roles.insert(ChatData::RoleIsChannel, "is_channel");
-    roles.insert(ChatData::RoleIsMarkedAsUnread, "is_marked_as_unread");
-    roles.insert(ChatData::RoleIsPinned, "is_pinned");
-    roles.insert(ChatData::RoleDraftMessageDate, "draft_message_date");
-    roles.insert(ChatData::RoleDraftMessageText, "draft_message_text");
-    roles.insert(ChatData::RoleNotificationSettings, "notification_settings");
-    return roles;
+QHash<int,QByteArray> ChatListModel::roleNames() const {
+    return {
+        {ChatData::RoleDisplay, "display"},
+        {ChatData::RoleChatId, "chat_id"},
+        {ChatData::RoleChatType, "chat_type"},
+        {ChatData::RoleGroupId, "group_id"},
+        {ChatData::RoleTitle, "title"},
+        {ChatData::RolePhoto, "photo_data"},
+        {ChatData::RoleUnreadCount, "unread_count"},
+        {ChatData::RoleUnreadMentionCount, "unread_mention_count"},
+        {ChatData::RoleUnreadReactionCount, "unread_reaction_count"},
+        {ChatData::RoleAvailableReactions, "available_reactions"},
+        {ChatData::RoleLastReadInboxMessageId, "last_read_inbox_message_id"},
+        {ChatData::RoleLastMessageSenderId, "last_message_sender_id"},
+        {ChatData::RoleLastMessageDate, "last_message_date"},
+        {ChatData::RoleLastMessageText, "last_message_text"},
+        {ChatData::RoleLastMessageMinithumbnail, "last_message_minithumbnail"},
+        {ChatData::RoleLastMessageIsService, "last_message_is_service"},
+        {ChatData::RoleLastMessageStatus, "last_message_status"},
+        {ChatData::RoleChatMemberStatus, "chat_member_status"},
+        {ChatData::RoleSecretChatState, "secret_chat_state"},
+        {ChatData::RoleVerificationStatus, "verification_status"},
+        {ChatData::RoleIsChannel, "is_channel"},
+        {ChatData::RoleIsMarkedAsUnread, "is_marked_as_unread"},
+        {ChatData::RoleIsPinned, "is_pinned"},
+        {ChatData::RoleDraftMessageDate, "draft_message_date"},
+        {ChatData::RoleDraftMessageText, "draft_message_text"},
+        {ChatData::RoleNotificationSettings, "notification_settings"}
+    };
 }
 
-int ChatListModel::rowCount(const QModelIndex &) const
-{
+int ChatListModel::rowCount(const QModelIndex &) const {
     return chatList.size();
 }
 
-QVariant ChatListModel::data(const QModelIndex &index, int role) const
-{
+QVariant ChatListModel::data(const QModelIndex &index, int role) const {
     const int row = index.row();
     if (row >= 0 && row < chatList.size()) {
         const ListChatData *data = chatList.at(row);
@@ -213,15 +210,12 @@ QVariant ChatListModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void ChatListModel::redrawModel()
-{
+void ChatListModel::redrawModel() {
     LOG("Enforcing UI redraw...");
     layoutChanged();
 }
 
-QVariantMap ChatListModel::get(int row)
-{
-
+QVariantMap ChatListModel::get(int row) {
     QHash<int,QByteArray> names = roleNames();
     QHashIterator<int, QByteArray> i(names);
     QVariantMap res;
@@ -289,8 +283,7 @@ void ChatListModel::handleChatRolesChanged(qlonglong chatId, const QVector<int> 
     }
 }
 
-void ChatListModel::enableRefreshTimer()
-{
+void ChatListModel::enableRefreshTimer() {
     // Start timestamp refresh timer if not yet active (usually when the first visible chat is discovered)
     if (!relativeTimeRefreshTimer->isActive()) {
         LOG("Enabling refresh timer");
@@ -298,8 +291,7 @@ void ChatListModel::enableRefreshTimer()
     }
 }
 
-void ChatListModel::calculateUnreadState()
-{
+void ChatListModel::calculateUnreadState() {
     if (this->settings->onlineOnlyMode()) {
         LOG("Online-only mode: Calculating unread state on my own...");
         int unreadMessages = 0;

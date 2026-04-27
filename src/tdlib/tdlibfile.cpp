@@ -78,13 +78,11 @@ enum TDLibFileSignal {
     SignalCount
 };
 
-TDLibFile::TDLibFile()
-{
+TDLibFile::TDLibFile() {
     init();
 }
 
-TDLibFile::TDLibFile(TDLibWrapper *tdlib)
-{
+TDLibFile::TDLibFile(TDLibWrapper *tdlib, QObject *parent) : QObject(parent) {
     init();
     updateTDLibWrapper(tdlib);
     // Reset queued signals
@@ -92,8 +90,7 @@ TDLibFile::TDLibFile(TDLibWrapper *tdlib)
     queuedSignals = 0;
 }
 
-TDLibFile::TDLibFile(TDLibWrapper *tdlib, const QVariantMap &fileInfo)
-{
+TDLibFile::TDLibFile(TDLibWrapper *tdlib, const QVariantMap &fileInfo, QObject *parent) : QObject(parent) {
     init();
     updateTDLibWrapper(tdlib);
     updateFileInfo(fileInfo);
@@ -102,8 +99,7 @@ TDLibFile::TDLibFile(TDLibWrapper *tdlib, const QVariantMap &fileInfo)
     queuedSignals = 0;
 }
 
-void TDLibFile::init()
-{
+void TDLibFile::init() {
     tdLibWrapper = Q_NULLPTR;
     queuedSignals = 0;
     firstQueuedSignal = SignalCount;
@@ -125,8 +121,7 @@ void TDLibFile::init()
     is_uploading_completed = false;
 }
 
-void TDLibFile::queueSignal(uint signal)
-{
+void TDLibFile::queueSignal(uint signal) {
     const uint signalBit = 1 << signal;
     if (queuedSignals) {
         queuedSignals |= signalBit;
@@ -139,8 +134,7 @@ void TDLibFile::queueSignal(uint signal)
     }
 }
 
-void TDLibFile::emitQueuedSignals()
-{
+void TDLibFile::emitQueuedSignals() {
     static const TDLibFileSignalEmitter emitSignal[] = {
         #define SIGNAL_EMITTER_(Name,name) &TDLibFile::name##Changed,
         QUEUED_SIGNALS(SIGNAL_EMITTER_)
@@ -161,14 +155,12 @@ void TDLibFile::emitQueuedSignals()
     }
 }
 
-void TDLibFile::setTDLibWrapper(QObject* obj)
-{
+void TDLibFile::setTDLibWrapper(QObject* obj) {
     updateTDLibWrapper(qobject_cast<TDLibWrapper*>(obj));
     emitQueuedSignals();
 }
 
-void TDLibFile::updateTDLibWrapper(TDLibWrapper* tdlib)
-{
+void TDLibFile::updateTDLibWrapper(TDLibWrapper* tdlib) {
     if (tdlib != tdLibWrapper) {
         if (tdLibWrapper) {
             tdLibWrapper->disconnect(this);
@@ -184,8 +176,7 @@ void TDLibFile::updateTDLibWrapper(TDLibWrapper* tdlib)
     }
 }
 
-void TDLibFile::setAutoLoad(bool enableAutoLoad)
-{
+void TDLibFile::setAutoLoad(bool enableAutoLoad) {
     if (autoLoad != enableAutoLoad) {
         autoLoad = enableAutoLoad;
         queueSignal(SignalAutoLoadChanged);
@@ -204,8 +195,7 @@ void TDLibFile::setClearWithInvalidFileInfo(bool clearWithInvalidFileInfo) {
     }
 }
 
-bool TDLibFile::cancel()
-{
+bool TDLibFile::cancel() {
     if (id && tdLibWrapper && is_downloading_active) {
         tdLibWrapper->cancelDownloadFile(id);
         tdLibWrapper->deleteFile(id);
@@ -214,8 +204,7 @@ bool TDLibFile::cancel()
     return false;
 }
 
-bool TDLibFile::load()
-{
+bool TDLibFile::load() {
     // Manual load ignores hold-off timer
     if (downloadHoldOffTimer) {
         killTimer(downloadHoldOffTimer);
@@ -224,8 +213,7 @@ bool TDLibFile::load()
     return downloadFile();
 }
 
-bool TDLibFile::downloadFile()
-{
+bool TDLibFile::downloadFile() {
     if (id && tdLibWrapper && !downloadHoldOffTimer &&
         !is_downloading_active && !is_downloading_completed && can_be_downloaded) {
         downloadHoldOffTimer = startTimer(DownloadHoldOffMs);
@@ -235,8 +223,7 @@ bool TDLibFile::downloadFile()
     return false;
 }
 
-void TDLibFile::setFileInfo(const QVariantMap &fileInfo)
-{
+void TDLibFile::setFileInfo(const QVariantMap &fileInfo) {
     updateFileInfo(fileInfo);
     if (is_downloading_completed && downloadHoldOffTimer) {
         // Don't need this timer anymore
@@ -249,8 +236,7 @@ void TDLibFile::setFileInfo(const QVariantMap &fileInfo)
     emitQueuedSignals();
 }
 
-void TDLibFile::timerEvent(QTimerEvent *)
-{
+void TDLibFile::timerEvent(QTimerEvent *) {
     killTimer(downloadHoldOffTimer);
     downloadHoldOffTimer = 0;
     if (autoLoad) {
@@ -258,8 +244,7 @@ void TDLibFile::timerEvent(QTimerEvent *)
     }
 }
 
-void TDLibFile::handleFileUpdated(int fileId, const QVariantMap &fileInfo)
-{
+void TDLibFile::handleFileUpdated(int fileId, const QVariantMap &fileInfo) {
     if (id == fileId) {
         LOG("File" << fileId << "updated");
         setFileInfo(fileInfo);
@@ -295,8 +280,7 @@ void TDLibFile::handleFileUpdated(int fileId, const QVariantMap &fileInfo)
 }
 */
 
-void TDLibFile::updateFileInfo(const QVariantMap &file)
-{
+void TDLibFile::updateFileInfo(const QVariantMap &file) {
     if (file.value(_TYPE).toString() == TYPE_FILE) {
         QString s;
         qlonglong ll;

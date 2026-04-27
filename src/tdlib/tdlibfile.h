@@ -22,8 +22,7 @@
 
 #include "tdlibwrapper.h"
 
-class TDLibFile : public QObject
-{
+class TDLibFile : public QObject {
     Q_OBJECT
     Q_PROPERTY(QObject* tdlib READ getTDLibWrapper WRITE setTDLibWrapper NOTIFY tdlibChanged)
     Q_PROPERTY(QVariantMap fileInformation READ getFileInfo WRITE setFileInfo NOTIFY fileInfoChanged)
@@ -50,8 +49,8 @@ class TDLibFile : public QObject
 
 public:
     TDLibFile();
-    TDLibFile(TDLibWrapper *tdlib);
-    TDLibFile(TDLibWrapper *tdlib, const QVariantMap &fileInfo);
+    TDLibFile(TDLibWrapper *tdlib, QObject *parent = nullptr);
+    TDLibFile(TDLibWrapper *tdlib, const QVariantMap &fileInfo, QObject *parent = nullptr);
 
     TDLibWrapper *getTDLibWrapper() const;
     void setTDLibWrapper(QObject* obj);

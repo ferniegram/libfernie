@@ -19,6 +19,7 @@
 #ifndef TDLIBWRAPPER_H
 #define TDLIBWRAPPER_H
 
+#include <functional>
 #include <QCoreApplication>
 #include <QUrl>
 #include <QNetworkRequest>
@@ -236,10 +237,15 @@ public:
 
     inline Utilities *getUtilities() const { return this->utilities; }
 
-    // Direct TDLib functions
+    // TDLib communication
+    using ResponseSlot = std::function<void(const QString&, const QVariantMap&)>;
+
     Q_INVOKABLE void sendRequest(const QVariantMap &requestObject);
     Q_INVOKABLE QVariantMap executeRequest(const QVariantMap &requestObject);
     Q_INVOKABLE TDLibResponse *sendRequestWithId(const QVariantMap &requestObject);
+    TDLibResponse *sendRequestWithId(const QVariantMap &requestObject, QObject *receiver, ResponseSlot slot);
+
+    // Direct TDLib functions
     void close();
     Q_INVOKABLE void setAuthenticationPhoneNumber(const QString &phoneNumber);
     Q_INVOKABLE void setAuthenticationCode(const QString &authenticationCode);
@@ -643,6 +649,7 @@ private:
     static QVariantMap getProxyObject(const QString &server, int port, const QVariantMap &type);
     static QVariantMap getNotificationSettingsScope(NotificationSettingsScope scope);
     NotificationSettingsScope getChatNotificationSettingsScope(qlonglong chatId);
+    QVariantMap prepareRequestWithIdObject(const QVariantMap &requestObject);
 
 private:
     int clientId;

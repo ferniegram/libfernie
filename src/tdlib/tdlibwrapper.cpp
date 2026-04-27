@@ -390,13 +390,28 @@ QVariantMap TDLibWrapper::executeRequest(const QVariantMap &requestObject) {
     return receivedJsonDocument.object().toVariantMap();
 }
 
+QVariantMap TDLibWrapper::prepareRequestWithIdObject(const QVariantMap &requestObject) {
+    QVariantMap result = requestObject;
+    result.insert(_EXTRA, "R"+QString::number(nextRequestId));
+    nextRequestId++;
+    return result;
+}
+
 TDLibResponse *TDLibWrapper::sendRequestWithId(const QVariantMap &requestObject) {
     LOG("Sending request to TDLib with request ID" << nextRequestId);
-    QVariantMap newRequestObject = requestObject;
-    newRequestObject.insert(_EXTRA, "R"+QString::number(nextRequestId));
+    const QVariantMap newRequestObject = prepareRequestWithIdObject(requestObject);
     this->sendRequest(newRequestObject);
-    nextRequestId++;
     return new TDLibResponse(nextRequestId - 1, this);
+}
+
+TDLibResponse *TDLibWrapper::sendRequestWithId(const QVariantMap &requestObject, QObject *receiver, ResponseSlot slot) {
+    const QVariantMap newRequestObject = prepareRequestWithIdObject(requestObject);
+    TDLibResponse *response = new TDLibResponse(nextRequestId - 1, this);
+
+    connect(response, &TDLibResponse::finished, receiver, slot);
+
+    this->sendRequest(newRequestObject);
+    return response;
 }
 
 void TDLibWrapper::setAuthenticationPhoneNumber(const QString &phoneNumber) {

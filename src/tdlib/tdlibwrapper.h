@@ -420,9 +420,15 @@ public:
     }
     Q_INVOKABLE void getScopeNotificationSettings(NotificationSettingsScope scope);
     Q_INVOKABLE void setScopeNotificationSettings(NotificationSettingsScope scope, const QVariantMap &settings);
+    Q_INVOKABLE NotificationSettingsScope getChatNotificationSettingsScope(qlonglong chatId);
     Q_INVOKABLE int getChatMuteFor(qlonglong chatId, const QVariantMap &notificationSettings = QVariantMap());
     Q_INVOKABLE bool chatIsMuted(qlonglong chatId, const QVariantMap &notificationSettings = QVariantMap());
     TDLibResponse *getSavedNotificationSound(qlonglong notificationSoundId, QObject *receiver, ResponseSlot slot);
+    Q_INVOKABLE void getSavedNotificationSound(const QString &notificationSoundId);
+    Q_INVOKABLE void getSavedNotificationSounds();
+    Q_INVOKABLE void removeSavedNotificationSound(const QString &notificationSoundId);
+    Q_INVOKABLE void addSavedNotificationSound(const QString &path);
+    Q_INVOKABLE void addSavedNotificationSound(int fileId);
 
 public:
     const Group* getGroup(qlonglong groupId) const;
@@ -567,6 +573,9 @@ signals:
     void pingReceived(double ping);
     void pingErrorReceived();
     void scopeNotificationSettingsChanged(NotificationSettingsScope scope);
+    void notificationSoundReceived(const QString &soundId, const QVariantMap &sound, const QString &extra);
+    void notificationSoundsReceived(const QVariantList &sounds);
+    void savedNotificationSoundsUpdated(const QStringList &soundIds);
 
     // Link types
     void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);
@@ -649,7 +658,6 @@ private:
     static StickerType getStickerTypeForType(const QString &type);
     static QVariantMap getProxyObject(const QString &server, int port, const QVariantMap &type);
     static QVariantMap getNotificationSettingsScope(NotificationSettingsScope scope);
-    NotificationSettingsScope getChatNotificationSettingsScope(qlonglong chatId);
     QVariantMap prepareRequestWithIdObject(const QVariantMap &requestObject);
 
 private:

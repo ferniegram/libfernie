@@ -142,6 +142,7 @@ namespace {
     const QString OPTIONS("options");
     const QString SCOPE("scope");
     const QString MUTE_FOR("mute_for");
+    const QString NOTIFICATION_SOUND_ID("notification_sound_id");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -358,6 +359,9 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::proxyPingReceived, this, &TDLibWrapper::proxyPingReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::scopeNotificationSettingsUpdated, this, &TDLibWrapper::handleScopeNotificationSettingsUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::scopeNotificationSettingsReceived, this, &TDLibWrapper::handleScopeNotificationSettingsUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::notificationSoundReceived, this, &TDLibWrapper::notificationSoundReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::notificationSoundsReceived, this, &TDLibWrapper::notificationSoundsReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::savedNotificationSoundsUpdated, this, &TDLibWrapper::savedNotificationSoundsUpdated);
 
     this->tdLibReceiver->start();
 }
@@ -2183,6 +2187,11 @@ void TDLibWrapper::handleErrorReceived(int code, const QString &message, const Q
             LOG("Forum topic not found" << chatId << forumTopicId);
             emit forumTopicNotFound(chatId, forumTopicId);
             return;
+        } else if (parts.size() == 2 && parts.at(0) == "getSavedNotificationSound") {
+            const QString soundId = parts.at(1);
+            LOG("Saved notification sound not found" << soundId);
+            // ignore
+            return;
         } else {
             QRegularExpressionMatch match = RE_EXTRA_CHAT_MESSAGE_COUNT.match(extraString);
             if (match.hasMatch()) {
@@ -3168,7 +3177,52 @@ bool TDLibWrapper::chatIsMuted(qlonglong chatId, const QVariantMap &notification
 TDLibResponse *TDLibWrapper::getSavedNotificationSound(qlonglong notificationSoundId, QObject *receiver, ResponseSlot slot) {
     LOG("Getting saved notification sound" << notificationSoundId);
     return sendRequestWithId({
-        {"@type", "getSavedNotificationSound"},
-        {"notification_sound_id", QString::number(notificationSoundId)}
+        {_TYPE, "getSavedNotificationSound"},
+        {NOTIFICATION_SOUND_ID, QString::number(notificationSoundId)}
     }, receiver, slot);
+}
+
+void TDLibWrapper::getSavedNotificationSound(const QString &notificationSoundId) {
+    LOG("Getting saved notification sound" << notificationSoundId);
+    sendRequest({
+        {_TYPE, "getSavedNotificationSound"},
+        {NOTIFICATION_SOUND_ID, notificationSoundId},
+        {_EXTRA, "getSavedNotificationSound:"+notificationSoundId}
+    });
+}
+
+void TDLibWrapper::getSavedNotificationSounds() {
+    LOG("Getting saved notification sounds");
+    sendRequest({{_TYPE, "getSavedNotificationSounds"}});
+}
+
+void TDLibWrapper::removeSavedNotificationSound(const QString &notificationSoundId) {
+    LOG("Removing saved notification sound" << notificationSoundId);
+    sendRequest({
+        {_TYPE, "removeSavedNotificationSound"},
+        {NOTIFICATION_SOUND_ID, notificationSoundId}
+    });
+}
+
+void TDLibWrapper::addSavedNotificationSound(const QString &path) {
+    LOG("Adding saved notification sound from local file");
+    sendRequest({
+        {_TYPE, "addSavedNotificationSound"},
+        {"sound", QVariantMap{
+            {_TYPE, TYPE_INPUT_FILE_LOCAL},
+            {PATH, path}
+        }},
+        {_EXTRA, "localSaved"}
+    });
+}
+
+void TDLibWrapper::addSavedNotificationSound(int fileId) {
+    LOG("Adding saved notification sound" << fileId);
+    sendRequest({
+        {_TYPE, "addSavedNotificationSound"},
+        {"sound", QVariantMap{
+            {_TYPE, TYPE_INPUT_FILE_ID},
+            {ID, fileId}
+        }}
+    });
 }

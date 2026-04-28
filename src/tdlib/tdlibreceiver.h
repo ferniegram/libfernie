@@ -150,6 +150,9 @@ signals:
     void proxyPingReceived(const QString &server, int port, const QVariantMap &type, double ping);
     void scopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings);
     void scopeNotificationSettingsReceived(const QString &scopeType, const QVariantMap &settings);
+    void notificationSoundReceived(const QString &soundId, const QVariantMap &sound, const QString &extra);
+    void notificationSoundsReceived(const QVariantList &sounds);
+    void savedNotificationSoundsUpdated(const QStringList &soundIds);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -262,6 +265,8 @@ private:
         {"addedProxy", &TDLibReceiver::processAddedProxy},
         {"updateScopeNotificationSettings", &TDLibReceiver::processUpdateScopeNotificationSettings},
         {"scopeNotificationSettings", &TDLibReceiver::processScopeNotificationSettings},
+        {"notificationSound", &TDLibReceiver::processNotificationSound},
+        {"notificationSounds", &TDLibReceiver::processNotificationSounds}
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},
@@ -384,6 +389,9 @@ private:
     void processSeconds(const QVariantMap &receivedInformation);
     void processUpdateScopeNotificationSettings(const QVariantMap &receivedInformation);
     void processScopeNotificationSettings(const QVariantMap &receivedInformation);
+    void processNotificationSound(const QVariantMap &receivedInformation);
+    void processNotificationSounds(const QVariantMap &receivedInformation);
+    void processUpdateSavedNotificationSounds(const QVariantMap &receivedInformation);
 };
 
 #endif // TDLIBRECEIVER_H

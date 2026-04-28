@@ -1220,3 +1220,22 @@ void TDLibReceiver::processScopeNotificationSettings(const QVariantMap &received
     LOG("Scope notification settings received" << type);
     emit scopeNotificationSettingsReceived(type, settings);
 }
+
+void TDLibReceiver::processNotificationSound(const QVariantMap &receivedInformation) {
+    const QString id = receivedInformation.value(ID).toString();
+    const QString extra = receivedInformation.value(_EXTRA).toString();
+    LOG("Notification sound received" << id << extra);
+    emit notificationSoundReceived(id, receivedInformation, extra);
+}
+
+void TDLibReceiver::processNotificationSounds(const QVariantMap &receivedInformation) {
+    const QVariantList sounds = receivedInformation.value("notification_sounds").toList();
+    LOG("Notification sound received" << sounds.size());
+    emit notificationSoundsReceived(sounds);
+}
+
+void TDLibReceiver::processUpdateSavedNotificationSounds(const QVariantMap &receivedInformation) {
+    const QStringList soundIds = receivedInformation.value("notification_sound_ids").toStringList();
+    LOG("Saved notification sounds updated" << soundIds.size());
+    emit savedNotificationSoundsUpdated(soundIds);
+}

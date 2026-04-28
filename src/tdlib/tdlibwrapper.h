@@ -576,6 +576,7 @@ signals:
     void notificationSoundReceived(const QString &soundId, const QVariantMap &sound, const QString &extra);
     void notificationSoundsReceived(const QVariantList &sounds);
     void savedNotificationSoundsUpdated(const QStringList &soundIds);
+    void savedNotificationSoundErrorReceived(const QString &soundId);
 
     // Link types
     void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);

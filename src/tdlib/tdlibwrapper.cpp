@@ -2190,7 +2190,7 @@ void TDLibWrapper::handleErrorReceived(int code, const QString &message, const Q
         } else if (parts.size() == 2 && parts.at(0) == "getSavedNotificationSound") {
             const QString soundId = parts.at(1);
             LOG("Saved notification sound not found" << soundId);
-            // ignore
+            emit savedNotificationSoundErrorReceived(soundId);
             return;
         } else {
             QRegularExpressionMatch match = RE_EXTRA_CHAT_MESSAGE_COUNT.match(extraString);

@@ -126,24 +126,43 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     return appContext;
 }
 
-void FernieMain::registerDBusService(QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName) {
+void FernieMain::registerDBusService(QSharedPointer<QGuiApplication> app, QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName) {
     LOG("Initializing DBus connectivity");
     QDBusConnection sessionBusConnection = QDBusConnection::sessionBus();
 
     if (!sessionBusConnection.isConnected()) {
-        WARN("Error connecting to D-BUS");
+        WARN("Error connecting to DBus");
         return;
     }
 
     if (!sessionBusConnection.registerObject(path, view.data())) {
-        WARN("Error registering root object to D-BUS" << sessionBusConnection.lastError().message());
+        WARN("Error registering DBus root object" << sessionBusConnection.lastError().message());
         return;
     }
 
     if (!sessionBusConnection.registerService(serviceName)) {
-        WARN("Error registering interface to D-BUS" << sessionBusConnection.lastError().message());
+        WARN("Error registering DBus interface" << sessionBusConnection.lastError().message());
         return;
     }
 
     LOG("DBus service registered successfully");
+
+    QObject::connect(app.data(), &QGuiApplication::aboutToQuit, [app, path, serviceName]() {
+        LOG("Cleaning up DBus connectivity");
+        QDBusConnection sessionBusConnection = QDBusConnection::sessionBus();
+
+        if (!sessionBusConnection.isConnected()) {
+            LOG("Error connecting to DBus");
+            return;
+        }
+
+        if (!sessionBusConnection.unregisterService(serviceName)) {
+            LOG("Couldn't unregister DBus interface" << sessionBusConnection.lastError().message());
+            return;
+        }
+
+        sessionBusConnection.unregisterObject(path);
+
+        LOG("DBus service unregistered successfully");
+    });
 }

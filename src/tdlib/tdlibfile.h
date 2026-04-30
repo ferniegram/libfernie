@@ -83,6 +83,7 @@ public:
 
     Q_INVOKABLE bool cancel();
     Q_INVOKABLE bool load();
+    bool getFile(std::function<void()> successHandler, std::function<void()> errorHandler);
 
 signals:
     void tdlibChanged();

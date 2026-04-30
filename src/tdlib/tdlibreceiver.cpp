@@ -213,12 +213,12 @@ void TDLibReceiver::processUpdateUserStatus(const QVariantMap &receivedInformati
 
 void TDLibReceiver::processUpdateFile(const QVariantMap &receivedInformation) {
     const QVariantMap fileInformation = receivedInformation.value("file").toMap();
-    LOG("File was updated: " << fileInformation.value(ID).toString());
+    LOG("File was updated: " << fileInformation.value(ID).toInt());
     emit fileUpdated(fileInformation);
 }
 
 void TDLibReceiver::processFile(const QVariantMap &receivedInformation) {
-    LOG("File was updated: " << receivedInformation.value(ID).toString());
+    LOG("File was updated: " << receivedInformation.value(ID).toInt());
     emit fileUpdated(receivedInformation);
 }
 

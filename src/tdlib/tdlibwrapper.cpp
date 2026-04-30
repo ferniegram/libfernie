@@ -143,6 +143,7 @@ namespace {
     const QString SCOPE("scope");
     const QString MUTE_FOR("mute_for");
     const QString NOTIFICATION_SOUND_ID("notification_sound_id");
+    const QString FILE_ID("file_id");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -476,7 +477,7 @@ void TDLibWrapper::downloadFile(int fileId) {
     LOG("Downloading file " << fileId);
     this->sendRequest(QVariantMap{
         {_TYPE, "downloadFile"},
-        {"file_id", fileId},
+        {FILE_ID, fileId},
         {"synchronous", false},
         {OFFSET, 0},
         {LIMIT, 0},
@@ -1302,19 +1303,19 @@ void TDLibWrapper::cancelDownloadFile(int fileId) {
     LOG("Cancel Download File" << fileId);
     this->sendRequest(QVariantMap{
         {_TYPE, "cancelDownloadFile"},
-        {"file_id", fileId},
+        {FILE_ID, fileId},
         {"only_if_pending", false}
     });
 }
 
 void TDLibWrapper::cancelUploadFile(int fileId) {
     LOG("Cancel Upload File" << fileId);
-    this->sendRequest(QVariantMap{{_TYPE, "cancelUploadFile"}, {"file_id", fileId}});
+    this->sendRequest(QVariantMap{{_TYPE, "cancelUploadFile"}, {FILE_ID, fileId}});
 }
 
 void TDLibWrapper::deleteFile(int fileId) {
     LOG("Delete cached File" << fileId);
-    this->sendRequest(QVariantMap{{_TYPE, "deleteFile"}, {"file_id", fileId}});
+    this->sendRequest(QVariantMap{{_TYPE, "deleteFile"}, {FILE_ID, fileId}});
 }
 
 void TDLibWrapper::setName(const QString &firstName, const QString &lastName) {
@@ -3225,4 +3226,14 @@ void TDLibWrapper::addSavedNotificationSound(int fileId) {
             {ID, fileId}
         }}
     });
+}
+
+void TDLibWrapper::getFile(int fileId) {
+    LOG("Getting file info" << fileId);
+    sendRequest({{_TYPE, "getFile"}, {FILE_ID, fileId}});
+}
+
+TDLibResponse *TDLibWrapper::getFile(int fileId, QObject *receiver, ResponseSlot slot) {
+    LOG("Getting file info with handler" << fileId);
+    return sendRequestWithId({{_TYPE, "getFile"}, {FILE_ID, fileId}}, receiver, slot);
 }

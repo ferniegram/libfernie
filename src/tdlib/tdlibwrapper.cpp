@@ -3232,8 +3232,3 @@ void TDLibWrapper::getFile(int fileId) {
     LOG("Getting file info" << fileId);
     sendRequest({{_TYPE, "getFile"}, {FILE_ID, fileId}});
 }
-
-TDLibResponse *TDLibWrapper::getFile(int fileId, QObject *receiver, ResponseSlot slot) {
-    LOG("Getting file info with handler" << fileId);
-    return sendRequestWithId({{_TYPE, "getFile"}, {FILE_ID, fileId}}, receiver, slot);
-}

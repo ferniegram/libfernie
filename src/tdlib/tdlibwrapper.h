@@ -430,7 +430,6 @@ public:
     Q_INVOKABLE void addSavedNotificationSound(const QString &path);
     Q_INVOKABLE void addSavedNotificationSound(int fileId);
     Q_INVOKABLE void getFile(int fileId);
-    TDLibResponse *getFile(int fileId, QObject *receiver, ResponseSlot slot);
 
 public:
     const Group* getGroup(qlonglong groupId) const;

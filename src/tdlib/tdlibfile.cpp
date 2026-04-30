@@ -252,20 +252,9 @@ void TDLibFile::handleFileUpdated(int fileId, const QVariantMap &fileInfo) {
     }
 }
 
-bool TDLibFile::getFile(std::function<void()> successHandler, std::function<void()> errorHandler) {
-    // TODO: test this
+bool TDLibFile::getFile() {
     if (id && tdLibWrapper) {
-        tdLibWrapper->getFile(id, this, [this, successHandler, errorHandler](const QString &type, const QVariantMap &file) {
-            if (type == "file") {
-                LOG("Got file" << id);
-                setFileInfo(file);
-                emitQueuedSignals();
-                successHandler();
-            } else {
-                LOG("Couldn't get file" << id);
-                errorHandler();
-            }
-        });
+        tdLibWrapper->getFile(id);
         return true;
     }
     return false;

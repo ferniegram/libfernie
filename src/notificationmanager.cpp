@@ -19,7 +19,6 @@
 
 #include "notificationmanager.h"
 #include "chatdata.h"
-#include "tdlib/tdlibfile.h"
 #include <QListIterator>
 #include <QDateTime>
 #include <QDBusConnection>
@@ -257,7 +256,7 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
                             LOG("Publishing notification with custom sound");
                             publishNotification(group, needFeedback, false, file.getPath());
                             return;
-                        } else if (file.canBeDownloaded())
+                        } else
                             file.load();
                     }
                     LOG("Publishing notification with default sound");
@@ -296,21 +295,24 @@ void NotificationManager::handleUpdateNotification(int groupId, const QVariantMa
     }
 }
 
+void NotificationManager::updateNotificationForChat(qlonglong chatId, TDLibFile *chatPhotoFile) {
+    // Silently update notifications
+    for (NotificationGroup *group : notificationGroups)
+        if (group->chatId == chatId) {
+            LOG("Updating notification for group ID" << group->notificationGroupId);
+            publishNotification(group, false, false, QString(), chatPhotoFile);
+            break;
+        }
+}
+
 void NotificationManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles) {
     if (changedRoles.contains(ChatData::RoleTitle) || changedRoles.contains(ChatData::RolePhoto)) {
         LOG("Chat" << chatId << "title or photo changed");
-
-        // Silently update notifications
-        for (NotificationGroup *group : notificationGroups)
-            if (group->chatId == chatId) {
-                LOG("Updating notification for group ID" << group->notificationGroupId);
-                publishNotification(group, false);
-                break;
-            }
+        updateNotificationForChat(chatId);
     }
 }
 
-void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound, const QString &soundFilePath) {
+void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound, const QString &soundFilePath, TDLibFile *chatPhotoFile) {
     const QVariantMap lastNotification = notificationGroup->lastNotification();
     const QVariantMap notificationType = lastNotification.value(TYPE).toMap();
     const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
@@ -320,31 +322,48 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
     nemoNotification->setSummary(utilities->getChatTitle(chat));
     nemoNotification->setTimestamp(QDateTime::fromMSecsSinceEpoch(lastNotification.value(DATE).toLongLong() * 1000));
     nemoNotification->setItemCount(notificationGroup->totalCount);
+    nemoNotification->setResident(true); // FIXME: decide if this is really needed
 
-    const QVariantMap photoSmall = chat->photoSmall();
-    if (!photoSmall.isEmpty()) {
-        TDLibFile file(tdLibWrapper, photoSmall);
+    auto setIcon = [&](const QString &filePath) {
+        QImage image(filePath);
 
-        if (file.isDownloadingCompleted()) {
-            QImage image(file.getPath());
+        QImage result(image.size(), QImage::Format_ARGB32_Premultiplied);
+        result.fill(Qt::transparent);
 
-            QImage result(image.size(), QImage::Format_ARGB32_Premultiplied);
-            result.fill(Qt::transparent);
+        QPainter p(&result);
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-            QPainter p(&result);
-            p.setRenderHint(QPainter::Antialiasing, true);
-            p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+        QPainterPath clipPath;
+        clipPath.addEllipse(image.rect());
 
-            QPainterPath clipPath;
-            clipPath.addEllipse(image.rect());
+        p.setClipPath(clipPath);
+        p.drawImage(0, 0, image);
+        p.end();
 
-            p.setClipPath(clipPath);
-            p.drawImage(0, 0, image);
-            p.end();
+        nemoNotification->setIconData(result);
+    };
 
-            nemoNotification->setIconData(result);
-        } else if (file.canBeDownloaded())
-            file.load();
+    if (chatPhotoFile)
+        setIcon(chatPhotoFile->getPath());
+    else {
+        const QVariantMap photoSmall = chat->photoSmall();
+        if (!photoSmall.isEmpty()) {
+            TDLibFile *file = new TDLibFile(tdLibWrapper, photoSmall, this);
+
+            if (file->isDownloadingCompleted()) {
+                setIcon(file->getPath());
+
+                delete file;
+            } else if (file->canBeDownloaded() || file->isDownloadingActive()) {
+                LOG("Downloading chat photo");
+                pendingChatPhotoChats.insert(file->getId(), chat->chatId);
+                connect(file, &TDLibFile::downloadingCompletedChanged, this, &NotificationManager::handleChatPhotoDownloadingCompletedChanged);
+                if (file->canBeDownloaded())
+                    file->load();
+            } else
+                delete file;
+        }
     }
 
 
@@ -447,6 +466,24 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
     }
 
     nemoNotification->publish();
+}
+
+void NotificationManager::handleChatPhotoDownloadingCompletedChanged() {
+    TDLibFile *file = qobject_cast<TDLibFile*>(sender());
+    if (!file) return;
+
+    if (file->isDownloadingCompleted() && pendingChatPhotoChats.contains(file->getId())) {
+        qlonglong chatId = pendingChatPhotoChats.take(file->getId());
+        LOG("Chat photo downloaded for chat" << chatId << file->getId());
+
+        const ChatData *chat = tdLibWrapper->getChatData(chatId);
+        if (chat && chat->photoSmall().value(ID).toLongLong() == file->getId())
+            updateNotificationForChat(chatId, file);
+        else
+            LOG("Chat not found or photo changed while downloading");
+    }
+
+    file->deleteLater();
 }
 
 void NotificationManager::controlLedNotification(bool enabled) {

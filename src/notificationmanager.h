@@ -23,6 +23,7 @@
 #include <QObject>
 #include <nemonotifications-qt5/notification.h>
 #include "tdlib/tdlibwrapper.h"
+#include "tdlib/tdlibfile.h"
 #include "settings.h"
 #include "mceinterface.h"
 #include "utilities.h"
@@ -45,6 +46,7 @@ private slots:
     void handleUpdateNotificationGroup(const QVariantMap &update);
     void handleUpdateNotification(int groupId, const QVariantMap &notification);
     void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles);
+    void handleChatPhotoDownloadingCompletedChanged();
 
 private:
     enum NotificationGroupType {
@@ -72,7 +74,8 @@ private:
     };
 
     static bool acceptNotificationGroupType(const QVariantMap &type);
-    void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString());
+    void updateNotificationForChat(qlonglong chatId, TDLibFile *chatPhotoFile = nullptr);
+    void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
     void controlLedNotification(bool enabled);
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
         const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
@@ -91,6 +94,7 @@ private:
     QMap<int, NotificationGroup*> notificationGroups;
     QString appIconFile;
     qlonglong activeChatId;
+    QMap<int, qlonglong> pendingChatPhotoChats;
 };
 
 #endif // NOTIFICATIONMANAGER_H

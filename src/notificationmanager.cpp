@@ -194,21 +194,24 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
     bool needFeedback = false;
     NotificationGroup* notificationGroup = notificationGroups.value(groupId);
 
+    NotificationGroupType groupType = getGroupType(type);
+
     LOG("Received notification group update, group ID:" << groupId << "total count" << totalCount);
     if (totalCount) {
         if (notificationGroup) {
-            notificationGroup->type = getGroupType(type);
+            notificationGroup->type = groupType;
             notificationGroup->totalCount = totalCount;
         } else {
             Notification *notification = new Notification(this);
             notification->setCategory("x-nemo.messaging.im");
             notification->setAppName(this->appName);
             notification->setAppIcon(appIconFile);
+            notification->setHintValue(HINT_GROUP_TYPE, groupType);
             notification->setHintValue(HINT_GROUP_ID, groupId);
             notification->setHintValue(HINT_CHAT_ID, chatId);
             notification->setHintValue(HINT_TOTAL_COUNT, totalCount);
             notificationGroups.insert(groupId, notificationGroup =
-                new NotificationGroup(getGroupType(type), groupId, chatId, totalCount, notification));
+                new NotificationGroup(groupType, groupId, chatId, totalCount, notification));
         }
 
         for (const QVariant &notificationVariant : addedNotifications) {

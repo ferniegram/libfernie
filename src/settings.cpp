@@ -36,7 +36,7 @@ SETTING_SETTER_(SET, TYPE, GET, KEY, CHANGED_SIGNAL)
 
 
 #define BOOL_SETTING(F, KEY) SETTING(F, KEY, bool, toBool)
-#define BOOL_SETTING2(F, KEY, DEFAULT) SETTING2(F, KEY, bool, toBool, DEFAULT)
+#define BOOL_SETTING_TRUE(F, KEY) SETTING2(F, KEY, bool, toBool, true)
 
 #define INT_SETTING(F, KEY) SETTING(F, KEY, int, toInt)
 #define INT_SETTING2(F, KEY, DEFAULT) SETTING2(F, KEY, int, toInt, DEFAULT)
@@ -51,6 +51,7 @@ namespace {
     const QString NOTIFICATION_SOUNDS_ENABLED("notificationSoundsEnabled");
     const QString NOTIFICATION_SUPPRESS_ENABLED("notificationSuppressContent");
     const QString NOTIFICATION_FEEDBACK("notificationFeedback");
+    const QString NOTIFICATION_SHOW_DEFAULT_REACTION("notificationShowDefaultReaction");
     const QString STORAGE_OPTIMIZER("useStorageOptimizer");
     const QString ONLINE_ONLY_MODE("onlineOnlyMode");
     const QString SPONSORED_MESS("sponsoredMess");
@@ -73,19 +74,20 @@ Settings::Settings(QObject *parent) :
 
 
 BOOL_SETTING(notificationTurnsDisplayOn, NOTIFICATION_TURNS_DISPLAY_ON)
-BOOL_SETTING2(notificationSoundsEnabled, NOTIFICATION_SOUNDS_ENABLED, true)
+BOOL_SETTING_TRUE(notificationSoundsEnabled, NOTIFICATION_SOUNDS_ENABLED)
 BOOL_SETTING(notificationSuppressContent, NOTIFICATION_SUPPRESS_ENABLED)
+BOOL_SETTING_TRUE(notificationShowDefaultReaction, NOTIFICATION_SHOW_DEFAULT_REACTION)
 
 ENUM_SETTING(notificationFeedback, NOTIFICATION_FEEDBACK, NotificationFeedback, NotificationFeedbackAll)
 
-BOOL_SETTING2(storageOptimizer, STORAGE_OPTIMIZER, true)
+BOOL_SETTING_TRUE(storageOptimizer, STORAGE_OPTIMIZER)
 
 BOOL_SETTING(onlineOnlyMode, ONLINE_ONLY_MODE)
 
 ENUM_SETTING(sponsoredMess, SPONSORED_MESS, SponsoredMess, SponsoredMessHandle)
 SETTING(sponsoredMessagesMessagesBetween, SPONSORED_MESSAGES_MESSAGES_BETWEEN, int, toInt)
 
-BOOL_SETTING2(sendMarkdown, SEND_MARKDOWN, true)
+BOOL_SETTING_TRUE(sendMarkdown, SEND_MARKDOWN)
 
 BOOL_SETTING(unreadCountIncludeMuted, UNREAD_COUNT_INCLUDE_MUTED)
-BOOL_SETTING2(foldersUnreadCountIncludeMuted, FOLDERS_UNREAD_COUNT_INCLUDE_MUTED, true)
+BOOL_SETTING_TRUE(foldersUnreadCountIncludeMuted, FOLDERS_UNREAD_COUNT_INCLUDE_MUTED)

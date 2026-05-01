@@ -106,6 +106,10 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     connect(this->tdLibWrapper, &TDLibWrapper::notificationGroupUpdated, this, &NotificationManager::handleUpdateNotificationGroup);
     connect(this->tdLibWrapper, &TDLibWrapper::notificationUpdated, this, &NotificationManager::handleUpdateNotification);
     connect(this->tdLibWrapper, &TDLibWrapper::chatRolesUpdated, this, &NotificationManager::handleChatRolesUpdated);
+    connect(this->tdLibWrapper, &TDLibWrapper::defaultReactionTypeChanged, this, &NotificationManager::handleDefaultReactionTypeChanged);
+
+    connect(settings, &Settings::notificationSuppressContentChanged, this, &NotificationManager::updateAllNotifications);
+    connect(settings, &Settings::notificationShowDefaultReactionChanged, this, &NotificationManager::updateAllNotifications);
 
     this->controlLedNotification(false);
 
@@ -418,6 +422,17 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
             remoteActions.append(replyAction);
         }
 
+        // TODO: hide the button when reacted
+        if (settings->notificationShowDefaultReaction()) {
+            const QVariantMap reactionType = tdLibWrapper->getDefaultReactionType();
+            if (reactionType.value(_TYPE).toString() == "reactionTypeEmoji")
+                remoteActions.append(Notification::remoteAction(
+                                         "", reactionType.value("emoji").toString(),
+                                         dbusServiceName, dbusPath, dbusInterface,
+                                         "reactToMessage", remoteActionArguments
+                                         ));
+        }
+
         break;
     }
     case NotificationGroupTypeCalls:
@@ -484,6 +499,22 @@ void NotificationManager::handleChatPhotoDownloadingCompletedChanged() {
     }
 
     file->deleteLater();
+}
+
+void NotificationManager::updateAllNotifications() {
+    LOG("Updating all notifications");
+    for (NotificationGroup *group : notificationGroups) {
+        LOG("Updating notification for group ID" << group->notificationGroupId);
+        publishNotification(group, false);
+        break;
+    }
+}
+
+void NotificationManager::handleDefaultReactionTypeChanged() {
+    if (settings->notificationShowDefaultReaction()) {
+        LOG("Default reaction type changed");
+        updateAllNotifications();
+    }
 }
 
 void NotificationManager::controlLedNotification(bool enabled) {

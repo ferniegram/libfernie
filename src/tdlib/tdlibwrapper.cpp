@@ -363,6 +363,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::notificationSoundReceived, this, &TDLibWrapper::notificationSoundReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::notificationSoundsReceived, this, &TDLibWrapper::notificationSoundsReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::savedNotificationSoundsUpdated, this, &TDLibWrapper::savedNotificationSoundsUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::defaultReactionTypeUpdated, this, &TDLibWrapper::handleDefaultReactionTypeUpdated);
 
     this->tdLibReceiver->start();
 }
@@ -1506,25 +1507,35 @@ void TDLibWrapper::getMessageAvailableReactions(qlonglong chatId, qlonglong mess
     });
 }
 
-void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction) {
-    LOG("Add message reaction" << chatId << messageId << reaction);
+void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType) {
+    LOG("Add message reaction" << chatId << messageId << reactionType.value(_TYPE).toString());
     this->sendRequest(QVariantMap{
                           {_TYPE, "addMessageReaction"},
                           {CHAT_ID, chatId},
                           {MESSAGE_ID, messageId},
                           {"is_big", false},
-                          {REACTION_TYPE, QVariantMap{{_TYPE, REACTION_TYPE_EMOJI}, {EMOJI, reaction}}},
+                          {REACTION_TYPE, reactionType},
+                      });
+}
+
+void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction) {
+    LOG("Add message reaction" << chatId << messageId << reaction);
+    addMessageReaction(chatId, messageId, {{_TYPE, REACTION_TYPE_EMOJI}, {EMOJI, reaction}});
+}
+
+void TDLibWrapper::removeMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType) {
+    LOG("Remove message reaction" << chatId << messageId << reactionType.value(_TYPE).toString());
+    this->sendRequest(QVariantMap{
+                          {_TYPE, "removeMessageReaction"},
+                          {CHAT_ID, chatId},
+                          {MESSAGE_ID, messageId},
+                          {REACTION_TYPE, reactionType}
                       });
 }
 
 void TDLibWrapper::removeMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction) {
     LOG("Remove message reaction" << chatId << messageId << reaction);
-    this->sendRequest(QVariantMap{
-                          {_TYPE, "removeMessageReaction"},
-                          {CHAT_ID, chatId},
-                          {MESSAGE_ID, messageId},
-                          {REACTION_TYPE, QVariantMap{{_TYPE, REACTION_TYPE_EMOJI}, {EMOJI, reaction}}}
-                      });
+    removeMessageReaction(chatId, messageId, {{_TYPE, REACTION_TYPE_EMOJI}, {EMOJI, reaction}});
 }
 
 void TDLibWrapper::setNetworkType(NetworkType networkType) {
@@ -3231,4 +3242,14 @@ void TDLibWrapper::addSavedNotificationSound(int fileId) {
 void TDLibWrapper::getFile(int fileId) {
     LOG("Getting file info" << fileId);
     sendRequest({{_TYPE, "getFile"}, {FILE_ID, fileId}});
+}
+
+void TDLibWrapper::handleDefaultReactionTypeUpdated(const QVariantMap &reactionType) {
+    LOG("Default reaction type updated" << reactionType.value(_TYPE).toString());
+    this->defaultReactionType = reactionType;
+    emit defaultReactionTypeChanged();
+}
+
+QVariantMap TDLibWrapper::getDefaultReactionType() const {
+    return defaultReactionType;
 }

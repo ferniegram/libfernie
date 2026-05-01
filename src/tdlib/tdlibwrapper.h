@@ -45,6 +45,7 @@ class TDLibWrapper : public QObject {
     Q_PROPERTY(QVariantMap userInformation READ getUserInformation NOTIFY myUserUpdated)
     Q_PROPERTY(QQmlPropertyMap* options MEMBER options CONSTANT)
     Q_PROPERTY(qlonglong myUserId READ myUserId NOTIFY myUserIdUpdated)
+    Q_PROPERTY(QVariantMap defaultReactionType MEMBER defaultReactionType NOTIFY defaultReactionTypeChanged)
 
 public:
     explicit TDLibWrapper(Settings *settings, MceInterface *mceInterface, QObject *parent = nullptr);
@@ -234,6 +235,7 @@ public:
     Q_INVOKABLE bool canSkipChatJoinDialog(qlonglong chatId);
     Q_INVOKABLE void reset();
     Q_INVOKABLE static QVariantMap getMessageSendOptions(bool fromBackground);
+    QVariantMap getDefaultReactionType() const;
 
     inline Utilities *getUtilities() const { return this->utilities; }
 
@@ -355,7 +357,9 @@ public:
     Q_INVOKABLE void getActiveSessions();
     Q_INVOKABLE void terminateSession(const QString &sessionId);
     Q_INVOKABLE void getMessageAvailableReactions(qlonglong chatId, qlonglong messageId);
+    Q_INVOKABLE void addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType);
     Q_INVOKABLE void addMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction);
+    Q_INVOKABLE void removeMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType);
     Q_INVOKABLE void removeMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction);
     Q_INVOKABLE void setNetworkType(NetworkType networkType);
     Q_INVOKABLE void setInactiveSessionTtl(int days);
@@ -578,6 +582,7 @@ signals:
     void notificationSoundsReceived(const QVariantList &sounds);
     void savedNotificationSoundsUpdated(const QStringList &soundIds);
     void savedNotificationSoundErrorReceived(const QString &soundId);
+    void defaultReactionTypeChanged();
 
     // Link types
     void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);
@@ -642,6 +647,7 @@ private slots:
     void handleStickersReceived(const QVariantList &stickers, const QString &extra);
     void handleChatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions);
     void handleScopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings);
+    void handleDefaultReactionTypeUpdated(const QVariantMap &reactionType);
 
 private:
     void initializePropertyMaps();
@@ -688,6 +694,7 @@ private:
     QStringList activeEmojiReactions;
     QStringList diceEmojis;
     QMap<NotificationSettingsScope, QVariantMap> scopesNotificationSettings;
+    QVariantMap defaultReactionType;
 
     int versionNumber = 0;
     bool joinChatRequested = false;

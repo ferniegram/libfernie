@@ -70,6 +70,11 @@ void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &mes
     tdLibWrapper->sendTextMessage(chatId, messageContent, messageId.toLongLong(), QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
 }
 
+void DBusAdaptor::reactToMessage(const QString &chatId, const QString &messageId) {
+    LOG("Reacting to message" << chatId << messageId);
+    tdLibWrapper->addMessageReaction(chatId.toLongLong(), messageId.toLongLong(), tdLibWrapper->getDefaultReactionType());
+}
+
 void DBusAdaptor::closeSecretChat(const QString &chatId) {
     LOG("Closing secret chat" << chatId);
 

@@ -40,6 +40,7 @@ public slots:
     void openMessage(const QString &chatId, const QString &messageId);
     virtual void markMessageAsRead(const QString &chatId, const QString &messageId);
     virtual void replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent);
+    virtual void reactToMessage(const QString &chatId, const QString &messageId);
     virtual void closeSecretChat(const QString &chatId);
 
 private:

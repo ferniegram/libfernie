@@ -1239,3 +1239,9 @@ void TDLibReceiver::processUpdateSavedNotificationSounds(const QVariantMap &rece
     LOG("Saved notification sounds updated" << soundIds.size());
     emit savedNotificationSoundsUpdated(soundIds);
 }
+
+void TDLibReceiver::processUpdateDefaultReactionType(const QVariantMap &receivedInformation) {
+    const QVariantMap reactionType = receivedInformation.value("reaction_type").toMap();
+    LOG("Default reaction type updated" << reactionType.value(_TYPE).toString());
+    emit defaultReactionTypeUpdated(reactionType);
+}

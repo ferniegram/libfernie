@@ -153,6 +153,7 @@ signals:
     void notificationSoundReceived(const QString &soundId, const QVariantMap &sound, const QString &extra);
     void notificationSoundsReceived(const QVariantList &sounds);
     void savedNotificationSoundsUpdated(const QStringList &soundIds);
+    void defaultReactionTypeUpdated(const QVariantMap &reactionType);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -267,7 +268,8 @@ private:
         {"scopeNotificationSettings", &TDLibReceiver::processScopeNotificationSettings},
         {"notificationSound", &TDLibReceiver::processNotificationSound},
         {"notificationSounds", &TDLibReceiver::processNotificationSounds},
-        {"updateSavedNotificationSounds", &TDLibReceiver::processUpdateSavedNotificationSounds}
+        {"updateSavedNotificationSounds", &TDLibReceiver::processUpdateSavedNotificationSounds},
+        {"updateDefaultReactionType", &TDLibReceiver::processUpdateDefaultReactionType}
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},
@@ -393,6 +395,7 @@ private:
     void processNotificationSound(const QVariantMap &receivedInformation);
     void processNotificationSounds(const QVariantMap &receivedInformation);
     void processUpdateSavedNotificationSounds(const QVariantMap &receivedInformation);
+    void processUpdateDefaultReactionType(const QVariantMap &receivedInformation);
 };
 
 #endif // TDLIBRECEIVER_H

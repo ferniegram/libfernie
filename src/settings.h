@@ -38,6 +38,7 @@ public:
     BOOL_SETTING_DEFINE(notificationTurnsDisplayOn)
     BOOL_SETTING_DEFINE(notificationSoundsEnabled)
     BOOL_SETTING_DEFINE(notificationSuppressContent)
+    BOOL_SETTING_DEFINE(notificationShowDefaultReaction)
 
     SETTING_DEFINE(NotificationFeedback, notificationFeedback)
 
@@ -58,6 +59,7 @@ signals:
     void notificationSoundsEnabledChanged();
     void notificationSuppressContentChanged();
     void notificationFeedbackChanged();
+    void notificationShowDefaultReactionChanged();
     void storageOptimizerChanged();
     void onlineOnlyModeChanged();
     void sponsoredMessChanged();

@@ -47,6 +47,8 @@ private slots:
     void handleUpdateNotification(int groupId, const QVariantMap &notification);
     void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles);
     void handleChatPhotoDownloadingCompletedChanged();
+    void updateAllNotifications();
+    void handleDefaultReactionTypeChanged();
 
 private:
     enum NotificationGroupType {

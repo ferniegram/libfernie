@@ -266,7 +266,8 @@ private:
         {"updateScopeNotificationSettings", &TDLibReceiver::processUpdateScopeNotificationSettings},
         {"scopeNotificationSettings", &TDLibReceiver::processScopeNotificationSettings},
         {"notificationSound", &TDLibReceiver::processNotificationSound},
-        {"notificationSounds", &TDLibReceiver::processNotificationSounds}
+        {"notificationSounds", &TDLibReceiver::processNotificationSounds},
+        {"updateSavedNotificationSounds", &TDLibReceiver::processUpdateSavedNotificationSounds}
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},

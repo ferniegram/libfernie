@@ -2347,7 +2347,7 @@ void TDLibWrapper::handleNetworkConfigurationChanged(const QNetworkConfiguration
 
 void TDLibWrapper::setTdlibParameters() {
     LOG("Setting TDLib initial parameters");
-    
+
     bool onlineOnlyMode = this->settings->onlineOnlyMode();
     QSettings hardwareSettings("/etc/hw-release", QSettings::NativeFormat);
 
@@ -2897,7 +2897,7 @@ void TDLibWrapper::handleUserReceived(const QVariantMap &user, bool doOpenOnFoun
     } else
         emit userReceived(user);
 }
- 
+
 void TDLibWrapper::checkChatInviteLink(const QString &link) {
     LOG("Checking chat invite link info" << link);
     this->sendRequest({{_TYPE, "checkChatInviteLink"}, {INVITE_LINK, link}, {_EXTRA, link}});

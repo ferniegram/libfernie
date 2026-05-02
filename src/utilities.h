@@ -49,7 +49,7 @@ public:
     }
     Q_INVOKABLE QString formatMessageSender(const QVariantMap &messageSender) const;
     static QString formatDuration(int seconds);
-    
+
     Q_INVOKABLE static QString fixReservedHtmlCharacters(const QString &text);
     // TODO proper name for this (don't make it private since it might be used from other cpp classes):
     static QString enhanceMessageTextInternal(const QVariantMap &formattedText, QList<QVariantMap> *customInsertions = nullptr, bool ignoreEntities = false, bool escapeReserved = true);

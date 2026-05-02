@@ -611,7 +611,7 @@ private slots:
     void handleChatPositionUpdated(qlonglong chatId, const QVariantMap &position);
     void handleChatLastMessageUpdated(qlonglong chatId, const QVariantMap &lastMessage, const QVariantList &positions);
     void handleChatDraftMessageUpdated(qlonglong chatId, const QVariantMap &draftMessage, const QVariantList &positions);
-    
+
     void handleChatReadInboxUpdated(const QString &chatId, const QString &lastReadInboxMessageId, int unreadCount);
     void handleChatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
     void handleChatTitleUpdated(qlonglong chatId, const QString &title);

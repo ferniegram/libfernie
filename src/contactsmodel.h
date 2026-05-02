@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CONTACTSMODEL_H
-#define CONTACTSMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QVariantList>
@@ -99,5 +98,3 @@ private:
 
     bool compareUsers(const QString &userId1, const QString &userId2);
 };
-
-#endif // CONTACTSMODEL_H

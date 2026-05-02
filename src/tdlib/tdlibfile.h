@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TDLIBFILE_H
-#define TDLIBFILE_H
+#pragma once
 
 #include "tdlibwrapper.h"
 
@@ -170,5 +169,3 @@ inline const QString &TDLibFile::getUniqueId() const { return unique_id; }
 inline qlonglong TDLibFile::getUploadedSize() const { return uploaded_size; }
 inline bool TDLibFile::isUploadingActive() const { return is_uploading_active; }
 inline bool TDLibFile::isUploadingCompleted() const { return is_uploading_completed; }
-
-#endif // TDLIBFILE_H

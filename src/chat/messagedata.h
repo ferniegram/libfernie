@@ -1,5 +1,4 @@
-#ifndef MESSAGEDATA_H
-#define MESSAGEDATA_H
+#pragma once
 
 #include <QObject>
 #include <QVariant>
@@ -88,5 +87,3 @@ struct MessageData {
     QVariantList albumMessageIds;
     bool generatedContentUnread;
 };
-
-#endif // MESSAGEDATA_H

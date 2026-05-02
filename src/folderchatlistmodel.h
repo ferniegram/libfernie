@@ -1,5 +1,4 @@
-#ifndef FOLDERCHATLISTMODEL_H
-#define FOLDERCHATLISTMODEL_H
+#pragma once
 
 #include "chatlistmodel.h"
 #include <QObject>
@@ -25,5 +24,3 @@ private:
     ChatFoldersModel* chatFoldersModel;
     int folderId;
 };
-
-#endif // FOLDERCHATLISTMODEL_H

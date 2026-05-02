@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DEBUGLOGJS_H
-#define DEBUGLOGJS_H
+#pragma once
 
 #include <QObject>
 #include <QQmlEngine>
@@ -50,5 +49,3 @@ private:
     bool enabled;
     const QLoggingCategory category;
 };
-
-#endif // DEBUGLOGJS_H

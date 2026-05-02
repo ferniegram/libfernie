@@ -16,8 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef TDLIBRECEIVER_H
-#define TDLIBRECEIVER_H
+#pragma once
 
 #include <QHash>
 #include <QVariantMap>
@@ -397,5 +396,3 @@ private:
     void processUpdateSavedNotificationSounds(const QVariantMap &receivedInformation);
     void processUpdateDefaultReactionType(const QVariantMap &receivedInformation);
 };
-
-#endif // TDLIBRECEIVER_H

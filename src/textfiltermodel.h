@@ -15,8 +15,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TEXTFILTERMODEL_H
-#define TEXTFILTERMODEL_H
+#pragma once
 
 #include <QSortFilterProxyModel>
 
@@ -51,5 +50,3 @@ private:
     QString filterRoleName;
     QString filterText;
 };
-
-#endif // TEXTFILTERMODEL_H

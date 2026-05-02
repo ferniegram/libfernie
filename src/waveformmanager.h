@@ -1,5 +1,4 @@
-#ifndef WAVEFORMMANAGER_H
-#define WAVEFORMMANAGER_H
+#pragma once
 
 #include <QObject>
 #include <QVariant>
@@ -14,5 +13,3 @@ public:
     Q_INVOKABLE static QVariantList decodeWaveform(const QString &encodedData);
     Q_INVOKABLE static QVariantList getWaveformData(const QVariantList &waveform, int count);
 };
-
-#endif // WAVEFORMMANAGER_H

@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CHATLISTMODEL_H
-#define CHATLISTMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QTimer>
@@ -107,5 +106,3 @@ protected:
     int unreadMessageCount;
     int unreadUnmutedMessageCount;
 };
-
-#endif // CHATLISTMODEL_H

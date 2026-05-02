@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KNOWNUSERSMODEL_H
-#define KNOWNUSERSMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QVariantList>
@@ -53,5 +52,3 @@ private:
     QVariantMap knownUsers;
 
 };
-
-#endif // KNOWNUSERSMODEL_H

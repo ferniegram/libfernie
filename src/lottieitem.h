@@ -1,5 +1,4 @@
-#ifndef LOTTIEITEM_H
-#define LOTTIEITEM_H
+#pragma once
 
 #include <QQuickItem>
 #include <QTimer>
@@ -84,5 +83,3 @@ private:
     bool paused;
     bool loop;
 };
-
-#endif // LOTTIEITEM_H

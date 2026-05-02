@@ -1,5 +1,4 @@
-#ifndef USERPROFILEPICTURESMODEL_H
-#define USERPROFILEPICTURESMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include "tdlib/tdlibwrapper.h"
@@ -65,5 +64,3 @@ private:
     int additionalPhotosCount = 0;
     bool userFullInfoLoaded = false;
 };
-
-#endif // USERPROFILEPICTURESMODEL_H

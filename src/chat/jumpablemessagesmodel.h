@@ -1,5 +1,4 @@
-#ifndef JUMPABLEMESSAGESMODEL_H
-#define JUMPABLEMESSAGESMODEL_H
+#pragma once
 
 #include "messagesmodel.h"
 
@@ -54,5 +53,3 @@ protected:
     bool startReached, endReached;
     qlonglong highlightedMessageId;
 };
-
-#endif // JUMPABLEMESSAGESMODEL_H

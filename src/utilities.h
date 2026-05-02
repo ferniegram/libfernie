@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UTILITIES_H
-#define UTILITIES_H
+#pragma once
 
 #include <QObject>
 #include <QGeoPositionInfo>
@@ -118,5 +117,3 @@ private:
     QGeoPositionInfoSource *geoPositionInfoSource;
     QNetworkAccessManager *manager;
 };
-
-#endif // UTILITIES_H

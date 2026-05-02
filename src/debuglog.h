@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DEBUG_LOG_H
-#define DEBUG_LOG_H
+#pragma once
 
 #include <QLoggingCategory>
 
@@ -45,5 +44,3 @@ static const QLoggingCategory LOG_CATEGORY(DEBUG_ROOT_MODULE "." QT_STRINGIFY(DE
 #    define VERBOSE(x)
 #  endif
 #endif
-
-#endif // DEBUG_LOG_H

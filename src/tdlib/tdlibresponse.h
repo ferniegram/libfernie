@@ -1,5 +1,4 @@
-#ifndef TDLIBRESPONSE_H
-#define TDLIBRESPONSE_H
+#pragma once
 
 #include <QObject>
 
@@ -20,5 +19,3 @@ private:
     QMetaObject::Connection connection;
     qlonglong id;
 };
-
-#endif // TDLIBRESPONSE_H

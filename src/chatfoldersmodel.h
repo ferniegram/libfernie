@@ -1,5 +1,4 @@
-#ifndef CHATFOLDERSMODEL_H
-#define CHATFOLDERSMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QObject>
@@ -123,5 +122,3 @@ private:
     int mainChatListIndex = 0;
     QHash<int, FolderChatListModel*> chatModels;
 };
-
-#endif // CHATFOLDERSMODEL_H

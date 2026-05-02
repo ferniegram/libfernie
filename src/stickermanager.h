@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef STICKERMANAGER_H
-#define STICKERMANAGER_H
+#pragma once
 
 #include <QObject>
 #include <QVariantMap>
@@ -64,5 +63,3 @@ private:
     QList<int> favoriteStickerIds;
     QMap<QString, QVariantMap> stickerSets;
 };
-
-#endif // STICKERMANAGER_H

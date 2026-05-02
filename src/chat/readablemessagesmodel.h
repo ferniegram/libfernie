@@ -1,5 +1,4 @@
-#ifndef READABLEMESSAGESMODEL_H
-#define READABLEMESSAGESMODEL_H
+#pragma once
 
 #include "jumpablemessagesmodel.h"
 
@@ -50,5 +49,3 @@ protected slots:
 protected:
     bool loadingFullEnd;
 };
-
-#endif // READABLEMESSAGESMODEL_H

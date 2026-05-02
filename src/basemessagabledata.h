@@ -1,5 +1,4 @@
-#ifndef BASEMESSAGABLEDATA_H
-#define BASEMESSAGABLEDATA_H
+#pragma once
 
 #include <QObject>
 #include "tdlib/tdlibwrapper.h"
@@ -32,5 +31,3 @@ protected:
     TDLibWrapper *tdLibWrapper;
     Utilities *utilities;
 };
-
-#endif // BASEMESSAGABLEDATA_H

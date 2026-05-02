@@ -1,5 +1,4 @@
-#ifndef CHATDATA_H
-#define CHATDATA_H
+#pragma once
 
 #include <QObject>
 #include "tdlib/tdlibwrapper.h"
@@ -74,5 +73,3 @@ public:
     TDLibWrapper::ChatMemberStatus memberStatus;
     TDLibWrapper::SecretChatState secretChatState;
 };
-
-#endif // CHATDATA_H

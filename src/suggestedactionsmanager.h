@@ -1,5 +1,4 @@
-#ifndef SUGGESTEDACTIONSMANAGER_H
-#define SUGGESTEDACTIONSMANAGER_H
+#pragma once
 
 #include <QObject>
 #include "tdlib/tdlibwrapper.h"
@@ -58,5 +57,3 @@ private:
     bool setProfilePhoto;
     bool setBirthdate;
 };
-
-#endif // SUGGESTEDACTIONSMANAGER_H

@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MESSAGESMODEL_H
-#define MESSAGESMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include "../tdlib/tdlibwrapper.h"
@@ -101,5 +100,3 @@ protected:
     QHash<qlonglong,int> messageIndexMap;
     QHash<qlonglong, QVariantList> albumMessageMap;
 };
-
-#endif // MESSAGESMODEL_H

@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBUSADAPTOR_H
-#define DBUSADAPTOR_H
+#pragma once
 
 #include <QDBusAbstractAdaptor>
 
@@ -47,5 +46,3 @@ private:
     TDLibWrapper *tdLibWrapper;
     bool defaultOpenUrl;
 };
-
-#endif // DBUSADAPTOR_H

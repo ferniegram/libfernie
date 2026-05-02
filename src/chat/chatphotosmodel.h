@@ -1,5 +1,4 @@
-#ifndef CHATPHOTOSMODEL_H
-#define CHATPHOTOSMODEL_H
+#pragma once
 
 #include "invertedmediamessagesmodel.h"
 
@@ -43,5 +42,3 @@ private:
     bool mainChatPhotoLoaded = false;
     qlonglong mainChatPhotoId = 0;
 };
-
-#endif // CHATPHOTOSMODEL_H

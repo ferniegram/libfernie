@@ -15,8 +15,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CHATPERMISSIONFILTERMODEL_H
-#define CHATPERMISSIONFILTERMODEL_H
+#pragma once
 
 #include "tdlib/tdlibwrapper.h"
 
@@ -53,5 +52,3 @@ private:
     TDLibWrapper *tdLibWrapper;
     QStringList requirePermissions;
 };
-
-#endif // CHATPERMISSIONFILTERMODEL_H

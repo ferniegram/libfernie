@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MCE_INTERFACE_H
-#define MCE_INTERFACE_H
+#pragma once
 
 #include <QDBusInterface>
 
@@ -28,6 +27,3 @@ public:
 
     void setLedPattern(const QString &pattern, bool activate);
 };
-
-#endif // MCE_INTERFACE_H
-

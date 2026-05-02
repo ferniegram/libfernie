@@ -1,5 +1,4 @@
-#ifndef MEDIAMESSAGESMODEL_H
-#define MEDIAMESSAGESMODEL_H
+#pragma once
 
 #include "jumpablemessagesmodel.h"
 
@@ -43,5 +42,3 @@ protected:
 
     qlonglong nextFromMessageId;
 };
-
-#endif // MEDIAMESSAGESMODEL_H

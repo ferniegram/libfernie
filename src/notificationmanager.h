@@ -17,8 +17,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NOTIFICATIONMANAGER_H
-#define NOTIFICATIONMANAGER_H
+#pragma once
 
 #include <QObject>
 #include <nemonotifications-qt5/notification.h>
@@ -98,5 +97,3 @@ private:
     qlonglong activeChatId;
     QMap<int, qlonglong> pendingChatPhotoChats;
 };
-
-#endif // NOTIFICATIONMANAGER_H

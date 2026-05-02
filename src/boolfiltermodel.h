@@ -15,8 +15,7 @@
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef BOOLFILTERMODEL_H
-#define BOOLFILTERMODEL_H
+#pragma once
 
 #include <QSortFilterProxyModel>
 
@@ -56,5 +55,3 @@ private:
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
 };
-
-#endif // BOOLFILTERMODEL_H

@@ -1,5 +1,4 @@
-#ifndef INVERTEDMEDIAMESSAGESMODEL_H
-#define INVERTEDMEDIAMESSAGESMODEL_H
+#pragma once
 
 #include "mediamessagesmodel.h"
 
@@ -22,5 +21,3 @@ protected:
 protected slots:
     virtual void handleMessagesDeleted(qlonglong chatId, const QList<qlonglong> &messageIds) override;
 };
-
-#endif // INVERTEDMEDIAMESSAGESMODEL_H

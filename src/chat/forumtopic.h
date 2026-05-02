@@ -1,5 +1,4 @@
-#ifndef FORUMTOPIC_H
-#define FORUMTOPIC_H
+#pragma once
 
 #include "tdlib/tdlibwrapper.h"
 #include "basemessagabledata.h"
@@ -76,5 +75,3 @@ struct ForumTopic : public BaseMessagableData {
     QVariantMap data;
     int id;
 };
-
-#endif // FORUMTOPIC_H

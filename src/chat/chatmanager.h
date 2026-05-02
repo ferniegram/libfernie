@@ -1,5 +1,4 @@
-#ifndef CHATMANAGER_H
-#define CHATMANAGER_H
+#pragma once
 
 #include "readablemessagesmodel.h"
 #include "forumtopicsmodel.h"
@@ -172,5 +171,3 @@ private:
     QVariantMap chatActionsByUsers; // QMap<qlonglong, QString>
     QVariantMap chatActionsByChats; //QMap<qlonglong, QString>
 };
-
-#endif // CHATMANAGER_H

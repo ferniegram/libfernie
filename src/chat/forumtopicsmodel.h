@@ -1,5 +1,4 @@
-#ifndef FORUMTOPICSMODEL_H
-#define FORUMTOPICSMODEL_H
+#pragma once
 
 #include <QAbstractListModel>
 #include <QTimer>
@@ -63,5 +62,3 @@ private:
     int nextOffsetForumTopicId;
     bool endReached;
 };
-
-#endif // FORUMTOPICSMODEL_H

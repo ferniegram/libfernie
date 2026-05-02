@@ -1,5 +1,4 @@
-#ifndef FORUMTOPICMESSAGESMODEL_H
-#define FORUMTOPICMESSAGESMODEL_H
+#pragma once
 
 #include "readablemessagesmodel.h"
 #include "forumtopicsmodel.h"
@@ -62,5 +61,3 @@ private:
     QVariantMap pendingForumTopicData;
     QString searchQuery;
 };
-
-#endif // FORUMTOPICMESSAGESMODEL_H

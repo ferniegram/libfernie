@@ -16,8 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Fernschreiber. If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef TDLIBWRAPPER_H
-#define TDLIBWRAPPER_H
+#pragma once
 
 #include <functional>
 #include <QCoreApplication>
@@ -701,5 +700,3 @@ private:
     bool isClosing = false;
     qlonglong nextRequestId = 0;
 };
-
-#endif // TDLIBWRAPPER_H

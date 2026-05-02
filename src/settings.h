@@ -3,15 +3,19 @@
 
 #include <QObject>
 #include <QSettings>
-#include <QStandardPaths>
+#include <QLoggingCategory>
 
-#define SETTING_DEFINE(TYPE, F) \
-public: \
-Q_PROPERTY(TYPE F READ F WRITE F NOTIFY F##Changed) \
-TYPE F() const; \
-void F(TYPE value);
+#define _SETTING(TYPE, SET_TYPE, NAME, DEFAULT) \
+    Q_PROPERTY(TYPE NAME READ NAME WRITE NAME NOTIFY NAME##Changed) \
+    TYPE NAME() const { return get<TYPE>(QStringLiteral(QT_STRINGIFY(NAME)), DEFAULT); } \
+    void NAME(TYPE value) { set<SET_TYPE>(QStringLiteral(QT_STRINGIFY(NAME)), value, &Settings::NAME##Changed, DEFAULT); } \
+    Q_SIGNAL void NAME##Changed();
 
-#define BOOL_SETTING_DEFINE(F) SETTING_DEFINE(bool, F)
+#define SETTING(TYPE, NAME, DEFAULT) _SETTING(TYPE, TYPE, NAME, DEFAULT)
+#define SETTING_(TYPE, NAME) SETTING(TYPE, NAME, QVariant())
+
+#define ENUM_SETTING(TYPE, NAME, DEFAULT) _SETTING(TYPE, int, NAME, DEFAULT)
+
 
 class Settings : public QObject {
     Q_OBJECT
@@ -19,9 +23,9 @@ class Settings : public QObject {
 public:
     enum SponsoredMess {
         SponsoredMessHandle,
-        SponsoredMessHandleCustomMessagesBetween,
-        SponsoredMessAutoView,
-        SponsoredMessIgnore
+        SponsoredMessIgnore = 1000,
+        SponsoredMessAutoView = 1001,
+        SponsoredMessHandleCustomMessagesBetween = 1002
     };
     Q_ENUM(SponsoredMess)
 
@@ -32,47 +36,52 @@ public:
     };
     Q_ENUM(NotificationFeedback)
 
+    Settings(QObject *parent);
+
+private:
+    template<typename T>
+    T get(const QString &key, const QVariant &def = QVariant()) const {
+        return settings.value(key, def).value<T>();
+    }
+
+    void log(const QString &key, const QVariant &value);
+
+    template<typename T>
+    void set(const QString &key, const T &value, void (Settings::*signal)(), const QVariant &def = QVariant()) {
+        if (get<T>(key, def) != value) {
+            log(key, value);
+            settings.setValue(key, QVariant::fromValue(value));
+            emit (this->*signal)();
+        }
+    }
+
 public:
-    Settings(QObject *parent = Q_NULLPTR);
 
-    BOOL_SETTING_DEFINE(notificationTurnsDisplayOn)
-    BOOL_SETTING_DEFINE(notificationSoundsEnabled)
-    BOOL_SETTING_DEFINE(notificationSuppressContent)
-    BOOL_SETTING_DEFINE(notificationShowDefaultReaction)
+    ENUM_SETTING(NotificationFeedback, notificationFeedback, NotificationFeedbackAll)
+    SETTING_(bool, notificationTurnsDisplayOn)
+    SETTING(bool, notificationSoundsEnabled, true)
+    SETTING_(bool, notificationSuppressContent)
+    SETTING(bool, notificationShowDefaultReaction, true)
 
-    SETTING_DEFINE(NotificationFeedback, notificationFeedback)
+    SETTING(bool, storageOptimizer, true)
 
-    BOOL_SETTING_DEFINE(storageOptimizer)
+    ENUM_SETTING(bool, onlineOnlyMode, SponsoredMessHandle)
 
-    BOOL_SETTING_DEFINE(onlineOnlyMode)
+    ENUM_SETTING(SponsoredMess, sponsoredMess, SponsoredMessHandle)
+    SETTING_(int, sponsoredMessagesMessagesBetween)
 
-    SETTING_DEFINE(SponsoredMess, sponsoredMess)
-    SETTING_DEFINE(int, sponsoredMessagesMessagesBetween)
+    SETTING(bool, sendMarkdown, true)
 
-    BOOL_SETTING_DEFINE(sendMarkdown)
-
-    BOOL_SETTING_DEFINE(unreadCountIncludeMuted)
-    BOOL_SETTING_DEFINE(foldersUnreadCountIncludeMuted)
-
-signals:
-    void notificationTurnsDisplayOnChanged();
-    void notificationSoundsEnabledChanged();
-    void notificationSuppressContentChanged();
-    void notificationFeedbackChanged();
-    void notificationShowDefaultReactionChanged();
-    void storageOptimizerChanged();
-    void onlineOnlyModeChanged();
-    void sponsoredMessChanged();
-    void sponsoredMessagesMessagesBetweenChanged();
-    void sendMarkdownChanged();
-    void unreadCountIncludeMutedChanged();
-    void foldersUnreadCountIncludeMutedChanged();
+    SETTING_(bool, unreadCountIncludeMuted)
+    SETTING(bool, foldersUnreadCountIncludeMuted, true)
 
 private:
     QSettings settings;
 };
 
-#undef BOOL_SETTING_DEFINE
-#undef SETTING_DEFINE
+#undef ENUM_SETTING
+#undef SETTING_
+#undef SETTING
+#undef _SETTING
 
 #endif // SETTINGS_H

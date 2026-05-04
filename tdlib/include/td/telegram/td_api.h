@@ -2045,6 +2045,7 @@ class botInfo final : public Object {
   string description_;
   object_ptr<photo> photo_;
   object_ptr<animation> animation_;
+  int53 manager_bot_user_id_;
   object_ptr<botMenuButton> menu_button_;
   array<object_ptr<botCommand>> commands_;
   string privacy_policy_url_;
@@ -2066,9 +2067,9 @@ class botInfo final : public Object {
 
   botInfo();
 
-  botInfo(string const &short_description_, string const &description_, object_ptr<photo> &&photo_, object_ptr<animation> &&animation_, object_ptr<botMenuButton> &&menu_button_, array<object_ptr<botCommand>> &&commands_, string const &privacy_policy_url_, object_ptr<chatAdministratorRights> &&default_group_administrator_rights_, object_ptr<chatAdministratorRights> &&default_channel_administrator_rights_, object_ptr<affiliateProgramInfo> &&affiliate_program_, int32 web_app_background_light_color_, int32 web_app_background_dark_color_, int32 web_app_header_light_color_, int32 web_app_header_dark_color_, object_ptr<botVerificationParameters> &&verification_parameters_, bool can_get_revenue_statistics_, bool can_manage_emoji_status_, bool has_media_previews_, object_ptr<InternalLinkType> &&edit_commands_link_, object_ptr<InternalLinkType> &&edit_description_link_, object_ptr<InternalLinkType> &&edit_description_media_link_, object_ptr<InternalLinkType> &&edit_settings_link_);
+  botInfo(string const &short_description_, string const &description_, object_ptr<photo> &&photo_, object_ptr<animation> &&animation_, int53 manager_bot_user_id_, object_ptr<botMenuButton> &&menu_button_, array<object_ptr<botCommand>> &&commands_, string const &privacy_policy_url_, object_ptr<chatAdministratorRights> &&default_group_administrator_rights_, object_ptr<chatAdministratorRights> &&default_channel_administrator_rights_, object_ptr<affiliateProgramInfo> &&affiliate_program_, int32 web_app_background_light_color_, int32 web_app_background_dark_color_, int32 web_app_header_light_color_, int32 web_app_header_dark_color_, object_ptr<botVerificationParameters> &&verification_parameters_, bool can_get_revenue_statistics_, bool can_manage_emoji_status_, bool has_media_previews_, object_ptr<InternalLinkType> &&edit_commands_link_, object_ptr<InternalLinkType> &&edit_description_link_, object_ptr<InternalLinkType> &&edit_description_media_link_, object_ptr<InternalLinkType> &&edit_settings_link_);
 
-  static const std::int32_t ID = 1771886272;
+  static const std::int32_t ID = -586441582;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -3917,6 +3918,7 @@ class chat final : public Object {
   int53 last_read_outbox_message_id_;
   int32 unread_mention_count_;
   int32 unread_reaction_count_;
+  int32 unread_poll_vote_count_;
   object_ptr<chatNotificationSettings> notification_settings_;
   object_ptr<ChatAvailableReactions> available_reactions_;
   int32 message_auto_delete_time_;
@@ -3933,9 +3935,9 @@ class chat final : public Object {
 
   chat();
 
-  chat(int53 id_, object_ptr<ChatType> &&type_, string const &title_, object_ptr<chatPhotoInfo> &&photo_, int32 accent_color_id_, int64 background_custom_emoji_id_, object_ptr<upgradedGiftColors> &&upgraded_gift_colors_, int32 profile_accent_color_id_, int64 profile_background_custom_emoji_id_, object_ptr<chatPermissions> &&permissions_, object_ptr<message> &&last_message_, array<object_ptr<chatPosition>> &&positions_, array<object_ptr<ChatList>> &&chat_lists_, object_ptr<MessageSender> &&message_sender_id_, object_ptr<BlockList> &&block_list_, bool has_protected_content_, bool is_translatable_, bool is_marked_as_unread_, bool view_as_topics_, bool has_scheduled_messages_, bool can_be_deleted_only_for_self_, bool can_be_deleted_for_all_users_, bool can_be_reported_, bool default_disable_notification_, int32 unread_count_, int53 last_read_inbox_message_id_, int53 last_read_outbox_message_id_, int32 unread_mention_count_, int32 unread_reaction_count_, object_ptr<chatNotificationSettings> &&notification_settings_, object_ptr<ChatAvailableReactions> &&available_reactions_, int32 message_auto_delete_time_, object_ptr<emojiStatus> &&emoji_status_, object_ptr<chatBackground> &&background_, object_ptr<ChatTheme> &&theme_, object_ptr<ChatActionBar> &&action_bar_, object_ptr<businessBotManageBar> &&business_bot_manage_bar_, object_ptr<videoChat> &&video_chat_, object_ptr<chatJoinRequestsInfo> &&pending_join_requests_, int53 reply_markup_message_id_, object_ptr<draftMessage> &&draft_message_, string const &client_data_);
+  chat(int53 id_, object_ptr<ChatType> &&type_, string const &title_, object_ptr<chatPhotoInfo> &&photo_, int32 accent_color_id_, int64 background_custom_emoji_id_, object_ptr<upgradedGiftColors> &&upgraded_gift_colors_, int32 profile_accent_color_id_, int64 profile_background_custom_emoji_id_, object_ptr<chatPermissions> &&permissions_, object_ptr<message> &&last_message_, array<object_ptr<chatPosition>> &&positions_, array<object_ptr<ChatList>> &&chat_lists_, object_ptr<MessageSender> &&message_sender_id_, object_ptr<BlockList> &&block_list_, bool has_protected_content_, bool is_translatable_, bool is_marked_as_unread_, bool view_as_topics_, bool has_scheduled_messages_, bool can_be_deleted_only_for_self_, bool can_be_deleted_for_all_users_, bool can_be_reported_, bool default_disable_notification_, int32 unread_count_, int53 last_read_inbox_message_id_, int53 last_read_outbox_message_id_, int32 unread_mention_count_, int32 unread_reaction_count_, int32 unread_poll_vote_count_, object_ptr<chatNotificationSettings> &&notification_settings_, object_ptr<ChatAvailableReactions> &&available_reactions_, int32 message_auto_delete_time_, object_ptr<emojiStatus> &&emoji_status_, object_ptr<chatBackground> &&background_, object_ptr<ChatTheme> &&theme_, object_ptr<ChatActionBar> &&action_bar_, object_ptr<businessBotManageBar> &&business_bot_manage_bar_, object_ptr<videoChat> &&video_chat_, object_ptr<chatJoinRequestsInfo> &&pending_join_requests_, int53 reply_markup_message_id_, object_ptr<draftMessage> &&draft_message_, string const &client_data_);
 
-  static const std::int32_t ID = -77484353;
+  static const std::int32_t ID = -520699983;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -4309,12 +4311,13 @@ class chatAdministrator final : public Object {
   int53 user_id_;
   string custom_title_;
   bool is_owner_;
+  bool can_be_edited_;
 
   chatAdministrator();
 
-  chatAdministrator(int53 user_id_, string const &custom_title_, bool is_owner_);
+  chatAdministrator(int53 user_id_, string const &custom_title_, bool is_owner_, bool can_be_edited_);
 
-  static const std::int32_t ID = 1920449836;
+  static const std::int32_t ID = 436066785;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -8382,6 +8385,96 @@ class diceStickersSlotMachine final : public DiceStickers {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class DiffEntityType;
+
+class diffEntity final : public Object {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int32 offset_;
+  int32 length_;
+  object_ptr<DiffEntityType> type_;
+
+  diffEntity();
+
+  diffEntity(int32 offset_, int32 length_, object_ptr<DiffEntityType> &&type_);
+
+  static const std::int32_t ID = -509020080;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class DiffEntityType: public Object {
+ public:
+};
+
+class diffEntityTypeInsert final : public DiffEntityType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  diffEntityTypeInsert();
+
+  static const std::int32_t ID = 119434282;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class diffEntityTypeReplace final : public DiffEntityType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  string old_text_;
+
+  diffEntityTypeReplace();
+
+  explicit diffEntityTypeReplace(string const &old_text_);
+
+  static const std::int32_t ID = -1951790397;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class diffEntityTypeDelete final : public DiffEntityType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  diffEntityTypeDelete();
+
+  static const std::int32_t ID = 1198494499;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class diffEntity;
+
+class diffText final : public Object {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  string text_;
+  array<object_ptr<diffEntity>> entities_;
+
+  diffText();
+
+  diffText(string const &text_, array<object_ptr<diffEntity>> &&entities_);
+
+  static const std::int32_t ID = 1328070684;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class MessageSender;
 
 class draftMessage;
@@ -9191,6 +9284,20 @@ class fileTypeDocument final : public FileType {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class fileTypeLivePhotoVideo final : public FileType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  fileTypeLivePhotoVideo();
+
+  static const std::int32_t ID = 444610924;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class fileTypeNotificationSound final : public FileType {
   std::int32_t get_id() const final {
     return ID;
@@ -9285,6 +9392,20 @@ class fileTypeSecure final : public FileType {
   fileTypeSecure();
 
   static const std::int32_t ID = -1419133146;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class fileTypeSelfDestructingLivePhotoVideo final : public FileType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  fileTypeSelfDestructingLivePhotoVideo();
+
+  static const std::int32_t ID = -1331098431;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -9532,6 +9653,28 @@ class firebaseDeviceVerificationParametersPlayIntegrity final : public FirebaseD
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class diffText;
+
+class formattedText;
+
+class fixedText final : public Object {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  object_ptr<formattedText> text_;
+  object_ptr<diffText> diff_text_;
+
+  fixedText();
+
+  fixedText(object_ptr<formattedText> &&text_, object_ptr<diffText> &&diff_text_);
+
+  static const std::int32_t ID = 1714470508;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class textEntity;
 
 class formattedText final : public Object {
@@ -9575,14 +9718,15 @@ class forumTopic final : public Object {
   int53 last_read_outbox_message_id_;
   int32 unread_mention_count_;
   int32 unread_reaction_count_;
+  int32 unread_poll_vote_count_;
   object_ptr<chatNotificationSettings> notification_settings_;
   object_ptr<draftMessage> draft_message_;
 
   forumTopic();
 
-  forumTopic(object_ptr<forumTopicInfo> &&info_, object_ptr<message> &&last_message_, int64 order_, bool is_pinned_, int32 unread_count_, int53 last_read_inbox_message_id_, int53 last_read_outbox_message_id_, int32 unread_mention_count_, int32 unread_reaction_count_, object_ptr<chatNotificationSettings> &&notification_settings_, object_ptr<draftMessage> &&draft_message_);
+  forumTopic(object_ptr<forumTopicInfo> &&info_, object_ptr<message> &&last_message_, int64 order_, bool is_pinned_, int32 unread_count_, int53 last_read_inbox_message_id_, int53 last_read_outbox_message_id_, int32 unread_mention_count_, int32 unread_reaction_count_, int32 unread_poll_vote_count_, object_ptr<chatNotificationSettings> &&notification_settings_, object_ptr<draftMessage> &&draft_message_);
 
-  static const std::int32_t ID = -2094608976;
+  static const std::int32_t ID = 779443783;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -12692,9 +12836,9 @@ class inputInvoiceTelegram final : public InputInvoice {
 
 class InputFile;
 
-class MessageSelfDestructType;
+class InputPollType;
 
-class PollType;
+class MessageSelfDestructType;
 
 class contact;
 
@@ -12703,6 +12847,8 @@ class formattedText;
 class inputChecklist;
 
 class inputPaidMedia;
+
+class inputPollOption;
 
 class inputThumbnail;
 
@@ -12835,6 +12981,7 @@ class inputMessagePhoto final : public InputMessageContent {
  public:
   object_ptr<InputFile> photo_;
   object_ptr<inputThumbnail> thumbnail_;
+  object_ptr<InputFile> video_;
   array<int32> added_sticker_file_ids_;
   int32 width_;
   int32 height_;
@@ -12845,9 +12992,9 @@ class inputMessagePhoto final : public InputMessageContent {
 
   inputMessagePhoto();
 
-  inputMessagePhoto(object_ptr<InputFile> &&photo_, object_ptr<inputThumbnail> &&thumbnail_, array<int32> &&added_sticker_file_ids_, int32 width_, int32 height_, object_ptr<formattedText> &&caption_, bool show_caption_above_media_, object_ptr<MessageSelfDestructType> &&self_destruct_type_, bool has_spoiler_);
+  inputMessagePhoto(object_ptr<InputFile> &&photo_, object_ptr<inputThumbnail> &&thumbnail_, object_ptr<InputFile> &&video_, array<int32> &&added_sticker_file_ids_, int32 width_, int32 height_, object_ptr<formattedText> &&caption_, bool show_caption_above_media_, object_ptr<MessageSelfDestructType> &&self_destruct_type_, bool has_spoiler_);
 
-  static const std::int32_t ID = -810129442;
+  static const std::int32_t ID = 163591772;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -13070,18 +13217,23 @@ class inputMessagePoll final : public InputMessageContent {
 
  public:
   object_ptr<formattedText> question_;
-  array<object_ptr<formattedText>> options_;
+  array<object_ptr<inputPollOption>> options_;
+  object_ptr<formattedText> description_;
   bool is_anonymous_;
-  object_ptr<PollType> type_;
+  bool allows_multiple_answers_;
+  bool allows_revoting_;
+  bool shuffle_options_;
+  bool hide_results_until_closes_;
+  object_ptr<InputPollType> type_;
   int32 open_period_;
   int32 close_date_;
   bool is_closed_;
 
   inputMessagePoll();
 
-  inputMessagePoll(object_ptr<formattedText> &&question_, array<object_ptr<formattedText>> &&options_, bool is_anonymous_, object_ptr<PollType> &&type_, int32 open_period_, int32 close_date_, bool is_closed_);
+  inputMessagePoll(object_ptr<formattedText> &&question_, array<object_ptr<inputPollOption>> &&options_, object_ptr<formattedText> &&description_, bool is_anonymous_, bool allows_multiple_answers_, bool allows_revoting_, bool shuffle_options_, bool hide_results_until_closes_, object_ptr<InputPollType> &&type_, int32 open_period_, int32 close_date_, bool is_closed_);
 
-  static const std::int32_t ID = -263337164;
+  static const std::int32_t ID = 1305333511;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -13177,12 +13329,13 @@ class inputMessageReplyToMessage final : public InputMessageReplyTo {
   int53 message_id_;
   object_ptr<inputTextQuote> quote_;
   int32 checklist_task_id_;
+  string poll_option_id_;
 
   inputMessageReplyToMessage();
 
-  inputMessageReplyToMessage(int53 message_id_, object_ptr<inputTextQuote> &&quote_, int32 checklist_task_id_);
+  inputMessageReplyToMessage(int53 message_id_, object_ptr<inputTextQuote> &&quote_, int32 checklist_task_id_, string const &poll_option_id_);
 
-  static const std::int32_t ID = -782038760;
+  static const std::int32_t ID = 1117785378;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -13197,12 +13350,13 @@ class inputMessageReplyToExternalMessage final : public InputMessageReplyTo {
   int53 message_id_;
   object_ptr<inputTextQuote> quote_;
   int32 checklist_task_id_;
+  string poll_option_id_;
 
   inputMessageReplyToExternalMessage();
 
-  inputMessageReplyToExternalMessage(int53 chat_id_, int53 message_id_, object_ptr<inputTextQuote> &&quote_, int32 checklist_task_id_);
+  inputMessageReplyToExternalMessage(int53 chat_id_, int53 message_id_, object_ptr<inputTextQuote> &&quote_, int32 checklist_task_id_, string const &poll_option_id_);
 
-  static const std::int32_t ID = -505276703;
+  static const std::int32_t ID = 1956732638;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -13265,10 +13419,13 @@ class inputPaidMediaTypePhoto final : public InputPaidMediaType {
   }
 
  public:
+  object_ptr<InputFile> video_;
 
   inputPaidMediaTypePhoto();
 
-  static const std::int32_t ID = -761660134;
+  explicit inputPaidMediaTypePhoto(object_ptr<InputFile> &&video_);
+
+  static const std::int32_t ID = 819520113;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -13723,6 +13880,66 @@ class inputPersonalDocument final : public Object {
   inputPersonalDocument(array<object_ptr<InputFile>> &&files_, array<object_ptr<InputFile>> &&translation_);
 
   static const std::int32_t ID = 1676966826;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class formattedText;
+
+class inputPollOption final : public Object {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  object_ptr<formattedText> text_;
+
+  inputPollOption();
+
+  explicit inputPollOption(object_ptr<formattedText> &&text_);
+
+  static const std::int32_t ID = 1622584516;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class formattedText;
+
+class InputPollType: public Object {
+ public:
+};
+
+class inputPollTypeRegular final : public InputPollType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  bool allow_adding_options_;
+
+  inputPollTypeRegular();
+
+  explicit inputPollTypeRegular(bool allow_adding_options_);
+
+  static const std::int32_t ID = -236313041;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class inputPollTypeQuiz final : public InputPollType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  array<int32> correct_option_ids_;
+  object_ptr<formattedText> explanation_;
+
+  inputPollTypeQuiz();
+
+  inputPollTypeQuiz(array<int32> &&correct_option_ids_, object_ptr<formattedText> &&explanation_);
+
+  static const std::int32_t ID = 877110410;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -14759,6 +14976,25 @@ class internalLinkTypeQrCodeAuthentication final : public InternalLinkType {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class internalLinkTypeRequestManagedBot final : public InternalLinkType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  string manager_bot_username_;
+  string suggested_bot_username_;
+  string suggested_bot_name_;
+
+  internalLinkTypeRequestManagedBot();
+
+  internalLinkTypeRequestManagedBot(string const &manager_bot_username_, string const &suggested_bot_username_, string const &suggested_bot_name_);
+
+  static const std::int32_t ID = 1416354488;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class internalLinkTypeRestorePurchases final : public InternalLinkType {
   std::int32_t get_id() const final {
     return ID;
@@ -15310,6 +15546,46 @@ class keyboardButton final : public Object {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class KeyboardButtonSource: public Object {
+ public:
+};
+
+class keyboardButtonSourceMessage final : public KeyboardButtonSource {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+  int53 message_id_;
+
+  keyboardButtonSourceMessage();
+
+  keyboardButtonSourceMessage(int53 chat_id_, int53 message_id_);
+
+  static const std::int32_t ID = 326023575;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class keyboardButtonSourceWebApp final : public KeyboardButtonSource {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 bot_user_id_;
+  string prepared_button_id_;
+
+  keyboardButtonSourceWebApp();
+
+  keyboardButtonSourceWebApp(int53 bot_user_id_, string const &prepared_button_id_);
+
+  static const std::int32_t ID = -450665232;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class chatAdministratorRights;
 
 class KeyboardButtonType: public Object {
@@ -15426,6 +15702,25 @@ class keyboardButtonTypeRequestChat final : public KeyboardButtonType {
   keyboardButtonTypeRequestChat(int32 id_, bool chat_is_channel_, bool restrict_chat_is_forum_, bool chat_is_forum_, bool restrict_chat_has_username_, bool chat_has_username_, bool chat_is_created_, object_ptr<chatAdministratorRights> &&user_administrator_rights_, object_ptr<chatAdministratorRights> &&bot_administrator_rights_, bool bot_is_member_, bool request_title_, bool request_username_, bool request_photo_);
 
   static const std::int32_t ID = 1511138485;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class keyboardButtonTypeRequestManagedBot final : public KeyboardButtonType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int32 id_;
+  string suggested_name_;
+  string suggested_username_;
+
+  keyboardButtonTypeRequestManagedBot();
+
+  keyboardButtonTypeRequestManagedBot(int32 id_, string const &suggested_name_, string const &suggested_username_);
+
+  static const std::int32_t ID = 311203127;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -16122,6 +16417,20 @@ class linkPreviewTypePremiumGiftCode final : public LinkPreviewType {
   linkPreviewTypePremiumGiftCode();
 
   static const std::int32_t ID = 1309507761;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class linkPreviewTypeRequestManagedBot final : public LinkPreviewType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  linkPreviewTypeRequestManagedBot();
+
+  static const std::int32_t ID = -361102166;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -16870,6 +17179,8 @@ class GiftResalePrice;
 
 class GiveawayPrize;
 
+class MessageContent;
+
 class MessageSender;
 
 class PaidMedia;
@@ -17059,6 +17370,7 @@ class messagePhoto final : public MessageContent {
 
  public:
   object_ptr<photo> photo_;
+  object_ptr<video> video_;
   object_ptr<formattedText> caption_;
   bool show_caption_above_media_;
   bool has_spoiler_;
@@ -17066,9 +17378,9 @@ class messagePhoto final : public MessageContent {
 
   messagePhoto();
 
-  messagePhoto(object_ptr<photo> &&photo_, object_ptr<formattedText> &&caption_, bool show_caption_above_media_, bool has_spoiler_, bool is_secret_);
+  messagePhoto(object_ptr<photo> &&photo_, object_ptr<video> &&video_, object_ptr<formattedText> &&caption_, bool show_caption_above_media_, bool has_spoiler_, bool is_secret_);
 
-  static const std::int32_t ID = 1967947295;
+  static const std::int32_t ID = -1512013306;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -17328,12 +17640,15 @@ class messagePoll final : public MessageContent {
 
  public:
   object_ptr<poll> poll_;
+  object_ptr<formattedText> description_;
+  object_ptr<MessageContent> media_;
+  bool can_add_option_;
 
   messagePoll();
 
-  explicit messagePoll(object_ptr<poll> &&poll_);
+  messagePoll(object_ptr<poll> &&poll_, object_ptr<formattedText> &&description_, object_ptr<MessageContent> &&media_, bool can_add_option_);
 
-  static const std::int32_t ID = -662130099;
+  static const std::int32_t ID = -1644813882;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -17528,6 +17843,44 @@ class messageInviteVideoChatParticipants final : public MessageContent {
   messageInviteVideoChatParticipants(int32 group_call_id_, array<int53> &&user_ids_);
 
   static const std::int32_t ID = -1459065585;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class messagePollOptionAdded final : public MessageContent {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 poll_message_id_;
+  string option_id_;
+  object_ptr<formattedText> text_;
+
+  messagePollOptionAdded();
+
+  messagePollOptionAdded(int53 poll_message_id_, string const &option_id_, object_ptr<formattedText> &&text_);
+
+  static const std::int32_t ID = 1826080462;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class messagePollOptionDeleted final : public MessageContent {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 poll_message_id_;
+  string option_id_;
+  object_ptr<formattedText> text_;
+
+  messagePollOptionDeleted();
+
+  messagePollOptionDeleted(int53 poll_message_id_, string const &option_id_, object_ptr<formattedText> &&text_);
+
+  static const std::int32_t ID = -1808348024;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -18022,6 +18375,23 @@ class messageGameScore final : public MessageContent {
   messageGameScore(int53 game_message_id_, int64 game_id_, int32 score_);
 
   static const std::int32_t ID = 1344904575;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class messageManagedBotCreated final : public MessageContent {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 bot_user_id_;
+
+  messageManagedBotCreated();
+
+  explicit messageManagedBotCreated(int53 bot_user_id_);
+
+  static const std::int32_t ID = -1787873036;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -19020,13 +19390,15 @@ class messageLinkInfo final : public Object {
   object_ptr<MessageTopic> topic_id_;
   object_ptr<message> message_;
   int32 media_timestamp_;
+  int32 checklist_task_id_;
+  string poll_option_id_;
   bool for_album_;
 
   messageLinkInfo();
 
-  messageLinkInfo(bool is_public_, int53 chat_id_, object_ptr<MessageTopic> &&topic_id_, object_ptr<message> &&message_, int32 media_timestamp_, bool for_album_);
+  messageLinkInfo(bool is_public_, int53 chat_id_, object_ptr<MessageTopic> &&topic_id_, object_ptr<message> &&message_, int32 media_timestamp_, int32 checklist_task_id_, string const &poll_option_id_, bool for_album_);
 
-  static const std::int32_t ID = 361619055;
+  static const std::int32_t ID = 1091360815;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -19367,15 +19739,16 @@ class messageReplyToMessage final : public MessageReplyTo {
   int53 message_id_;
   object_ptr<textQuote> quote_;
   int32 checklist_task_id_;
+  string poll_option_id_;
   object_ptr<MessageOrigin> origin_;
   int32 origin_send_date_;
   object_ptr<MessageContent> content_;
 
   messageReplyToMessage();
 
-  messageReplyToMessage(int53 chat_id_, int53 message_id_, object_ptr<textQuote> &&quote_, int32 checklist_task_id_, object_ptr<MessageOrigin> &&origin_, int32 origin_send_date_, object_ptr<MessageContent> &&content_);
+  messageReplyToMessage(int53 chat_id_, int53 message_id_, object_ptr<textQuote> &&quote_, int32 checklist_task_id_, string const &poll_option_id_, object_ptr<MessageOrigin> &&origin_, int32 origin_send_date_, object_ptr<MessageContent> &&content_);
 
-  static const std::int32_t ID = -2078029945;
+  static const std::int32_t ID = -203917195;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -20420,6 +20793,8 @@ class oauthLinkInfo final : public Object {
   int53 user_id_;
   string url_;
   string domain_;
+  bool from_app_;
+  string verified_app_name_;
   int53 bot_user_id_;
   bool request_write_access_;
   bool request_phone_number_access_;
@@ -20432,9 +20807,9 @@ class oauthLinkInfo final : public Object {
 
   oauthLinkInfo();
 
-  oauthLinkInfo(int53 user_id_, string const &url_, string const &domain_, int53 bot_user_id_, bool request_write_access_, bool request_phone_number_access_, string const &browser_, string const &platform_, string const &ip_address_, string const &location_, bool match_code_first_, array<string> &&match_codes_);
+  oauthLinkInfo(int53 user_id_, string const &url_, string const &domain_, bool from_app_, string const &verified_app_name_, int53 bot_user_id_, bool request_write_access_, bool request_phone_number_access_, string const &browser_, string const &platform_, string const &ip_address_, string const &location_, bool match_code_first_, array<string> &&match_codes_);
 
-  static const std::int32_t ID = -1916199178;
+  static const std::int32_t ID = -908945202;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -21344,12 +21719,13 @@ class paidMediaPhoto final : public PaidMedia {
 
  public:
   object_ptr<photo> photo_;
+  object_ptr<video> video_;
 
   paidMediaPhoto();
 
-  explicit paidMediaPhoto(object_ptr<photo> &&photo_);
+  paidMediaPhoto(object_ptr<photo> &&photo_, object_ptr<video> &&video_);
 
-  static const std::int32_t ID = -1165863654;
+  static const std::int32_t ID = -307151500;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -22702,7 +23078,11 @@ class poll final : public Object {
   array<object_ptr<pollOption>> options_;
   int32 total_voter_count_;
   array<object_ptr<MessageSender>> recent_voter_ids_;
+  bool can_get_voters_;
   bool is_anonymous_;
+  bool allows_multiple_answers_;
+  bool allows_revoting_;
+  array<int32> option_order_;
   object_ptr<PollType> type_;
   int32 open_period_;
   int32 close_date_;
@@ -22710,12 +23090,16 @@ class poll final : public Object {
 
   poll();
 
-  poll(int64 id_, object_ptr<formattedText> &&question_, array<object_ptr<pollOption>> &&options_, int32 total_voter_count_, array<object_ptr<MessageSender>> &&recent_voter_ids_, bool is_anonymous_, object_ptr<PollType> &&type_, int32 open_period_, int32 close_date_, bool is_closed_);
+  poll(int64 id_, object_ptr<formattedText> &&question_, array<object_ptr<pollOption>> &&options_, int32 total_voter_count_, array<object_ptr<MessageSender>> &&recent_voter_ids_, bool can_get_voters_, bool is_anonymous_, bool allows_multiple_answers_, bool allows_revoting_, array<int32> &&option_order_, object_ptr<PollType> &&type_, int32 open_period_, int32 close_date_, bool is_closed_);
 
-  static const std::int32_t ID = 1913016502;
+  static const std::int32_t ID = 954586214;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
+
+class MessageContent;
+
+class MessageSender;
 
 class formattedText;
 
@@ -22725,20 +23109,47 @@ class pollOption final : public Object {
   }
 
  public:
+  string id_;
   object_ptr<formattedText> text_;
+  object_ptr<MessageContent> media_;
   int32 voter_count_;
   int32 vote_percentage_;
+  array<object_ptr<MessageSender>> recent_voter_ids_;
   bool is_chosen_;
   bool is_being_chosen_;
+  object_ptr<MessageSender> author_;
+  int32 addition_date_;
 
   pollOption();
 
-  pollOption(object_ptr<formattedText> &&text_, int32 voter_count_, int32 vote_percentage_, bool is_chosen_, bool is_being_chosen_);
+  pollOption(string const &id_, object_ptr<formattedText> &&text_, object_ptr<MessageContent> &&media_, int32 voter_count_, int32 vote_percentage_, array<object_ptr<MessageSender>> &&recent_voter_ids_, bool is_chosen_, bool is_being_chosen_, object_ptr<MessageSender> &&author_, int32 addition_date_);
 
-  static const std::int32_t ID = 1676243088;
+  static const std::int32_t ID = 94416337;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
+
+class pollOptionProperties final : public Object {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  bool can_be_deleted_;
+  bool can_be_replied_;
+  bool can_be_replied_in_another_chat_;
+  bool can_get_link_;
+
+  pollOptionProperties();
+
+  pollOptionProperties(bool can_be_deleted_, bool can_be_replied_, bool can_be_replied_in_another_chat_, bool can_get_link_);
+
+  static const std::int32_t ID = -269854419;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class MessageContent;
 
 class formattedText;
 
@@ -22752,13 +23163,10 @@ class pollTypeRegular final : public PollType {
   }
 
  public:
-  bool allow_multiple_answers_;
 
   pollTypeRegular();
 
-  explicit pollTypeRegular(bool allow_multiple_answers_);
-
-  static const std::int32_t ID = 641265698;
+  static const std::int32_t ID = 823249292;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -22769,14 +23177,15 @@ class pollTypeQuiz final : public PollType {
   }
 
  public:
-  int32 correct_option_id_;
+  array<int32> correct_option_ids_;
   object_ptr<formattedText> explanation_;
+  object_ptr<MessageContent> explanation_media_;
 
   pollTypeQuiz();
 
-  pollTypeQuiz(int32 correct_option_id_, object_ptr<formattedText> &&explanation_);
+  pollTypeQuiz(array<int32> &&correct_option_ids_, object_ptr<formattedText> &&explanation_, object_ptr<MessageContent> &&explanation_media_);
 
-  static const std::int32_t ID = 657013913;
+  static const std::int32_t ID = -1205882530;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -23199,6 +23608,20 @@ class premiumFeatureProtectPrivateChatContent final : public PremiumFeature {
   premiumFeatureProtectPrivateChatContent();
 
   static const std::int32_t ID = -565938675;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class premiumFeatureTextComposition final : public PremiumFeature {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  premiumFeatureTextComposition();
+
+  static const std::int32_t ID = 210899877;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -23648,6 +24071,20 @@ class premiumLimitTypeSimilarChatCount final : public PremiumLimitType {
   premiumLimitTypeSimilarChatCount();
 
   static const std::int32_t ID = -1563549935;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class premiumLimitTypeOwnedBotCount final : public PremiumLimitType {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  premiumLimitTypeOwnedBotCount();
+
+  static const std::int32_t ID = -595906175;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -25165,6 +25602,23 @@ class pushMessageContentChecklistTasksDone final : public PushMessageContent {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class pushMessageContentPollOptionAdded final : public PushMessageContent {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  string text_;
+
+  pushMessageContentPollOptionAdded();
+
+  explicit pushMessageContentPollOptionAdded(string const &text_);
+
+  static const std::int32_t ID = -86122207;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class pushMessageContentMessageForwards final : public PushMessageContent {
   std::int32_t get_id() const final {
     return ID;
@@ -25301,14 +25755,15 @@ class reactionNotificationSettings final : public Object {
  public:
   object_ptr<ReactionNotificationSource> message_reaction_source_;
   object_ptr<ReactionNotificationSource> story_reaction_source_;
+  object_ptr<ReactionNotificationSource> poll_vote_source_;
   int64 sound_id_;
   bool show_preview_;
 
   reactionNotificationSettings();
 
-  reactionNotificationSettings(object_ptr<ReactionNotificationSource> &&message_reaction_source_, object_ptr<ReactionNotificationSource> &&story_reaction_source_, int64 sound_id_, bool show_preview_);
+  reactionNotificationSettings(object_ptr<ReactionNotificationSource> &&message_reaction_source_, object_ptr<ReactionNotificationSource> &&story_reaction_source_, object_ptr<ReactionNotificationSource> &&poll_vote_source_, int64 sound_id_, bool show_preview_);
 
-  static const std::int32_t ID = 733017684;
+  static const std::int32_t ID = 2074932258;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -26833,6 +27288,20 @@ class searchMessagesFilterPhoto final : public SearchMessagesFilter {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class searchMessagesFilterPoll final : public SearchMessagesFilter {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  searchMessagesFilterPoll();
+
+  static const std::int32_t ID = -891598785;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class searchMessagesFilterVideo final : public SearchMessagesFilter {
   std::int32_t get_id() const final {
     return ID;
@@ -26969,6 +27438,20 @@ class searchMessagesFilterUnreadReaction final : public SearchMessagesFilter {
   searchMessagesFilterUnreadReaction();
 
   static const std::int32_t ID = -1379651328;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class searchMessagesFilterUnreadPollVote final : public SearchMessagesFilter {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+
+  searchMessagesFilterUnreadPollVote();
+
+  static const std::int32_t ID = -161318950;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -31865,6 +32348,25 @@ class text final : public Object {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class textCompositionStyle final : public Object {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  string name_;
+  int64 custom_emoji_id_;
+  string title_;
+
+  textCompositionStyle();
+
+  textCompositionStyle(string const &name_, int64 custom_emoji_id_, string const &title_);
+
+  static const std::int32_t ID = -788519523;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class textEntity;
 
 class textEntities final : public Object {
@@ -33184,6 +33686,8 @@ class supergroupFullInfo;
 
 class termsOfService;
 
+class textCompositionStyle;
+
 class tonRevenueStatus;
 
 class trendingStickerSets;
@@ -33959,6 +34463,24 @@ class updateChatUnreadReactionCount final : public Update {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class updateChatUnreadPollVoteCount final : public Update {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+  int32 unread_poll_vote_count_;
+
+  updateChatUnreadPollVoteCount();
+
+  updateChatUnreadPollVoteCount(int53 chat_id_, int32 unread_poll_vote_count_);
+
+  static const std::int32_t ID = -1720127450;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class updateChatVideoChat final : public Update {
   std::int32_t get_id() const final {
     return ID;
@@ -34309,14 +34831,15 @@ class updateForumTopic final : public Update {
   int53 last_read_outbox_message_id_;
   int32 unread_mention_count_;
   int32 unread_reaction_count_;
+  int32 unread_poll_vote_count_;
   object_ptr<chatNotificationSettings> notification_settings_;
   object_ptr<draftMessage> draft_message_;
 
   updateForumTopic();
 
-  updateForumTopic(int53 chat_id_, int32 forum_topic_id_, bool is_pinned_, int53 last_read_inbox_message_id_, int53 last_read_outbox_message_id_, int32 unread_mention_count_, int32 unread_reaction_count_, object_ptr<chatNotificationSettings> &&notification_settings_, object_ptr<draftMessage> &&draft_message_);
+  updateForumTopic(int53 chat_id_, int32 forum_topic_id_, bool is_pinned_, int53 last_read_inbox_message_id_, int53 last_read_outbox_message_id_, int32 unread_mention_count_, int32 unread_reaction_count_, int32 unread_poll_vote_count_, object_ptr<chatNotificationSettings> &&notification_settings_, object_ptr<draftMessage> &&draft_message_);
 
-  static const std::int32_t ID = 1803842990;
+  static const std::int32_t ID = -1851967925;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -35923,6 +36446,23 @@ class updateAnimationSearchParameters final : public Update {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class updateTextCompositionStyles final : public Update {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  array<object_ptr<textCompositionStyle>> styles_;
+
+  updateTextCompositionStyles();
+
+  explicit updateTextCompositionStyles(array<object_ptr<textCompositionStyle>> &&styles_);
+
+  static const std::int32_t ID = -481267771;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class updateSuggestedActions final : public Update {
   std::int32_t get_id() const final {
     return ID;
@@ -36277,13 +36817,32 @@ class updatePollAnswer final : public Update {
  public:
   int64 poll_id_;
   object_ptr<MessageSender> voter_id_;
-  array<int32> option_ids_;
+  array<string> option_ids_;
+  array<int32> option_positions_;
 
   updatePollAnswer();
 
-  updatePollAnswer(int64 poll_id_, object_ptr<MessageSender> &&voter_id_, array<int32> &&option_ids_);
+  updatePollAnswer(int64 poll_id_, object_ptr<MessageSender> &&voter_id_, array<string> &&option_ids_, array<int32> &&option_positions_);
 
-  static const std::int32_t ID = 1104905219;
+  static const std::int32_t ID = 1334893971;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class updateManagedBot final : public Update {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 user_id_;
+  int53 bot_user_id_;
+
+  updateManagedBot();
+
+  updateManagedBot(int53 user_id_, int53 bot_user_id_);
+
+  static const std::int32_t ID = 1388678066;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -37113,6 +37672,7 @@ class userFullInfo final : public Object {
   bool has_sponsored_messages_enabled_;
   bool need_phone_number_privacy_exception_;
   bool set_chat_background_;
+  bool uses_unofficial_app_;
   object_ptr<formattedText> bio_;
   object_ptr<birthdate> birthdate_;
   int53 personal_chat_id_;
@@ -37133,9 +37693,9 @@ class userFullInfo final : public Object {
 
   userFullInfo();
 
-  userFullInfo(object_ptr<chatPhoto> &&personal_photo_, object_ptr<chatPhoto> &&photo_, object_ptr<chatPhoto> &&public_photo_, object_ptr<BlockList> &&block_list_, bool can_be_called_, bool supports_video_calls_, bool has_private_calls_, bool has_private_forwards_, bool has_restricted_voice_and_video_note_messages_, bool has_posted_to_profile_stories_, bool has_sponsored_messages_enabled_, bool need_phone_number_privacy_exception_, bool set_chat_background_, object_ptr<formattedText> &&bio_, object_ptr<birthdate> &&birthdate_, int53 personal_chat_id_, int32 gift_count_, int32 group_in_common_count_, int53 incoming_paid_message_star_count_, int53 outgoing_paid_message_star_count_, object_ptr<giftSettings> &&gift_settings_, object_ptr<botVerification> &&bot_verification_, object_ptr<ProfileTab> &&main_profile_tab_, object_ptr<audio> &&first_profile_audio_, object_ptr<userRating> &&rating_, object_ptr<userRating> &&pending_rating_, int32 pending_rating_date_, object_ptr<formattedText> &&note_, object_ptr<businessInfo> &&business_info_, object_ptr<botInfo> &&bot_info_);
+  userFullInfo(object_ptr<chatPhoto> &&personal_photo_, object_ptr<chatPhoto> &&photo_, object_ptr<chatPhoto> &&public_photo_, object_ptr<BlockList> &&block_list_, bool can_be_called_, bool supports_video_calls_, bool has_private_calls_, bool has_private_forwards_, bool has_restricted_voice_and_video_note_messages_, bool has_posted_to_profile_stories_, bool has_sponsored_messages_enabled_, bool need_phone_number_privacy_exception_, bool set_chat_background_, bool uses_unofficial_app_, object_ptr<formattedText> &&bio_, object_ptr<birthdate> &&birthdate_, int53 personal_chat_id_, int32 gift_count_, int32 group_in_common_count_, int53 incoming_paid_message_star_count_, int53 outgoing_paid_message_star_count_, object_ptr<giftSettings> &&gift_settings_, object_ptr<botVerification> &&bot_verification_, object_ptr<ProfileTab> &&main_profile_tab_, object_ptr<audio> &&first_profile_audio_, object_ptr<userRating> &&rating_, object_ptr<userRating> &&pending_rating_, int32 pending_rating_date_, object_ptr<formattedText> &&note_, object_ptr<businessInfo> &&business_info_, object_ptr<botInfo> &&bot_info_);
 
-  static const std::int32_t ID = 2128551190;
+  static const std::int32_t ID = -1176229971;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -37736,6 +38296,7 @@ class userTypeBot final : public UserType {
   bool has_main_web_app_;
   bool has_topics_;
   bool allows_users_to_create_topics_;
+  bool can_manage_bots_;
   bool is_inline_;
   string inline_query_placeholder_;
   bool need_location_;
@@ -37745,9 +38306,9 @@ class userTypeBot final : public UserType {
 
   userTypeBot();
 
-  userTypeBot(bool can_be_edited_, bool can_join_groups_, bool can_read_all_group_messages_, bool has_main_web_app_, bool has_topics_, bool allows_users_to_create_topics_, bool is_inline_, string const &inline_query_placeholder_, bool need_location_, bool can_connect_to_business_, bool can_be_added_to_attachment_menu_, int32 active_user_count_);
+  userTypeBot(bool can_be_edited_, bool can_join_groups_, bool can_read_all_group_messages_, bool has_main_web_app_, bool has_topics_, bool allows_users_to_create_topics_, bool can_manage_bots_, bool is_inline_, string const &inline_query_placeholder_, bool need_location_, bool can_connect_to_business_, bool can_be_added_to_attachment_menu_, int32 active_user_count_);
 
-  static const std::int32_t ID = -890772118;
+  static const std::int32_t ID = 2108412531;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -38764,6 +39325,31 @@ class addPendingPaidMessageReaction final : public Function {
   addPendingPaidMessageReaction(int53 chat_id_, int53 message_id_, int53 star_count_, object_ptr<PaidReactionType> &&type_);
 
   static const std::int32_t ID = -342110765;
+
+  using ReturnType = object_ptr<ok>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class inputPollOption;
+
+class ok;
+
+class addPollOption final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+  int53 message_id_;
+  object_ptr<inputPollOption> option_;
+
+  addPollOption();
+
+  addPollOption(int53 chat_id_, int53 message_id_, object_ptr<inputPollOption> &&option_);
+
+  static const std::int32_t ID = -382845167;
 
   using ReturnType = object_ptr<ok>;
 
@@ -39814,6 +40400,27 @@ class checkAuthenticationPremiumPurchase final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class CheckChatUsernameResult;
+
+class checkBotUsername final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  string username_;
+
+  checkBotUsername();
+
+  explicit checkBotUsername(string const &username_);
+
+  static const std::int32_t ID = -1358454679;
+
+  using ReturnType = object_ptr<CheckChatUsernameResult>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class chatFolderInviteLinkInfo;
 
 class checkChatFolderInviteLink final : public Function {
@@ -40542,6 +41149,30 @@ class commitPendingPaidMessageReactions final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class formattedText;
+
+class composeTextWithAi final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  object_ptr<formattedText> text_;
+  string translate_to_language_code_;
+  string style_name_;
+  bool add_emojis_;
+
+  composeTextWithAi();
+
+  composeTextWithAi(object_ptr<formattedText> &&text_, string const &translate_to_language_code_, string const &style_name_, bool add_emojis_);
+
+  static const std::int32_t ID = 1121392794;
+
+  using ReturnType = object_ptr<formattedText>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class session;
 
 class confirmQrCodeAuthentication final : public Function {
@@ -40647,6 +41278,30 @@ class createBasicGroupChat final : public Function {
   static const std::int32_t ID = 1972024548;
 
   using ReturnType = object_ptr<chat>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class user;
+
+class createBot final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 manager_bot_user_id_;
+  string name_;
+  string username_;
+  bool via_link_;
+
+  createBot();
+
+  createBot(int53 manager_bot_user_id_, string const &name_, string const &username_, bool via_link_);
+
+  static const std::int32_t ID = -1890858327;
+
+  using ReturnType = object_ptr<user>;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -41846,6 +42501,29 @@ class deletePassportElement final : public Function {
   explicit deletePassportElement(object_ptr<PassportElementType> &&type_);
 
   static const std::int32_t ID = -1719555468;
+
+  using ReturnType = object_ptr<ok>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class ok;
+
+class deletePollOption final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+  int53 message_id_;
+  string option_id_;
+
+  deletePollOption();
+
+  deletePollOption(int53 chat_id_, int53 message_id_, string const &option_id_);
+
+  static const std::int32_t ID = -1459634839;
 
   using ReturnType = object_ptr<ok>;
 
@@ -43293,6 +43971,29 @@ class finishFileGeneration final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class fixedText;
+
+class formattedText;
+
+class fixTextWithAi final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  object_ptr<formattedText> text_;
+
+  fixTextWithAi();
+
+  explicit fixTextWithAi(object_ptr<formattedText> &&text_);
+
+  static const std::int32_t ID = -2139647563;
+
+  using ReturnType = object_ptr<fixedText>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class MessageTopic;
 
 class messageSendOptions;
@@ -43917,6 +44618,28 @@ class getBotSimilarBots final : public Function {
   static const std::int32_t ID = -825139275;
 
   using ReturnType = object_ptr<users>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class text;
+
+class getBotToken final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 bot_user_id_;
+  bool revoke_;
+
+  getBotToken();
+
+  getBotToken(int53 bot_user_id_, bool revoke_);
+
+  static const std::int32_t ID = 1197197145;
+
+  using ReturnType = object_ptr<text>;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -47314,14 +48037,16 @@ class getMessageLink final : public Function {
   int53 chat_id_;
   int53 message_id_;
   int32 media_timestamp_;
+  int32 checklist_task_id_;
+  string poll_option_id_;
   bool for_album_;
   bool in_message_thread_;
 
   getMessageLink();
 
-  getMessageLink(int53 chat_id_, int53 message_id_, int32 media_timestamp_, bool for_album_, bool in_message_thread_);
+  getMessageLink(int53 chat_id_, int53 message_id_, int32 media_timestamp_, int32 checklist_task_id_, string const &poll_option_id_, bool for_album_, bool in_message_thread_);
 
-  static const std::int32_t ID = -984158342;
+  static const std::int32_t ID = -498469915;
 
   using ReturnType = object_ptr<messageLink>;
 
@@ -47893,6 +48618,29 @@ class getPhoneNumberInfoSync final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class pollOptionProperties;
+
+class getPollOptionProperties final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+  int53 message_id_;
+  string poll_option_id_;
+
+  getPollOptionProperties();
+
+  getPollOptionProperties(int53 chat_id_, int53 message_id_, string const &poll_option_id_);
+
+  static const std::int32_t ID = -1191094872;
+
+  using ReturnType = object_ptr<pollOptionProperties>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class pollVoters;
 
 class getPollVoters final : public Function {
@@ -48120,6 +48868,28 @@ class getPreparedInlineMessage final : public Function {
   static const std::int32_t ID = -83179701;
 
   using ReturnType = object_ptr<preparedInlineMessage>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class keyboardButton;
+
+class getPreparedKeyboardButton final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 bot_user_id_;
+  string prepared_button_id_;
+
+  getPreparedKeyboardButton();
+
+  getPreparedKeyboardButton(int53 bot_user_id_, string const &prepared_button_id_);
+
+  static const std::int32_t ID = 1162619742;
+
+  using ReturnType = object_ptr<keyboardButton>;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -50548,6 +51318,28 @@ class leaveGroupCall final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class ok;
+
+class listenToAudio final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int32 audio_file_id_;
+  int32 duration_;
+
+  listenToAudio();
+
+  listenToAudio(int32 audio_file_id_, int32 duration_);
+
+  static const std::int32_t ID = 589191881;
+
+  using ReturnType = object_ptr<ok>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class StoryList;
 
 class ok;
@@ -51321,6 +52113,27 @@ class readAllChatMentions final : public Function {
 
 class ok;
 
+class readAllChatPollVotes final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+
+  readAllChatPollVotes();
+
+  explicit readAllChatPollVotes(int53 chat_id_);
+
+  static const std::int32_t ID = -1882393298;
+
+  using ReturnType = object_ptr<ok>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class ok;
+
 class readAllChatReactions final : public Function {
   std::int32_t get_id() const final {
     return ID;
@@ -51378,6 +52191,28 @@ class readAllForumTopicMentions final : public Function {
   readAllForumTopicMentions(int53 chat_id_, int32 forum_topic_id_);
 
   static const std::int32_t ID = -996864148;
+
+  using ReturnType = object_ptr<ok>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class ok;
+
+class readAllForumTopicPollVotes final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+  int32 forum_topic_id_;
+
+  readAllForumTopicPollVotes();
+
+  readAllForumTopicPollVotes(int53 chat_id_, int32 forum_topic_id_);
+
+  static const std::int32_t ID = 320081488;
 
   using ReturnType = object_ptr<ok>;
 
@@ -53192,6 +54027,30 @@ class savePreparedInlineMessage final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class keyboardButton;
+
+class text;
+
+class savePreparedKeyboardButton final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 user_id_;
+  object_ptr<keyboardButton> button_;
+
+  savePreparedKeyboardButton();
+
+  savePreparedKeyboardButton(int53 user_id_, object_ptr<keyboardButton> &&button_);
+
+  static const std::int32_t ID = -894817192;
+
+  using ReturnType = object_ptr<text>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
 class AffiliateProgramSortOrder;
 
 class AffiliateType;
@@ -53496,15 +54355,16 @@ class searchGiftsForResale final : public Function {
   int64 gift_id_;
   object_ptr<GiftForResaleOrder> order_;
   bool for_crafting_;
+  bool for_stars_;
   array<object_ptr<UpgradedGiftAttributeId>> attributes_;
   string offset_;
   int32 limit_;
 
   searchGiftsForResale();
 
-  searchGiftsForResale(int64 gift_id_, object_ptr<GiftForResaleOrder> &&order_, bool for_crafting_, array<object_ptr<UpgradedGiftAttributeId>> &&attributes_, string const &offset_, int32 limit_);
+  searchGiftsForResale(int64 gift_id_, object_ptr<GiftForResaleOrder> &&order_, bool for_crafting_, bool for_stars_, array<object_ptr<UpgradedGiftAttributeId>> &&attributes_, string const &offset_, int32 limit_);
 
-  static const std::int32_t ID = -1886868338;
+  static const std::int32_t ID = 1947702322;
 
   using ReturnType = object_ptr<giftsForResale>;
 
@@ -54524,6 +55384,32 @@ class sendMessageAlbum final : public Function {
   static const std::int32_t ID = -1488607732;
 
   using ReturnType = object_ptr<messages>;
+
+  void store(TlStorerToString &s, const char *field_name) const final;
+};
+
+class ok;
+
+class sendMessageViewMetrics final : public Function {
+  std::int32_t get_id() const final {
+    return ID;
+  }
+
+ public:
+  int53 chat_id_;
+  int53 message_id_;
+  int32 time_in_view_ms_;
+  int32 active_time_in_view_ms_;
+  int32 height_to_viewport_ratio_per_mille_;
+  int32 seen_range_ratio_per_mille_;
+
+  sendMessageViewMetrics();
+
+  sendMessageViewMetrics(int53 chat_id_, int53 message_id_, int32 time_in_view_ms_, int32 active_time_in_view_ms_, int32 height_to_viewport_ratio_per_mille_, int32 seen_range_ratio_per_mille_);
+
+  static const std::int32_t ID = 698012087;
+
+  using ReturnType = object_ptr<ok>;
 
   void store(TlStorerToString &s, const char *field_name) const final;
 };
@@ -57952,6 +58838,8 @@ class setVideoChatTitle final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class KeyboardButtonSource;
+
 class ok;
 
 class shareChatWithBot final : public Function {
@@ -57960,17 +58848,16 @@ class shareChatWithBot final : public Function {
   }
 
  public:
-  int53 chat_id_;
-  int53 message_id_;
+  object_ptr<KeyboardButtonSource> source_;
   int32 button_id_;
   int53 shared_chat_id_;
   bool only_check_;
 
   shareChatWithBot();
 
-  shareChatWithBot(int53 chat_id_, int53 message_id_, int32 button_id_, int53 shared_chat_id_, bool only_check_);
+  shareChatWithBot(object_ptr<KeyboardButtonSource> &&source_, int32 button_id_, int53 shared_chat_id_, bool only_check_);
 
-  static const std::int32_t ID = -1504507166;
+  static const std::int32_t ID = -917243698;
 
   using ReturnType = object_ptr<ok>;
 
@@ -57998,6 +58885,8 @@ class sharePhoneNumber final : public Function {
   void store(TlStorerToString &s, const char *field_name) const final;
 };
 
+class KeyboardButtonSource;
+
 class ok;
 
 class shareUsersWithBot final : public Function {
@@ -58006,17 +58895,16 @@ class shareUsersWithBot final : public Function {
   }
 
  public:
-  int53 chat_id_;
-  int53 message_id_;
+  object_ptr<KeyboardButtonSource> source_;
   int32 button_id_;
   array<int53> shared_user_ids_;
   bool only_check_;
 
   shareUsersWithBot();
 
-  shareUsersWithBot(int53 chat_id_, int53 message_id_, int32 button_id_, array<int53> &&shared_user_ids_, bool only_check_);
+  shareUsersWithBot(object_ptr<KeyboardButtonSource> &&source_, int32 button_id_, array<int53> &&shared_user_ids_, bool only_check_);
 
-  static const std::int32_t ID = -1574608333;
+  static const std::int32_t ID = 1154320179;
 
   using ReturnType = object_ptr<ok>;
 
@@ -58229,12 +59117,13 @@ class summarizeMessage final : public Function {
   int53 chat_id_;
   int53 message_id_;
   string translate_to_language_code_;
+  string tone_;
 
   summarizeMessage();
 
-  summarizeMessage(int53 chat_id_, int53 message_id_, string const &translate_to_language_code_);
+  summarizeMessage(int53 chat_id_, int53 message_id_, string const &translate_to_language_code_, string const &tone_);
 
-  static const std::int32_t ID = 1405194782;
+  static const std::int32_t ID = -1464885562;
 
   using ReturnType = object_ptr<formattedText>;
 
@@ -59635,12 +60524,13 @@ class translateMessageText final : public Function {
   int53 chat_id_;
   int53 message_id_;
   string to_language_code_;
+  string tone_;
 
   translateMessageText();
 
-  translateMessageText(int53 chat_id_, int53 message_id_, string const &to_language_code_);
+  translateMessageText(int53 chat_id_, int53 message_id_, string const &to_language_code_, string const &tone_);
 
-  static const std::int32_t ID = 1405427410;
+  static const std::int32_t ID = -1995371403;
 
   using ReturnType = object_ptr<formattedText>;
 
@@ -59657,12 +60547,13 @@ class translateText final : public Function {
  public:
   object_ptr<formattedText> text_;
   string to_language_code_;
+  string tone_;
 
   translateText();
 
-  translateText(object_ptr<formattedText> &&text_, string const &to_language_code_);
+  translateText(object_ptr<formattedText> &&text_, string const &to_language_code_, string const &tone_);
 
-  static const std::int32_t ID = 623011058;
+  static const std::int32_t ID = -617975379;
 
   using ReturnType = object_ptr<formattedText>;
 

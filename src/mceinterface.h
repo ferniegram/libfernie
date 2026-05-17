@@ -23,7 +23,7 @@
 
 class MceInterface : public QDBusInterface {
 public:
-    MceInterface(QObject *parent = Q_NULLPTR);
+    MceInterface(QObject *parent = nullptr);
 
     void setLedPattern(const QString &pattern, bool activate);
 };

@@ -8,7 +8,6 @@
 #include "debuglogjs.h"
 #include "tdlib/tdlibwrapper.h"
 #include "notificationmanager.h"
-#include "mceinterface.h"
 #include "processlauncher.h"
 #include "stickermanager.h"
 #include "utilities.h"
@@ -36,7 +35,7 @@ namespace FernieMain {
         SuggestedActionsManager suggestedActionsManager;
 
         AppContext(const char *uri, QSharedPointer<QQuickView> view,
-                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface,
+                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities,
                    const QString &appName, const QUrl &appIconPath,
                    const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
     };

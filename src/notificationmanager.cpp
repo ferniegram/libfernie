@@ -86,12 +86,12 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
     return activeNotifications.value(notificationOrder.last());
 }
 
-NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities,
+NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
                                          const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
                                          const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     tdLibWrapper(tdLibWrapper),
     settings(settings),
-    mceInterface(mceInterface),
+    mceInterface(new MceInterface(this)),
     utilities(utilities),
     appName(appName),
     dbusPath(dbusPath),

@@ -33,7 +33,7 @@ class NotificationManager : public QObject {
     Q_PROPERTY(qlonglong activeChatId MEMBER activeChatId WRITE setActiveChatId)
 
 public:
-    NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, Utilities *utilities,
+    NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
                         const QString &appName, const QUrl &appIconPath = QUrl(),
                         const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
     ~NotificationManager() override;

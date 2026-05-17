@@ -30,7 +30,6 @@
 #include "tdlibreceiver.h"
 #include "tdlibresponse.h"
 #include "settings.h"
-#include "mceinterface.h"
 
 class Utilities;
 class ChatData;
@@ -47,7 +46,7 @@ class TDLibWrapper : public QObject {
     Q_PROPERTY(QVariantMap defaultReactionType MEMBER defaultReactionType NOTIFY defaultReactionTypeChanged)
 
 public:
-    explicit TDLibWrapper(Settings *settings, MceInterface *mceInterface, QObject *parent = nullptr);
+    explicit TDLibWrapper(Settings *settings, QObject *parent = nullptr);
     ~TDLibWrapper();
 
     enum AuthorizationState {
@@ -675,7 +674,6 @@ private:
     int clientId;
     QNetworkConfigurationManager *networkConfigurationManager;
     Settings *settings;
-    MceInterface *mceInterface;
     TDLibReceiver *tdLibReceiver;
     Utilities *utilities;
     TDLibWrapper::AuthorizationState authorizationState = TDLibWrapper::AuthorizationUnknown;

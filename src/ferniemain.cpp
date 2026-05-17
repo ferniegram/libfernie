@@ -45,7 +45,7 @@
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
 FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view,
-                                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities, MceInterface *mceInterface,
+                                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities,
                                    const QString &appName, const QUrl &appIconPath, const QString &dbusPath,
                                    const QString &dbusServiceName, const QString &dbusInterface) :
     uri(uri),
@@ -54,7 +54,7 @@ FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> v
     dbusAdaptor(dbusAdaptor),
     waveformManager(view.data()),
     chatFoldersModel(tdLibWrapper, settings, utilities, view.data()),
-    notificationManager(tdLibWrapper, settings, mceInterface, utilities, appName, appIconPath, dbusPath, dbusServiceName, dbusInterface),
+    notificationManager(tdLibWrapper, settings, utilities, appName, appIconPath, dbusPath, dbusServiceName, dbusInterface),
     processLauncher(),
     stickerManager(tdLibWrapper),
     knownUsersModel(tdLibWrapper, view.data()),
@@ -85,8 +85,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("fernieSettings", settings);
     qmlRegisterUncreatableType<Settings>(uri, 1, 0, "FernieSettings", QString());
 
-    MceInterface *mceInterface = new MceInterface(view.data());
-    TDLibWrapper *tdLibWrapper = new TDLibWrapper(settings, mceInterface, view.data());
+    TDLibWrapper *tdLibWrapper = new TDLibWrapper(settings, view.data());
     context->setContextProperty("tdLibWrapper", tdLibWrapper);
     qmlRegisterUncreatableType<TDLibWrapper>(uri, 1, 0, "TDLibAPI", QString());
 
@@ -99,7 +98,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper, view.data());
     view->rootContext()->setContextProperty("dBusAdaptor", dbusAdaptor);
 
-    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, settings, utilities, mceInterface,
+    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, settings, utilities,
                                             appName, appIconPath, dbusPath, dbusServiceName, dbusInterface);
 
     context->setContextProperty("chatFoldersModel", &appContext->chatFoldersModel);

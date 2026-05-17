@@ -45,11 +45,10 @@
 
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
-FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> view,
+FernieMain::AppContext::AppContext(QSharedPointer<QQuickView> view,
                                    TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities,
                                    const QString &appName, const QUrl &appIconPath, const QString &dbusPath,
                                    const QString &dbusServiceName, const QString &dbusInterface) :
-    uri(uri),
     settings(settings),
     tdLibWrapper(tdLibWrapper),
     dbusAdaptor(dbusAdaptor),
@@ -68,7 +67,6 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
                                                   const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) {
     QQmlContext *context = view->rootContext();
 
-    const char *uri = "App.Logic";
     qmlRegisterType<TDLibFile>(uri, 1, 0, "TDLibFile");
     qmlRegisterType<TextFilterModel>(uri, 1, 0, "TextFilterModel");
     qmlRegisterType<BoolFilterModel>(uri, 1, 0, "BoolFilterModel");
@@ -102,7 +100,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper, view.data());
     context->setContextProperty("dBusAdaptor", dbusAdaptor);
 
-    AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, settings, utilities,
+    AppContext *appContext = new AppContext(view, tdLibWrapper, dbusAdaptor, settings, utilities,
                                             appName, appIconPath, dbusPath, dbusServiceName, dbusInterface);
 
     context->setContextProperty("chatFoldersModel", &appContext->chatFoldersModel);

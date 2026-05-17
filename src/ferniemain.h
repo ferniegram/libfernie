@@ -18,8 +18,9 @@
 #include "dbusadaptor.h"
 
 namespace FernieMain {
+    static const char *uri = "io.libfernie";
+
     struct AppContext {
-        const char *uri;
         Settings *settings;
         TDLibWrapper *tdLibWrapper;
         DBusAdaptor *dbusAdaptor;
@@ -32,7 +33,7 @@ namespace FernieMain {
         ContactsModel contactsModel;
         SuggestedActionsManager suggestedActionsManager;
 
-        AppContext(const char *uri, QSharedPointer<QQuickView> view,
+        AppContext(QSharedPointer<QQuickView> view,
                    TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities,
                    const QString &appName, const QUrl &appIconPath,
                    const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
@@ -42,7 +43,7 @@ namespace FernieMain {
                               const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
     inline void registerDebugLogJS(AppContext *context) {
         // Declare in header so definitions would not be ignored
-        qmlRegisterSingletonType<DebugLogJS>(context->uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
+        qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
     }
 
     void registerDBusService(QSharedPointer<QGuiApplication> app, QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName);

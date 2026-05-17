@@ -48,6 +48,7 @@ private slots:
     void handleChatPhotoDownloadingCompletedChanged();
     void updateAllNotifications();
     void handleDefaultReactionTypeChanged();
+    void updateNotificationForChat(qlonglong chatId, TDLibFile *chatPhotoFile = nullptr);
 
 private:
     enum NotificationGroupType {
@@ -75,7 +76,6 @@ private:
     };
 
     static bool acceptNotificationGroupType(const QVariantMap &type);
-    void updateNotificationForChat(qlonglong chatId, TDLibFile *chatPhotoFile = nullptr);
     void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
     void controlLedNotification(bool enabled);
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,

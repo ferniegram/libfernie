@@ -105,6 +105,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     connect(this->tdLibWrapper, &TDLibWrapper::activeNotificationsUpdated, this, &NotificationManager::handleUpdateActiveNotifications);
     connect(this->tdLibWrapper, &TDLibWrapper::notificationGroupUpdated, this, &NotificationManager::handleUpdateNotificationGroup);
     connect(this->tdLibWrapper, &TDLibWrapper::notificationUpdated, this, &NotificationManager::handleUpdateNotification);
+    connect(this->tdLibWrapper, SIGNAL(newChatDiscovered(qlonglong, const QVariantMap &)), this, SLOT(updateNotificationForChat(qlonglong)));
     connect(this->tdLibWrapper, &TDLibWrapper::chatRolesUpdated, this, &NotificationManager::handleChatRolesUpdated);
     connect(this->tdLibWrapper, &TDLibWrapper::defaultReactionTypeChanged, this, &NotificationManager::handleDefaultReactionTypeChanged);
 

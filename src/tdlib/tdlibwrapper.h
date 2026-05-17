@@ -673,7 +673,6 @@ private:
 
 private:
     int clientId;
-    QNetworkAccessManager *manager;
     QNetworkConfigurationManager *networkConfigurationManager;
     Settings *settings;
     MceInterface *mceInterface;

@@ -199,7 +199,6 @@ QVariantMap findChatPositionForFolder(const QVariantList &positions, int folderI
 TDLibWrapper::TDLibWrapper(Settings *settings, MceInterface *mce, QObject *parent)
     : QObject(parent)
     , clientId(td_create_client_id())
-    , manager(new QNetworkAccessManager(this))
     , networkConfigurationManager(new QNetworkConfigurationManager(this))
     , settings(settings)
     , mceInterface(mce)

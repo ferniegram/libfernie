@@ -433,7 +433,7 @@ QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, con
         return !caption.isEmpty() ? caption : (simple ? tr("Video") : "");
     }
     if (contentType == MESSAGE_CONTENT_TYPE_VIDEO_NOTE)
-        return simple ? (myself ? tr("Video message") : tr("Video message")) : "";
+        return simple ? tr("Video message") : "";
     if (contentType == MESSAGE_CONTENT_TYPE_ANIMATION) {
         QString caption;
         if (simpleWithThumbnails && messageContent.value(ANIMATION).toMap().contains(MINITHUMBNAIL))
@@ -456,7 +456,7 @@ QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, con
         return !caption.isEmpty() ? caption : (simple ? tr("Voice message") : "");
     }
     if (contentType == MESSAGE_CONTENT_TYPE_LOCATION)
-        return simple ? (myself ? tr("sent a location", "myself") : tr("sent a location")) : "";
+        return simple ? tr("Location") : "";
     if (contentType == MESSAGE_CONTENT_TYPE_VENUE) {
         const QVariantMap venue = messageContent.value(VENUE).toMap();
         const QString title = venue.value(TITLE).toString();
@@ -476,8 +476,9 @@ QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, con
         return simple ? (!question.isEmpty() ? tr("Poll: %1").arg(question) : tr("Poll")) : ("<b>" + tr("Poll") + "</b>");
     }
     if (contentType == "messageGame") {
+        if (!simple) return "";
         const QString shortName = messageContent.value("game").toMap().value("short_name").toString();
-        return simple ? (!shortName.isEmpty() ? tr("Game: %1").arg(shortName) : tr("Game")) : "";
+        return !shortName.isEmpty() ? tr("Game: %1").arg(shortName) : tr("Game");
     }
 
     // Service notifications

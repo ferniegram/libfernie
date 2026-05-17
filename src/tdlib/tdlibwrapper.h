@@ -275,7 +275,10 @@ public:
     Q_INVOKABLE void sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap(), const QVariantMap &options = QVariantMap());
     Q_INVOKABLE void sendLocationMessage(qlonglong chatId, double latitude, double longitude, double horizontalAccuracy, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
     Q_INVOKABLE void sendStickerMessage(qlonglong chatId, const QString &fileId, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
-    Q_INVOKABLE void sendPollMessage(qlonglong chatId, const QString &question, const QStringList &options, bool anonymous, int correctOption, bool multiple, const QString &explanation, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void sendPollMessage(qlonglong chatId, const QString &question, const QStringList &options, const QString &description,
+                                        bool anonymous, bool multiple, bool revoting, bool shuffle, int openPeriod, bool hideResultsUntilCloses,
+                                        bool allowAddingOptions, QVariantList correctOptions, const QString &explanation,
+                                        qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
     Q_INVOKABLE void sendDiceMessage(qlonglong chatId, const QString &emoji, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
     Q_INVOKABLE void forwardMessages(const QString &chatId, const QString &fromChatId, const QVariantList &messageIds, bool sendCopy, bool removeCaption);
     Q_INVOKABLE void getMessage(qlonglong chatId, qlonglong messageId);
@@ -332,6 +335,7 @@ public:
     Q_INVOKABLE void getSearchSponsoredChats(const QString &query);
     Q_INVOKABLE void readAllChatMentions(qlonglong chatId);
     Q_INVOKABLE void readAllChatReactions(qlonglong chatId);
+    Q_INVOKABLE void readAllChatPollVotes(qlonglong chatId);
     Q_INVOKABLE void toggleChatIsMarkedAsUnread(qlonglong chatId, bool isMarkedAsUnread);
     Q_INVOKABLE void toggleChatIsPinned(qlonglong chatId, bool isPinned, bool archive = false);
     Q_INVOKABLE void toggleChatIsPinnedForFolder(qlonglong chatId, bool isPinned, int folderId);

@@ -463,17 +463,19 @@ QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, con
         return simple ? (!title.isEmpty() ? tr("Venue: %1").arg(title) : tr("Venue")) : ("<b>" + title + "</b>, " + venue.value(ADDRESS).toString());
     }
     if (contentType == "messagePoll") {
+        if (!simple) return "";
+
         const QVariantMap poll = messageContent.value("poll").toMap();
         const bool anonymnous = poll.value("is_anonymous").toBool();
         const QString question = poll.value("question").toMap().value(TEXT).toString();
         if (poll.value(TYPE).toMap().value(_TYPE).toString() == "pollTypeQuiz") {
             if (anonymnous)
-                return simple ? (myself ? tr("sent an anonymous quiz", "myself") : tr("sent an anonymous quiz")) : ("<b>" + tr("Anonymous Quiz") + "</b>");
-            return simple ? (!question.isEmpty() ? tr("Quiz: %1").arg(question) : tr("Quiz")) : ("<b>" + tr("Quiz") + "</b>");
+                return !question.isEmpty() ? tr("Anonymous Quiz: %1").arg(question) : tr("Anonymous Quiz");
+            return !question.isEmpty() ? tr("Quiz: %1").arg(question) : tr("Quiz");
         }
         if (anonymnous)
-            return simple ? (!question.isEmpty() ? tr("Anonymous Poll: %1").arg(question) : tr("Anonymous Poll")) : ("<b>" + tr("Anonymous Poll") + "</b>");
-        return simple ? (!question.isEmpty() ? tr("Poll: %1").arg(question) : tr("Poll")) : ("<b>" + tr("Poll") + "</b>");
+            return !question.isEmpty() ? tr("Anonymous Poll: %1").arg(question) : tr("Anonymous Poll");
+        return !question.isEmpty() ? tr("Poll: %1").arg(question) : tr("Poll");
     }
     if (contentType == "messageGame") {
         if (!simple) return "";

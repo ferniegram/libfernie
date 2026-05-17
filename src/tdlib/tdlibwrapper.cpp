@@ -619,30 +619,44 @@ void TDLibWrapper::sendStickerMessage(qlonglong chatId, const QString &fileId, q
                 });
 }
 
-void TDLibWrapper::sendPollMessage(qlonglong chatId, const QString &question, const QStringList &options, bool anonymous, int correctOption, bool multiple, const QString &explanation, qlonglong replyToMessageId, const QVariantMap &topicId) {
+void TDLibWrapper::sendPollMessage(qlonglong chatId, const QString &question, const QStringList &options, const QString &description,
+                                    bool anonymous, bool multiple, bool revoting, bool shuffle, int openPeriod, bool hideResultsUntilCloses,
+                                    bool allowAddingOptions, QVariantList correctOptions, const QString &explanation,
+                                    qlonglong replyToMessageId, const QVariantMap &topicId) {
     LOG("Sending poll message" << chatId << question << replyToMessageId);
     QVariantMap inputMessageContent{
         {_TYPE, "inputMessagePoll"},
         {"question", Utilities::newFormattedText(question)},
-        {"is_anonymous", anonymous}
+        {"is_anonymous", anonymous},
+        {"allows_multiple_answers", multiple},
+        {"allows_revoting", revoting},
+        {"shuffle_options", shuffle}
     };
 
-    QVariantList formattedOptions;
-    for (QString option : options)
-        formattedOptions.append(Utilities::newFormattedText(option));
-    inputMessageContent.insert(OPTIONS, formattedOptions);
+    if (!description.isEmpty())
+        Utilities::newFormattedText(description);
+
+    QVariantList newOptions;
+    for (const QString &option : options)
+        newOptions.append(QVariantMap{{_TYPE, "inputPollOption"}, {TEXT, Utilities::newFormattedText(option)}});
+    inputMessageContent.insert(OPTIONS, newOptions);
 
     QVariantMap pollType;
-    if(correctOption > -1) {
-        pollType.insert(_TYPE, "pollTypeQuiz");
-        pollType.insert("correct_option_id", correctOption);
-        if(!explanation.isEmpty())
+    if (!correctOptions.isEmpty()) {
+        pollType.insert(_TYPE, "inputPollTypeQuiz");
+        pollType.insert("correct_option_ids", correctOptions);
+        if (!explanation.isEmpty())
             pollType.insert("explanation", Utilities::newFormattedText(explanation));
     } else {
-        pollType.insert(_TYPE, "pollTypeRegular");
-        pollType.insert("allow_multiple_answers", multiple);
+        pollType.insert(_TYPE, "inputPollTypeRegular");
+        pollType.insert("allow_adding_options", allowAddingOptions);
     }
     inputMessageContent.insert(TYPE, pollType);
+
+    if (openPeriod) {
+        inputMessageContent.insert("open_period", openPeriod);
+        inputMessageContent.insert("hide_results_until_closes", hideResultsUntilCloses);
+    }
 
     sendMessage(chatId, replyToMessageId, topicId, inputMessageContent);
 }
@@ -1198,6 +1212,11 @@ void TDLibWrapper::readAllChatMentions(qlonglong chatId) {
 void TDLibWrapper::readAllChatReactions(qlonglong chatId) {
     LOG("Read all chat reactions" << chatId);
     this->sendRequest(QVariantMap{{_TYPE, "readAllChatReactions"}, {CHAT_ID, chatId}});
+}
+
+void TDLibWrapper::readAllChatPollVotes(qlonglong chatId) {
+    LOG("Read all chat poll votes" << chatId);
+    this->sendRequest(QVariantMap{{_TYPE, "readAllChatPollVotes"}, {CHAT_ID, chatId}});
 }
 
 void TDLibWrapper::toggleChatIsMarkedAsUnread(qlonglong chatId, bool isMarkedAsUnread) {

@@ -34,6 +34,7 @@
 #include "chat/invertedmediamessagesmodel.h"
 #include "userprofilepicturesmodel.h"
 #include "chat/chatphotosmodel.h"
+#include "tdlib/tdlibstate.h"
 
 #include <QGuiApplication>
 #include <QLoggingCategory>
@@ -94,8 +95,12 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("utilities", utilities);
     qmlRegisterUncreatableType<Utilities>(uri, 1, 0, "Utilities", QString());
 
+    TDLibState *tdLibState = tdLibWrapper->getState();
+    context->setContextProperty("tdLibState", tdLibState);
+    qmlRegisterUncreatableType<TDLibState>(uri, 1, 0, "TDLibState", QString());
+
     DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper, view.data());
-    view->rootContext()->setContextProperty("dBusAdaptor", dbusAdaptor);
+    context->setContextProperty("dBusAdaptor", dbusAdaptor);
 
     AppContext *appContext = new AppContext(uri, view, tdLibWrapper, dbusAdaptor, settings, utilities,
                                             appName, appIconPath, dbusPath, dbusServiceName, dbusInterface);

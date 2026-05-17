@@ -21,6 +21,7 @@
 #include "tdlibsecrets.h"
 #include "utilities.h"
 #include "chatdata.h"
+#include "tdlibstate.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -196,13 +197,14 @@ QVariantMap findChatPositionForFolder(const QVariantList &positions, int folderI
     return QVariantMap();
 }
 
-TDLibWrapper::TDLibWrapper(Settings *settings, QObject *parent)
-    : QObject(parent)
-    , clientId(td_create_client_id())
-    , networkConfigurationManager(new QNetworkConfigurationManager(this))
-    , settings(settings)
-    , utilities(new Utilities(this))
-    , authorizationState(AuthorizationState::Closed)
+TDLibWrapper::TDLibWrapper(Settings *settings, QObject *parent) :
+    QObject(parent),
+    clientId(td_create_client_id()),
+    networkConfigurationManager(new QNetworkConfigurationManager(this)),
+    settings(settings),
+    state(new TDLibState(this, this)),
+    utilities(new Utilities(this)),
+    authorizationState(AuthorizationState::Closed)
 {
     LOG("Initializing");
 

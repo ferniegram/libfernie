@@ -33,6 +33,7 @@
 
 class Utilities;
 class ChatData;
+class TDLibState;
 
 class TDLibWrapper : public QObject {
     Q_OBJECT
@@ -235,7 +236,8 @@ public:
     Q_INVOKABLE static QVariantMap getMessageSendOptions(bool fromBackground);
     QVariantMap getDefaultReactionType() const;
 
-    inline Utilities *getUtilities() const { return this->utilities; }
+    inline Utilities *getUtilities() const { return utilities; }
+    inline TDLibState *getState() const { return state; }
 
     // TDLib communication
     using ResponseSlot = std::function<void(const QString&, const QVariantMap&)>;
@@ -675,6 +677,7 @@ private:
     QNetworkConfigurationManager *networkConfigurationManager;
     Settings *settings;
     TDLibReceiver *tdLibReceiver;
+    TDLibState *state;
     Utilities *utilities;
     TDLibWrapper::AuthorizationState authorizationState = TDLibWrapper::AuthorizationUnknown;
     QVariantMap authorizationStateData;

@@ -351,7 +351,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
 
     if (chatPhotoFile)
         setIcon(chatPhotoFile->getPath());
-    else {
+    else if (chat) {
         const QVariantMap photoSmall = chat->photoSmall();
         if (!photoSmall.isEmpty()) {
             TDLibFile *file = new TDLibFile(tdLibWrapper, photoSmall, this);

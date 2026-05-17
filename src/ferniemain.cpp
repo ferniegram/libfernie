@@ -55,7 +55,6 @@ FernieMain::AppContext::AppContext(const char *uri, QSharedPointer<QQuickView> v
     waveformManager(view.data()),
     chatFoldersModel(tdLibWrapper, settings, utilities, view.data()),
     notificationManager(tdLibWrapper, settings, utilities, appName, appIconPath, dbusPath, dbusServiceName, dbusInterface),
-    processLauncher(),
     stickerManager(tdLibWrapper),
     knownUsersModel(tdLibWrapper, view.data()),
     knownUsersProxyModel(view.data()),
@@ -117,7 +116,6 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
 
     context->setContextProperty("waveformManager", &appContext->waveformManager);
     context->setContextProperty("notificationManager", &appContext->notificationManager);
-    context->setContextProperty("processLauncher", &appContext->processLauncher);
     context->setContextProperty("stickerManager", &appContext->stickerManager);
     context->setContextProperty("contactsModel", &appContext->contactsModel);
     context->setContextProperty("suggestedActionsManager", &appContext->suggestedActionsManager);

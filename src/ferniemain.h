@@ -8,7 +8,6 @@
 #include "debuglogjs.h"
 #include "tdlib/tdlibwrapper.h"
 #include "notificationmanager.h"
-#include "processlauncher.h"
 #include "stickermanager.h"
 #include "utilities.h"
 #include "knownusersmodel.h"
@@ -27,7 +26,6 @@ namespace FernieMain {
         WaveformManager waveformManager;
         ChatFoldersModel chatFoldersModel;
         NotificationManager notificationManager;
-        ProcessLauncher processLauncher;
         StickerManager stickerManager;
         KnownUsersModel knownUsersModel;
         QSortFilterProxyModel knownUsersProxyModel;

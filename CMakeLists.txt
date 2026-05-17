@@ -130,7 +130,6 @@ target_sources(libfernie PRIVATE
     src/knownusersmodel.cpp
     src/mceinterface.cpp
     src/notificationmanager.cpp
-    src/processlauncher.cpp
     src/stickermanager.cpp
     src/tdlib/tdlibfile.cpp
     src/tdlib/tdlibreceiver.cpp
@@ -171,7 +170,6 @@ target_sources(libfernie PRIVATE
     src/knownusersmodel.h
     src/mceinterface.h
     src/notificationmanager.h
-    src/processlauncher.h
     src/platformapp.h
     src/stickermanager.h
     src/tdlib/tdlibfile.h

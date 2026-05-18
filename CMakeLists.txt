@@ -146,7 +146,6 @@ target_sources(libfernie PRIVATE
     src/chat/invertedmediamessagesmodel.cpp
     src/userprofilepicturesmodel.cpp
     src/chat/chatphotosmodel.cpp
-    src/tdlib/tdlibstate.cpp
 
     src/settings.h
     src/boolfiltermodel.h
@@ -188,7 +187,6 @@ target_sources(libfernie PRIVATE
     src/chat/invertedmediamessagesmodel.h
     src/userprofilepicturesmodel.h
     src/chat/chatphotosmodel.h
-    src/tdlib/tdlibstate.h
 )
 
 target_link_libraries(libfernie

@@ -39,8 +39,6 @@ class TDLibWrapper : public QObject {
     Q_OBJECT
     Q_PROPERTY(AuthorizationState authorizationState MEMBER authorizationState NOTIFY authorizationStateChanged)
     Q_PROPERTY(QVariantMap authorizationStateData MEMBER authorizationStateData NOTIFY authorizationStateChanged)
-    Q_PROPERTY(ConnectionState connectionState MEMBER connectionState NOTIFY connectionStateChanged)
-    Q_PROPERTY(QString connectionStateText READ connectionStateText NOTIFY connectionStateChanged)
     Q_PROPERTY(QVariantMap userInformation READ getUserInformation NOTIFY myUserUpdated)
     Q_PROPERTY(QQmlPropertyMap* options MEMBER options CONSTANT)
     Q_PROPERTY(qlonglong myUserId READ myUserId NOTIFY myUserIdUpdated)
@@ -67,15 +65,6 @@ public:
         Closed,
     };
     Q_ENUM(AuthorizationState)
-
-    enum ConnectionState {
-        Connecting,
-        ConnectingToProxy,
-        ConnectionReady,
-        Updating,
-        WaitingForNetwork
-    };
-    Q_ENUM(ConnectionState)
 
     enum ChatType {
         ChatTypeUnknown,
@@ -230,7 +219,6 @@ public:
     Q_INVOKABLE bool isDiceEmoji(const QString &text);
     SearchMessagesFilter getSearchMessagesFilterForType(const QString &type);
     static QString getSearchMessagesFilterType(SearchMessagesFilter filter);
-    QString connectionStateText();
     Q_INVOKABLE bool canSkipChatJoinDialog(qlonglong chatId);
     Q_INVOKABLE void reset();
     Q_INVOKABLE static QVariantMap getMessageSendOptions(bool fromBackground);
@@ -451,7 +439,6 @@ signals:
     void ready();
     void clearContent();
     void optionUpdated(const QString &optionName, const QVariant &optionValue);
-    void connectionStateChanged(const TDLibWrapper::ConnectionState &connectionState);
     void fileUpdated(int fileId, const QVariantMap &fileInformation);
     void newChatDiscovered(qlonglong chatId, const QVariantMap &chatInformation);
 
@@ -605,7 +592,6 @@ private slots:
 
     void handleAuthorizationStateChanged(const QString &authorizationState, const QVariantMap &authorizationStateData);
     void handleOptionUpdated(const QString &optionName, const QVariant &optionValue);
-    void handleConnectionStateChanged(const QString &connectionState);
     void handleUserUpdated(const QVariantMap &updatedUserInformation);
     void handleUserStatusUpdated(qlonglong userId, const QVariantMap &userStatusInformation);
     void handleFileUpdated(const QVariantMap &fileInformation);
@@ -639,7 +625,6 @@ private slots:
     void handleUserPrivacySettingRules(const QVariantMap &rules);
     void handleUpdatedUserPrivacySettingRules(const QVariantMap &updatedRules);
     void handleSponsoredMessagesReceived(qlonglong chatId, const QVariantList &messages, int messagesBetween);
-    void handleNetworkConfigurationChanged(const QNetworkConfiguration &config);
     void handleActiveEmojiReactionsUpdated(const QStringList& emojis);
     void handleDiceEmojisUpdated(const QStringList &emojis);
     void handleFoundChatMessagesReceived(qlonglong chatId, int extra, int extra2, const QVariantList &messages, int totalCount, qlonglong nextFromMessageId);
@@ -674,14 +659,12 @@ private:
 
 private:
     int clientId;
-    QNetworkConfigurationManager *networkConfigurationManager;
     Settings *settings;
     TDLibReceiver *tdLibReceiver;
     TDLibState *state;
     Utilities *utilities;
     TDLibWrapper::AuthorizationState authorizationState = TDLibWrapper::AuthorizationUnknown;
     QVariantMap authorizationStateData;
-    TDLibWrapper::ConnectionState connectionState;
     QQmlPropertyMap* options;
     QVariantMap userInformation;
     QMap<UserPrivacySetting, UserPrivacySettingRule> userPrivacySettingRules;

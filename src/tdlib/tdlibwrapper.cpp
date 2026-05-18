@@ -200,23 +200,20 @@ QVariantMap findChatPositionForFolder(const QVariantList &positions, int folderI
 TDLibWrapper::TDLibWrapper(Settings *settings, QObject *parent) :
     QObject(parent),
     clientId(td_create_client_id()),
-    networkConfigurationManager(new QNetworkConfigurationManager(this)),
     settings(settings),
-    state(new TDLibState(this, this)),
     utilities(new Utilities(this)),
     authorizationState(AuthorizationState::Closed)
 {
     LOG("Initializing");
 
     initializeTDLibReceiver();
+    state = new TDLibState(tdLibReceiver, this, this);
 
     const QString databasePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tdlib";
     QDir().mkpath(databasePath);
 
     connect(settings, &Settings::storageOptimizerChanged, this, &TDLibWrapper::handleStorageOptimizerChanged);
     connect(settings, &Settings::sendMarkdownChanged, this, &TDLibWrapper::handleSendMarkdownChanged);
-
-    connect(networkConfigurationManager, &QNetworkConfigurationManager::configurationChanged, this, &TDLibWrapper::handleNetworkConfigurationChanged);
 
     initializePropertyMaps();
     setInitialOptions();
@@ -248,7 +245,6 @@ void TDLibWrapper::initializeTDLibReceiver() {
     this->tdLibReceiver = new TDLibReceiver(this->clientId, this);
     connect(this->tdLibReceiver, &TDLibReceiver::authorizationStateChanged, this, &TDLibWrapper::handleAuthorizationStateChanged);
     connect(this->tdLibReceiver, &TDLibReceiver::optionUpdated, this, &TDLibWrapper::handleOptionUpdated);
-    connect(this->tdLibReceiver, &TDLibReceiver::connectionStateChanged, this, &TDLibWrapper::handleConnectionStateChanged);
     connect(this->tdLibReceiver, &TDLibReceiver::userUpdated, this, &TDLibWrapper::handleUserUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::userStatusUpdated, this, &TDLibWrapper::handleUserStatusUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::fileUpdated, this, &TDLibWrapper::handleFileUpdated);
@@ -1863,26 +1859,6 @@ qlonglong TDLibWrapper::myUserId() const {
     return options->value(MY_ID).toLongLong();
 }
 
-void TDLibWrapper::handleConnectionStateChanged(const QString &connectionState) {
-    if (connectionState == "connectionStateConnecting") {
-        this->connectionState = ConnectionState::Connecting;
-    }
-    if (connectionState == "connectionStateConnectingToProxy") {
-        this->connectionState = ConnectionState::ConnectingToProxy;
-    }
-    if (connectionState == "connectionStateReady") {
-        this->connectionState = ConnectionState::ConnectionReady;
-    }
-    if (connectionState == "connectionStateUpdating") {
-        this->connectionState = ConnectionState::Updating;
-    }
-    if (connectionState == "connectionStateWaitingForNetwork") {
-        this->connectionState = ConnectionState::WaitingForNetwork;
-    }
-
-    emit connectionStateChanged(this->connectionState);
-}
-
 void TDLibWrapper::handleUserUpdated(const QVariantMap &updatedUserInformation) {
     qlonglong updatedUserId = updatedUserInformation.value(ID).toLongLong();
     if (updatedUserId == this->options->value(MY_ID).toLongLong()) {
@@ -2337,31 +2313,6 @@ void TDLibWrapper::handleActiveEmojiReactionsUpdated(const QStringList& emojis) 
         LOG(emojis.count() << "reaction(s) available");
         emit reactionsUpdated();
     }
-}
-
-void TDLibWrapper::handleNetworkConfigurationChanged(const QNetworkConfiguration &config) {
-    LOG("A network configuration changed, updating network type" << config.bearerTypeName() << config.state());
-
-    QList<QNetworkConfiguration> activeConfigurations = networkConfigurationManager->allConfigurations(QNetworkConfiguration::Active);
-    for (const QNetworkConfiguration &configuration : activeConfigurations) {
-        switch (configuration.bearerTypeFamily()) {
-        case QNetworkConfiguration::BearerWLAN:
-            setNetworkType(NetworkType::WiFi);
-            return;
-        case QNetworkConfiguration::Bearer2G:
-        case QNetworkConfiguration::Bearer3G:
-        case QNetworkConfiguration::Bearer4G:
-            setNetworkType(NetworkType::Mobile);
-            return;
-        case QNetworkConfiguration::BearerEthernet:
-            setNetworkType(NetworkType::Other);
-            return;
-        default:
-            break;
-        }
-    }
-
-    this->setNetworkType(NetworkType::None);
 }
 
 void TDLibWrapper::setTdlibParameters() {
@@ -2856,21 +2807,6 @@ void TDLibWrapper::processChatJoinRequests(qlonglong chatId, bool approve, const
                           {APPROVE, approve},
                           {INVITE_LINK, inviteLink}
                       });
-}
-
-QString TDLibWrapper::connectionStateText() {
-    switch (connectionState) {
-    case WaitingForNetwork:
-        return tr("Waiting for network...");
-    case Connecting:
-        return tr("Connecting to network...");
-    case ConnectingToProxy:
-        return tr("Connecting to proxy...");
-    case Updating:
-        return tr("Updating content...");
-    default:
-        return QString();
-    }
 }
 
 void TDLibWrapper::getInternalLinkType(const QString &link) {

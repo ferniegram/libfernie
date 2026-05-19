@@ -167,7 +167,10 @@ QHash<int,QByteArray> ChatListModel::roleNames() const {
         {ChatData::RoleDraftMessageDate, "draft_message_date"},
         {ChatData::RoleDraftMessageText, "draft_message_text"},
         {ChatData::RoleNotificationSettings, "notification_settings"},
-        {ChatData::RolePermissions, "permissions"}
+        {ChatData::RolePermissions, "permissions"},
+        {ChatData::RoleChatMainActionType, "chat_main_action_type"},
+        {ChatData::RoleChatActionsText, "chat_actions_text"},
+        {ChatData::RoleChatActionsProgress, "chat_actions_progress"}
     };
 }
 
@@ -207,6 +210,9 @@ QVariant ChatListModel::data(const QModelIndex &index, int role) const {
         case ChatData::RoleDraftMessageDate: return data->data->draftMessageDate();
         case ChatData::RoleNotificationSettings: return data->data->notificationSettings();
         case ChatData::RolePermissions: return data->data->permissions();
+        case ChatData::RoleChatMainActionType: return QVariant::fromValue(data->data->getMainChatActionType());
+        case ChatData::RoleChatActionsText: return data->data->getChatActionsText();
+        case ChatData::RoleChatActionsProgress: return data->data->getChatActionsProgress();
         }
     }
     return QVariant();

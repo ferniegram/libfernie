@@ -78,8 +78,9 @@ class ChatManager : public QObject {
     Q_PROPERTY(ForumTopicsModel* topicsModel MEMBER topicsModel NOTIFY topicsModelChanged)
 
     Q_PROPERTY(qlonglong pinnedMessageId MEMBER pinnedMessageId NOTIFY pinnedMessageChanged)
-    Q_PROPERTY(QVariantMap chatActionsByUsers MEMBER chatActionsByUsers NOTIFY chatActionsChanged)
-    Q_PROPERTY(QVariantMap chatActionsByChats MEMBER chatActionsByChats NOTIFY chatActionsChanged)
+    Q_PROPERTY(TDLibWrapper::ChatActionType chatMainActionType READ chatMainActionType NOTIFY chatActionsChanged)
+    Q_PROPERTY(QString chatActionsText READ chatActionsText NOTIFY chatActionsChanged)
+    Q_PROPERTY(qreal chatActionsProgress READ chatActionsProgress NOTIFY chatActionsChanged)
 
 public:
     ChatManager(QObject *parent = nullptr);
@@ -112,6 +113,16 @@ public:
     QVariantMap permissions() const;
     void setPermissions(const QVariantMap &permissions);
 
+    inline TDLibWrapper::ChatActionType chatMainActionType() {
+        return infoInitialized() ? tdLibWrapper->getChatDataForce(chatId)->getMainChatActionType() : TDLibWrapper::ChatActionType::Cancel;
+    }
+    inline QString chatActionsText() {
+        return infoInitialized() ? tdLibWrapper->getChatDataForce(chatId)->getChatActionsText() : QString();
+    }
+    inline qreal chatActionsProgress() {
+        return infoInitialized() ? tdLibWrapper->getChatDataForce(chatId)->getChatActionsProgress() : -1;
+    }
+
 signals:
     void tdlibChanged();
     void messagesModelChanged();
@@ -138,7 +149,6 @@ private slots:
     void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles = QVector<int>());
     void handleChatPendingJoinRequestsUpdated(qlonglong chatId);
     void handleChatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
-    void handleChatActionUpdated(qlonglong chatId, const QVariantMap &sender, const QVariantMap &chatAction, qlonglong messageThreadId);
     void handleUserUpdated(qlonglong userId);
     void handleBasicGroupUpdated(qlonglong groupId);
     void handleSupergroupUpdated(qlonglong groupId);
@@ -167,7 +177,4 @@ private:
 
     ChatMessagesModel *chatMessagesModel;
     ForumTopicsModel *topicsModel;
-
-    QVariantMap chatActionsByUsers; // QMap<qlonglong, QString>
-    QVariantMap chatActionsByChats; //QMap<qlonglong, QString>
 };

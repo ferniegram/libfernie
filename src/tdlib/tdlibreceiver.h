@@ -117,7 +117,7 @@ signals:
     void storageStatisticsFastReceived(const QVariantMap &statistics);
     void storageStatisticsReceived(const QVariantMap &statistics);
     void formattedTextReceived(const QVariantMap &formattedText, const QString &extra);
-    void chatActionUpdated(qlonglong chatId, const QVariantMap &sender, const QVariantMap &action, qlonglong messageThreadId);
+    void chatActionUpdated(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &sender, const QVariantMap &action);
     void emojiKeywordsReceived(const QString &text, const QVariantList &emojis);
     void diceEmojisUpdated(const QStringList &emojis);
     void suggestedActionsUpdated(const QVariantList &added, const QVariantList &removed);

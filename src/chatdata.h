@@ -33,11 +33,28 @@ public:
         RoleDraftMessageText,
         RoleDraftMessageDate,
         RoleNotificationSettings,
-        RolePermissions
+        RolePermissions,
+        RoleChatMainActionType,
+        RoleChatActionsText,
+        RoleChatActionsProgress
     };
 
     ChatData(TDLibWrapper *tdLibWrapper, Utilities *utilities, const QVariantMap &data);
     ChatData(TDLibWrapper *tdLibWrapper, Utilities *utilities, qlonglong chatId);
+
+    struct ChatAction {
+        TDLibWrapper::ChatActionType type = TDLibWrapper::ChatActionType::Cancel; // not Cancel in ChatData.chatActions
+        QVariant progressOrEmoji;
+
+        ChatAction() {}
+        ChatAction(const QVariantMap &action);
+
+        bool operator==(const ChatAction &other) const;
+        inline bool operator!=(const ChatAction &other) const { return !operator==(other); }
+
+        bool isInvalid() const;
+        int progress() const;
+    };
 
     void updateChatData(const QVariantMap &data);
     virtual const QVariantMap lastMessage() const override;
@@ -54,9 +71,14 @@ public:
     virtual qlonglong lastReadOutboxMessageId() const override;
     QVariantMap notificationSettings() const;
     QVariantMap permissions() const;
+    TDLibWrapper::ChatActionType getMainChatActionType() const;
+    QString getChatActionsText() const;
+    qreal getChatActionsProgress() const;
 
     bool isChannel() const;
     bool isMarkedAsUnread() const;
+    bool isPrivateOrSecretChat() const;
+
     bool updateUnreadCount(int unreadCount);
     bool updateLastReadInboxMessageId(qlonglong messageId);
     bool updateLastReadOutboxMessageId(qlonglong messageId);
@@ -72,4 +94,5 @@ public:
     TDLibWrapper::ChatType chatType;
     TDLibWrapper::ChatMemberStatus memberStatus;
     TDLibWrapper::SecretChatState secretChatState;
+    QHash<TDLibWrapper::MessageSender, ChatAction> chatActions;
 };

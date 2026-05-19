@@ -18,7 +18,6 @@
 */
 
 #include "utilities.h"
-#include "chatdata.h"
 #include <QMap>
 #include <QVariant>
 #include <QStandardPaths>
@@ -765,11 +764,11 @@ QString Utilities::getChatTitle(const ChatData *chat) const {
     return title.isEmpty() ? tr("Unknown", "A chat without a known name") : title;
 }
 
-QString Utilities::formatMessageSender(const QVariantMap &messageSender) const {
-    if (messageSender.value(_TYPE).toString() == "messageSenderChat")
-        return getChatTitleById(messageSender.value(CHAT_ID).toLongLong());
+QString Utilities::formatMessageSender(const TDLibWrapper::MessageSender &messageSender) const {
+    if (messageSender.isChat)
+        return getChatTitleById(messageSender.id);
     else
-        return Utilities::getUserName(tdLibWrapper->getUserInformation(messageSender.value(USER_ID).toString()));
+        return Utilities::getUserName(tdLibWrapper->getUserInformation(QString::number(messageSender.id)));
 }
 
 QString Utilities::formatDuration(int seconds) {
@@ -1009,4 +1008,140 @@ QString Utilities::uncompressLocalFile(const QString &path) {
 
 bool Utilities::compareQlonglongVariant(const QVariant& a, const QVariant& b) {
     return a.toLongLong() < b.toLongLong();
+}
+
+QString Utilities::formatNames(const QStringList &names, int othersCount) {
+    if (names.size() == 0)
+        return QString();
+
+    QString result;
+    if (names.size() == 1) {
+        result = names.first();
+
+        if (othersCount == 0)
+            return result;
+    } else {
+        QStringList newNames = names;
+        if (othersCount == 0)
+            newNames.removeLast();
+
+        result = newNames.join(tr(", ", "Separator for names"));
+
+        if (othersCount == 0)
+            return tr("%1 and %2", "names").arg(result).arg(names.last());
+    }
+
+    return tr("%1 and %Ln others", "names", othersCount).arg(result);
+}
+
+
+ChatData::ChatAction Utilities::getMainChatAction(bool isUser, const QList<ChatData::ChatAction> &chatActions) {
+    if (chatActions.isEmpty()) return {};
+
+    if (isUser)
+        return chatActions.first();
+
+    ChatData::ChatAction mainAction;
+    for (const ChatData::ChatAction &action : chatActions) {
+        if (mainAction.isInvalid())
+            mainAction = action;
+        else if (mainAction != action)
+            return {};
+    }
+    return mainAction;
+}
+
+QString Utilities::formatChatActions(bool isUser, const QHash<TDLibWrapper::MessageSender, ChatData::ChatAction> &chatActions) const {
+    if (chatActions.isEmpty()) return QString();
+
+    QString prefix;
+    const ChatData::ChatAction mainAction = getMainChatAction(isUser, chatActions.values());
+    int totalCount;
+
+    if (isUser)
+        totalCount = 1;
+    else {
+        QStringList names;
+        int othersCount = 0;
+
+        for (const TDLibWrapper::MessageSender &sender : chatActions.keys()) {
+            if (names.size() < 2)
+                names.append(formatMessageSender(sender));
+            else
+                othersCount++;
+        }
+
+        prefix = formatNames(names, othersCount);
+        totalCount = names.size() + othersCount;
+    }
+
+    if (mainAction.isInvalid())
+        return prefix + "…";
+
+    QString actionText;
+    switch (mainAction.type) {
+    case TDLibWrapper::ChatActionType::Typing:
+        actionText = isUser ? tr("typing") : tr("%1 is typing", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::RecordingVideo:
+        actionText = isUser ? tr("recording a video") : tr("%1 is recording a video", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::UploadingVideo:
+        actionText = isUser ? tr("sending a video") : tr("%1 is sending a video", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::RecordingVoiceNote:
+        actionText = isUser ? tr("recording a voice message") : tr("%1 is recording a voice message", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::UploadingVoiceNote:
+        actionText = isUser ? tr("sending a voice message") : tr("%1 is sending a voice message", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::UploadingPhoto:
+        actionText = isUser ? tr("sending a photo") : tr("%1 is sending a photo", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::UploadingDocument:
+        actionText = isUser ? tr("sending a file") : tr("%1 is sending a file", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::ChoosingSticker:
+        actionText = isUser ? tr("choosing a sticker") : tr("%1 is choosing a sticker", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::ChoosingLocation:
+        actionText = isUser ? tr("choosing location") : tr("%1 is choosing location", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::ChoosingContact:
+        actionText = isUser ? tr("choosing a contact") : tr("%1 is choosing a contact", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::StartPlayingGame:
+        actionText = isUser ? tr("playing a game") : tr("%1 is playing a game", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::RecordingVideoNote:
+        actionText = isUser ? tr("recording a video message") : tr("%1 is recording a video message", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::UploadingVideoNote:
+        actionText = isUser ? tr("sending a video message") : tr("%1 is sending a video message", "", totalCount);
+        break;
+    case TDLibWrapper::ChatActionType::WatchingAnimations:
+        actionText = (isUser ? tr("watching %1") : tr("%1 is watching %2", "", totalCount)).arg(mainAction.progressOrEmoji.toString());
+        break;
+    default:
+        // Should never reach here
+        break;
+    }
+
+    return isUser ? actionText : actionText.arg(prefix);
+}
+
+qreal Utilities::getChatActionsProgress(bool isUser, const QList<ChatData::ChatAction> &chatActions)  {
+    if (chatActions.isEmpty()) return -1;
+
+    if (isUser)
+        return chatActions.first().progress();
+
+    if (getMainChatAction(isUser, chatActions).isInvalid() || chatActions.first().progress() < 0)
+        return -1;
+
+    int totalProgress = 0;
+    for (const ChatData::ChatAction &action : chatActions)
+        totalProgress += action.progress();
+
+    return static_cast<qreal>(totalProgress) / (chatActions.size() * 100);
 }

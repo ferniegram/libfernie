@@ -92,6 +92,7 @@ namespace {
     const QString FORUM_TOPIC_ID("forum_topic_id");
     const QString STICKER_IDS("sticker_ids");
     const QString TYPE("type");
+    const QString TOPIC_ID("topic_id");
 
     const QString _TYPE("@type");
     const QString _EXTRA("@extra");
@@ -1010,10 +1011,9 @@ void TDLibReceiver::processFormattedText(const QVariantMap &receivedInformation)
 }
 
 void TDLibReceiver::processUpdateChatAction(const QVariantMap &receivedInformation) {
-    const qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong(),
-            messageThreadId = receivedInformation.value(MESSAGE_THREAD_ID).toLongLong();
-    LOG("Received updateChatAction" << chatId << messageThreadId);
-    emit chatActionUpdated(chatId, receivedInformation.value(SENDER_ID).toMap(), receivedInformation.value("action").toMap(), messageThreadId);
+    const qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong();
+    LOG("Received updateChatAction" << chatId);
+    emit chatActionUpdated(chatId, receivedInformation.value(TOPIC_ID).toMap(), receivedInformation.value(SENDER_ID).toMap(), receivedInformation.value("action").toMap());
 }
 
 void TDLibReceiver::processEmojiKeywords(const QVariantMap &receivedInformation) {

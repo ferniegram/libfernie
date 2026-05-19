@@ -155,6 +155,10 @@ bool ChatData::isMarkedAsUnread() const
     return chatData.value(IS_MARKED_AS_UNREAD).toBool();
 }
 
+bool ChatData::isPrivateOrSecretChat() const {
+    return chatType == TDLibWrapper::ChatTypePrivate || chatType == TDLibWrapper::ChatTypeSecret;
+}
+
 bool ChatData::updateUnreadCount(int count)
 {
     const int prevUnreadCount(unreadCount());
@@ -236,4 +240,53 @@ QVector<int> ChatData::updateSecretChat(const QVariantMap &secretChatDetails) {
         changedRoles.append(ChatData::RoleSecretChatState);
     }
     return changedRoles;
+}
+
+
+
+ChatData::ChatAction::ChatAction(const QVariantMap &action) {
+    type = TDLibWrapper::getChatActionType(action.value(_TYPE).toString());
+
+    switch (type) {
+    case TDLibWrapper::ChatActionType::UploadingVideo:
+    case TDLibWrapper::ChatActionType::UploadingVoiceNote:
+    case TDLibWrapper::ChatActionType::UploadingPhoto:
+    case TDLibWrapper::ChatActionType::UploadingDocument:
+    case TDLibWrapper::ChatActionType::UploadingVideoNote:
+        progressOrEmoji = action.value("progress").toInt();
+        break;
+    case TDLibWrapper::ChatActionType::WatchingAnimations:
+        progressOrEmoji = action.value("emoji").toString();
+        break;
+    default:
+        break;
+    }
+}
+
+bool ChatData::ChatAction::operator==(const ChatAction &other) const {
+    return type == other.type && (type != TDLibWrapper::ChatActionType::WatchingAnimations || progressOrEmoji == other.progressOrEmoji);
+}
+
+bool ChatData::ChatAction::isInvalid() const {
+    return type == TDLibWrapper::ChatActionType::Cancel;
+}
+
+int ChatData::ChatAction::progress() const {
+    if (progressOrEmoji.userType() == QMetaType::Int)
+        return progressOrEmoji.toInt();
+    return -1;
+}
+
+
+
+TDLibWrapper::ChatActionType ChatData::getMainChatActionType() const {
+    return utilities->getMainChatAction(isPrivateOrSecretChat(), chatActions.values()).type;
+}
+
+QString ChatData::getChatActionsText() const {
+    return utilities->formatChatActions(isPrivateOrSecretChat(), chatActions);
+}
+
+qreal ChatData::getChatActionsProgress() const {
+    return utilities->getChatActionsProgress(isPrivateOrSecretChat(), chatActions.values());
 }

@@ -321,7 +321,6 @@ void ChatManager::setTDLibWrapper(QObject *obj) {
             connect(this->tdLibWrapper, &TDLibWrapper::chatReadOutboxUpdated, this, &ChatManager::handleChatReadOutboxUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::chatRolesUpdated, this, &ChatManager::handleChatRolesUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::chatPinnedMessageUpdated, this, &ChatManager::handleChatPinnedMessageUpdated);
-            connect(this->tdLibWrapper, &TDLibWrapper::chatActionUpdated, this, &ChatManager::handleChatActionUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::userUpdated, this, &ChatManager::handleUserUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::basicGroupUpdated, this, &ChatManager::handleBasicGroupUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::supergroupUpdated, this, &ChatManager::handleSupergroupUpdated);
@@ -452,6 +451,10 @@ void ChatManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> ch
             LOG("Chat permissions updated" << chatId);
             emit permissionsChanged();
         }
+        if (changedRoles.contains(ChatData::RoleChatActionsText)) {
+            LOG("Chat actions text updated" << chatId);
+            emit chatActionsChanged();
+        }
         LOG("Chat roles updated" << chatId << changedRoles);
         emit chatInformationChanged();
     }
@@ -462,26 +465,6 @@ void ChatManager::handleChatPinnedMessageUpdated(qlonglong id, qlonglong pinnedM
         LOG("Pinned message updated" << chatId);
         this->pinnedMessageId = pinnedMessageId;
         emit pinnedMessageChanged();
-    }
-}
-
-void ChatManager::handleChatActionUpdated(qlonglong chatId, const QVariantMap &sender, const QVariantMap &action, qlonglong messageThreadId) {
-    const QString actionType = action.value(_TYPE).toString();
-    if (messageThreadId == 0 && chatId == this->chatId) {
-        LOG("Chat action updated");
-        if (sender.value(_TYPE).toString() == "messageSenderChat") {
-            const QString lastMessageSenderChatId = sender.value(CHAT_ID).toString();
-            if (actionType == "chatActionCancel")
-                chatActionsByChats.remove(lastMessageSenderChatId);
-            else chatActionsByChats.insert(lastMessageSenderChatId, actionType);
-        } else {
-            const QString lastMessageSenderUserId = sender.value(USER_ID).toString();
-            if (actionType == "chatActionCancel")
-                chatActionsByUsers.remove(lastMessageSenderUserId);
-            else chatActionsByUsers.insert(lastMessageSenderUserId, actionType);
-        }
-        LOG(chatActionsByChats << chatActionsByUsers << chatId << sender << action);
-        emit chatActionsChanged();
     }
 }
 
@@ -511,19 +494,13 @@ void ChatManager::reset(bool resetChatId) {
         chatId = 0;
         emit chatIdChanged();
         emit pendingJoinRequestsChanged();
+        emit chatActionsChanged();
+        // TODO: check if any other signals need to be changed
     }
 
     mainModelsInitializationScheduled = false;
     mainModelsInitializationScheduledFromMessageId = 0;
 
-    if (!chatActionsByUsers.isEmpty()) {
-        chatActionsByUsers.clear();
-        emit chatActionsChanged();
-    }
-    if (!chatActionsByChats.isEmpty()) {
-        chatActionsByChats.clear();
-        emit chatActionsChanged();
-    }
     LOG("Finished resetting chat manager resetChatId:" << resetChatId);
 }
 

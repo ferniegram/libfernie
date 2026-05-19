@@ -194,14 +194,42 @@ public:
     };
     Q_ENUM(NotificationSettingsScope)
 
-    class Group {
-    public:
+    enum class ChatActionType {
+        Cancel,
+        Typing,
+        RecordingVideo,
+        UploadingVideo,
+        RecordingVoiceNote,
+        UploadingVoiceNote,
+        UploadingPhoto,
+        UploadingDocument,
+        ChoosingSticker,
+        ChoosingLocation,
+        ChoosingContact,
+        StartPlayingGame,
+        RecordingVideoNote,
+        UploadingVideoNote,
+        WatchingAnimations
+    };
+    Q_ENUM(ChatActionType)
+
+    struct Group {
         Group(qlonglong id) : groupId(id) { }
         ChatMemberStatus chatMemberStatus() const;
         bool isPublic() const;
-    public:
+
         const qlonglong groupId;
         QVariantMap groupInfo;
+    };
+
+    struct MessageSender {
+        MessageSender(bool isChat, qlonglong id) : isChat(isChat), id(id) {}
+        MessageSender(const QVariantMap &sender);
+
+        bool operator==(const MessageSender &other) const;
+
+        bool isChat = false;
+        qlonglong id = 0;
     };
 
     qlonglong myUserId() const;
@@ -234,6 +262,8 @@ public:
     Q_INVOKABLE void reset();
     Q_INVOKABLE static QVariantMap getMessageSendOptions(bool fromBackground);
     QVariantMap getDefaultReactionType() const;
+    static ChatActionType getChatActionType(const QString &type);
+    static QString getChatActionTypeString(ChatActionType type);
 
     inline Utilities *getUtilities() const { return this->utilities; }
 
@@ -373,7 +403,8 @@ public:
     Q_INVOKABLE void translateText(const QVariantMap &text, const QString &languageCode, const QString &extra);
     Q_INVOKABLE void translateMessageText(qlonglong chatId, qlonglong messageId, const QString &languageCode);
     Q_INVOKABLE void summarizeMessage(qlonglong chatId, qlonglong messageId, const QString &translateToLanguageCode = QString());
-    Q_INVOKABLE void sendChatAction(qlonglong chatId, const QString &chatActionType, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void sendChatAction(qlonglong chatId, const QVariantMap &topicId = QVariantMap(), const QVariantMap &action = QVariantMap());
+    Q_INVOKABLE void sendChatAction(qlonglong chatId, ChatActionType type, const QVariantMap &topicId = QVariantMap());
     Q_INVOKABLE void searchEmojis(const QString &text);
     Q_INVOKABLE void toggleSupergroupIsForum(bool isForum);
     Q_INVOKABLE void getTopChats(TopChatCategory category, int limit=50);
@@ -546,7 +577,7 @@ signals:
     void storageStatisticsFastReceived(const QVariantMap &statistics);
     void storageStatisticsReceived(const QVariantMap &statistics);
     void formattedTextReceived(const QVariantMap &formattedText, const QString &extra);
-    void chatActionUpdated(qlonglong chatId, const QVariantMap &sender, const QVariantMap &action, qlonglong messageThreadId);
+    void chatActionUpdated(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &sender, const QVariantMap &action);
     void emojiKeywordsReceived(const QString &text, const QVariantList &emojis);
     void suggestedActionsUpdated(const QVariantList &added, const QVariantList &removed);
     void countReceived(int count, const QString &extra);
@@ -650,6 +681,7 @@ private slots:
     void handleChatPermissionsUpdated(qlonglong chatId, const QVariantMap &permissions);
     void handleScopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings);
     void handleDefaultReactionTypeUpdated(const QVariantMap &reactionType);
+    void handleChatActionUpdated(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &sender, const QVariantMap &action);
 
 private:
     void initializePropertyMaps();
@@ -701,3 +733,5 @@ private:
     bool isClosing = false;
     qlonglong nextRequestId = 0;
 };
+
+uint qHash(const TDLibWrapper::MessageSender &key, uint seed = 0) noexcept;

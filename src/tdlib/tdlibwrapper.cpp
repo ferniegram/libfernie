@@ -144,6 +144,7 @@ namespace {
     const QString MUTE_FOR("mute_for");
     const QString NOTIFICATION_SOUND_ID("notification_sound_id");
     const QString FILE_ID("file_id");
+    const QString TYPE_MESSAGE_SENDER_CHAT("messageSenderChat");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -325,7 +326,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::storageStatisticsFastReceived, this, &TDLibWrapper::storageStatisticsFastReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::storageStatisticsReceived, this, &TDLibWrapper::storageStatisticsReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::formattedTextReceived, this, &TDLibWrapper::formattedTextReceived);
-    connect(this->tdLibReceiver, &TDLibReceiver::chatActionUpdated, this, &TDLibWrapper::chatActionUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::chatActionUpdated, this, &TDLibWrapper::handleChatActionUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::emojiKeywordsReceived, this, &TDLibWrapper::emojiKeywordsReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::diceEmojisUpdated, this, &TDLibWrapper::handleDiceEmojisUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::suggestedActionsUpdated, this, &TDLibWrapper::suggestedActionsUpdated);
@@ -2454,6 +2455,19 @@ bool TDLibWrapper::Group::isPublic() const {
             || this->groupInfo.value("is_direct_messages_group").toBool(); // last one is questionable
 }
 
+TDLibWrapper::MessageSender::MessageSender(const QVariantMap &sender) :
+    isChat(sender.value(_TYPE) == TYPE_MESSAGE_SENDER_CHAT),
+    id(sender.value(isChat ? CHAT_ID : USER_ID).toLongLong())
+{}
+
+bool TDLibWrapper::MessageSender::operator==(const MessageSender &other) const {
+    return isChat == other.isChat && id == other.id;
+}
+
+uint qHash(const TDLibWrapper::MessageSender &key, uint seed) noexcept {
+    return qHash(QPair<bool, qlonglong>(key.isChat, key.id), seed);
+}
+
 void TDLibWrapper::getMessageProperties(qlonglong chatId, qlonglong messageId) {
     LOG("Retrieving message properties" << chatId << messageId);
     QVariantMap requestObject{{CHAT_ID, chatId}, {MESSAGE_ID, messageId}};
@@ -2521,18 +2535,22 @@ void TDLibWrapper::summarizeMessage(qlonglong chatId, qlonglong messageId, const
     });
 }
 
-void TDLibWrapper::sendChatAction(qlonglong chatId, const QString &chatActionType, const QVariantMap &topicId) {
-    LOG("Sending chat action" << chatId << chatActionType);
+void TDLibWrapper::sendChatAction(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &action) {
+    LOG("Sending chat action" << chatId << action.value(_TYPE).toString());
     QVariantMap request{
         {_TYPE, "sendChatAction"},
-        {CHAT_ID, chatId},
-        {"action", QVariantMap{{_TYPE, chatActionType}}}
+        {CHAT_ID, chatId}
     };
-
+    if (!action.isEmpty())
+        request.insert("action", action);
     if (!topicId.isEmpty())
         request.insert(TOPIC_ID, topicId);
 
     this->sendRequest(request);
+}
+
+void TDLibWrapper::sendChatAction(qlonglong chatId, TDLibWrapper::ChatActionType type, const QVariantMap &topicId) {
+    sendChatAction(chatId, topicId, {{_TYPE, getChatActionTypeString(type)}});
 }
 
 void TDLibWrapper::searchEmojis(const QString &text) {
@@ -3269,4 +3287,91 @@ void TDLibWrapper::handleDefaultReactionTypeUpdated(const QVariantMap &reactionT
 
 QVariantMap TDLibWrapper::getDefaultReactionType() const {
     return defaultReactionType;
+}
+
+TDLibWrapper::ChatActionType TDLibWrapper::getChatActionType(const QString &type) {
+    if (type == "chatActionTyping")
+        return ChatActionType::Typing;
+    else if (type == "chatActionRecordingVideo")
+        return ChatActionType::RecordingVideo;
+    else if (type == "chatActionUploadingVideo")
+        return ChatActionType::UploadingVideo;
+    else if (type == "chatActionRecordingVoiceNote")
+        return ChatActionType::RecordingVoiceNote;
+    else if (type == "chatActionUploadingVoiceNote")
+        return ChatActionType::UploadingVoiceNote;
+    else if (type == "chatActionUploadingPhoto")
+        return ChatActionType::UploadingPhoto;
+    else if (type == "chatActionUploadingDocument")
+        return ChatActionType::UploadingDocument;
+    else if (type == "chatActionChoosingSticker")
+        return ChatActionType::ChoosingSticker;
+    else if (type == "chatActionChoosingLocation")
+        return ChatActionType::ChoosingLocation;
+    else if (type == "chatActionChoosingContact")
+        return ChatActionType::ChoosingContact;
+    else if (type == "chatActionStartPlayingGame")
+        return ChatActionType::StartPlayingGame;
+    else if (type == "chatActionRecordingVideoNote")
+        return ChatActionType::RecordingVideoNote;
+    else if (type == "chatActionUploadingVideoNote")
+        return ChatActionType::UploadingVideoNote;
+    else if (type == "chatActionWatchingAnimations")
+        return ChatActionType::WatchingAnimations;
+
+    return ChatActionType::Cancel;
+}
+
+QString TDLibWrapper::getChatActionTypeString(ChatActionType type) {
+    switch (type) {
+    case ChatActionType::Typing:
+        return "chatActionTyping";
+    case ChatActionType::RecordingVideo:
+        return "chatActionRecordingVideo";
+    case ChatActionType::UploadingVideo:
+        return "chatActionUploadingVideo";
+    case ChatActionType::RecordingVoiceNote:
+        return "chatActionRecordingVoiceNote";
+    case ChatActionType::UploadingVoiceNote:
+        return "chatActionUploadingVoiceNote";
+    case ChatActionType::UploadingPhoto:
+        return "chatActionUploadingPhoto";
+    case ChatActionType::UploadingDocument:
+        return "chatActionUploadingDocument";
+    case ChatActionType::ChoosingSticker:
+        return "chatActionChoosingSticker";
+    case ChatActionType::ChoosingLocation:
+        return "chatActionChoosingLocation";
+    case ChatActionType::ChoosingContact:
+        return "chatActionChoosingContact";
+    case ChatActionType::StartPlayingGame:
+        return "chatActionStartPlayingGame";
+    case ChatActionType::RecordingVideoNote:
+        return "chatActionRecordingVideoNote";
+    case ChatActionType::UploadingVideoNote:
+        return "chatActionUploadingVideoNote";
+    case ChatActionType::WatchingAnimations:
+        return "chatActionWatchingAnimations";
+    default:
+        return "chatActionCancel";
+    }
+}
+
+void TDLibWrapper::handleChatActionUpdated(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &sender, const QVariantMap &action) {
+    LOG("Chat action updated" << chatId);
+
+    if (topicId.isEmpty()) {
+        ChatData *data = chats.value(chatId);
+        if (data) {
+            LOG("Main chat action updated" << chatId);
+            if (action.value(_TYPE).toString() == "chatActionCancel")
+                data->chatActions.remove(MessageSender(sender));
+            else
+                getChatDataForce(chatId)->chatActions.insert(MessageSender(sender), ChatData::ChatAction(action));
+
+            emit chatRolesUpdated(chatId, {ChatData::RoleChatMainActionType, ChatData::RoleChatActionsText, ChatData::RoleChatActionsProgress});
+        }
+    } else
+        // TODO: handle forum topic chat actions and others
+        emit chatActionUpdated(chatId, topicId, sender, action);
 }

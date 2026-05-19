@@ -24,6 +24,7 @@
 #include <QGeoPositionInfoSource>
 #include <QNetworkAccessManager>
 #include "tdlib/tdlibwrapper.h"
+#include "chatdata.h"
 
 class Utilities : public QObject {
     Q_OBJECT
@@ -47,7 +48,10 @@ public:
     Q_INVOKABLE inline QString getChatTitleById(qlonglong chatId) const {
         return getChatTitle(tdLibWrapper->getChatData(chatId));
     }
-    Q_INVOKABLE QString formatMessageSender(const QVariantMap &messageSender) const;
+    QString formatMessageSender(const TDLibWrapper::MessageSender &sender) const;
+    Q_INVOKABLE QString formatMessageSender(const QVariantMap &messageSender) const {
+        return formatMessageSender(TDLibWrapper::MessageSender(messageSender));
+    }
     static QString formatDuration(int seconds);
 
     Q_INVOKABLE static QString fixReservedHtmlCharacters(const QString &text);
@@ -88,6 +92,11 @@ public:
     Q_INVOKABLE static QString uncompressLocalFile(const QString &path);
 
     static bool compareQlonglongVariant(const QVariant& a, const QVariant& b);
+
+    Q_INVOKABLE static QString formatNames(const QStringList &names, int othersCount);
+    static ChatData::ChatAction getMainChatAction(bool isUser, const QList<ChatData::ChatAction> &chatActions);
+    QString formatChatActions(bool isUser, const QHash<TDLibWrapper::MessageSender, ChatData::ChatAction> &chatActions) const;
+    static qreal getChatActionsProgress(bool isUser, const QList<ChatData::ChatAction> &chatActions);
 
 private:
     struct FormattedTextInsertion;

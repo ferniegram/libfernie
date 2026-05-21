@@ -80,6 +80,7 @@ public:
 
 public slots:
     void handleFolderChatListUnreadChatCountUpdated(int folderId);
+    void handleReady();
     void reset();
 
 private slots:

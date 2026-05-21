@@ -14,7 +14,7 @@ FolderChatListModel::FolderChatListModel(TDLibWrapper *tdLibWrapper, Settings *s
     connect(tdLibWrapper, &TDLibWrapper::chatRemovedFromFolderList, this, &FolderChatListModel::handleChatRemovedFromFolderList);
     connect(tdLibWrapper, &TDLibWrapper::folderChatListChatPositionUpdated, this, &FolderChatListModel::handleFolderChatPositionUpdated);
 
-    tdLibWrapper->loadChatsForFolder(folderId);
+    connect(tdLibWrapper, &TDLibWrapper::folderChatListChatsLoaded, this, &FolderChatListModel::handleFolderChatsLoaded);
 }
 
 inline int FolderChatListModel::getFolderId() {
@@ -41,4 +41,12 @@ inline void FolderChatListModel::handleChatRemovedFromFolderList(int folderId, q
 }
 inline void FolderChatListModel::handleFolderChatPositionUpdated(int folderId, qlonglong chatId, qlonglong order, bool isPinned) {
     if (this->folderId == folderId) handleChatPositionUpdated(chatId, order, isPinned);
+}
+
+void FolderChatListModel::doLoad() {
+    tdLibWrapper->loadChatsForFolder(folderId);
+}
+
+inline void FolderChatListModel::handleFolderChatsLoaded(int folderId) {
+    if (this->folderId == folderId) handleChatsLoaded();
 }

@@ -41,7 +41,9 @@ public:
     QVariant data(const QModelIndex &index, int role) const Q_DECL_OVERRIDE;
 
     Q_INVOKABLE void redrawModel();
-    Q_INVOKABLE QVariantMap get(int row);
+    Q_INVOKABLE QVariantMap get(int row) const;
+
+    Q_INVOKABLE void load();
 
     virtual int getUnreadChatCount(bool asFolder = false) const;
     virtual int getUnreadMessageCount(bool asFolder = false) const;
@@ -64,6 +66,8 @@ protected slots:
     void handleChatRemovedFromList(qlonglong chatId);
     void handleChatPositionUpdated(qlonglong chatId, qlonglong order, bool isPinned);
 
+    void handleChatsLoaded();
+
 private slots:
     void handleChatRolesChanged(qlonglong chatId, const QVector<int> changedRoles);
     void handleChatPinnedMessageUpdated(qlonglong chatId, qlonglong pinnedMessageId);
@@ -75,13 +79,17 @@ signals:
     void chatJoined(const qlonglong &chatId, const QString &chatTitle);
     void unreadStateChanged(int unreadMessagesCount, int unreadChatsCount);
 
+protected:
+    virtual void doLoad();
+
 private:
-    class ListChatData {
-    public:
+    struct ListChatData {
         ListChatData(ChatData *data, qlonglong order, bool isPinned);
+
         ChatData *data;
         qlonglong order;
         bool isPinned;
+
         bool setOrder(const QVariant &order);
         int compareTo(const ListChatData *other) const;
     };
@@ -90,19 +98,21 @@ private:
     void updateChatIsPinned(const int chatIndex, const bool isPinned);
     void enableRefreshTimer();
 
-private:
+protected:
     TDLibWrapper *tdLibWrapper;
     Utilities *utilities;
-    QTimer *relativeTimeRefreshTimer;
-    QList<ListChatData*> chatList; // should we use a list of pointers to ListChatData or of plain ListChatData?
-    QHash<qlonglong, int> chatIndexMap;
-    bool archive;
-
-protected:
     Settings *settings;
 
-    int unreadChatCount;
-    int unreadUnmutedChatCount;
-    int unreadMessageCount;
-    int unreadUnmutedMessageCount;
+    int unreadChatCount = 0;
+    int unreadUnmutedChatCount = 0;
+    int unreadMessageCount = 0;
+    int unreadUnmutedMessageCount = 0;
+
+    bool loading = false;
+
+private:
+    QTimer *relativeTimeRefreshTimer;
+    QList<ListChatData*> chatList;
+    QHash<qlonglong, int> chatIndexMap;
+    bool archive;
 };

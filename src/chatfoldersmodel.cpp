@@ -94,7 +94,6 @@ ChatFoldersModel::ChatFoldersModel(TDLibWrapper *tdLibWrapper, Settings *setting
 {
     connect(tdLibWrapper, &TDLibWrapper::chatAddedToFolderList, this, &ChatFoldersModel::handleChatAddedToFolderList);
     connect(tdLibWrapper, &TDLibWrapper::chatFoldersUpdated, this, &ChatFoldersModel::handleChatFoldersUpdated);
-    connect(tdLibWrapper, &TDLibWrapper::ready, this, &ChatFoldersModel::handleReady);
     connect(tdLibWrapper, &TDLibWrapper::clearContent, this, &ChatFoldersModel::reset);
 
     connect(mainChatListModel, &ChatListModel::unreadChatCountChanged, this, &ChatFoldersModel::handleMainChatListUnreadChatCountUpdated);
@@ -106,12 +105,6 @@ ChatFoldersModel::~ChatFoldersModel() {
     LOG("Destroying myself...");
     qDeleteAll(chatFolders);
     qDeleteAll(chatModels.values());
-}
-
-void ChatFoldersModel::handleReady() {
-    LOG("Loading chats from main and archive lists");
-    tdLibWrapper->loadChats();
-    tdLibWrapper->loadChats(true);
 }
 
 void ChatFoldersModel::reset() {

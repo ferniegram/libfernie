@@ -81,12 +81,8 @@ int ChatListModel::ListChatData::compareTo(const ListChatData *other) const {
 ChatListModel::ChatListModel(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, bool archive, bool doNotConnectChatListSignals) :
     tdLibWrapper(tdLibWrapper),
     utilities(utilities),
-    archive(archive),
     settings(settings),
-    unreadChatCount(0),
-    unreadUnmutedChatCount(0),
-    unreadMessageCount(0),
-    unreadUnmutedMessageCount(0)
+    archive(archive)
 {
 
     if (!doNotConnectChatListSignals) {
@@ -223,7 +219,7 @@ void ChatListModel::redrawModel() {
     layoutChanged();
 }
 
-QVariantMap ChatListModel::get(int row) {
+QVariantMap ChatListModel::get(int row) const {
     QHash<int,QByteArray> names = roleNames();
     QHashIterator<int, QByteArray> i(names);
     QVariantMap res;
@@ -419,4 +415,21 @@ int ChatListModel::getUnreadChatCount(bool asFolder) const {
 int ChatListModel::getUnreadMessageCount(bool asFolder) const {
     return archive || (asFolder ? settings->foldersUnreadCountIncludeMuted() : settings->unreadCountIncludeMuted())
             ? unreadMessageCount : unreadUnmutedMessageCount;
+}
+
+inline void ChatListModel::doLoad() {
+    tdLibWrapper->loadChats(archive);
+}
+
+void ChatListModel::load() {
+    if (!loading) {
+        LOG("Loading more chats");
+        loading = true;
+        doLoad();
+    }
+}
+
+void ChatListModel::handleChatsLoaded() {
+    LOG("Chats were loaded");
+    loading = false;
 }

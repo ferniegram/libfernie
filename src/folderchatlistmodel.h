@@ -20,6 +20,11 @@ private slots:
     void handleChatRemovedFromFolderList(int folderId, qlonglong chatId);
     void handleFolderChatPositionUpdated(int folderId, qlonglong chatId, qlonglong order, bool isPinned);
 
+    void handleFolderChatsLoaded(int folderId);
+
+protected:
+    virtual void doLoad() override;
+
 private:
     ChatFoldersModel* chatFoldersModel;
     int folderId;

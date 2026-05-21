@@ -145,6 +145,8 @@ namespace {
     const QString NOTIFICATION_SOUND_ID("notification_sound_id");
     const QString FILE_ID("file_id");
     const QString TYPE_MESSAGE_SENDER_CHAT("messageSenderChat");
+    const QString TYPE_LOAD_CHATS("loadChats");
+    const QString EXTRA_LOAD_CHATS_FOR_FOLDER("loadChatsForFolder");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -318,7 +320,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::userPrivacySettingRules, this, &TDLibWrapper::handleUserPrivacySettingRules);
     connect(this->tdLibReceiver, &TDLibReceiver::userPrivacySettingRulesUpdated, this, &TDLibWrapper::handleUpdatedUserPrivacySettingRules);
     connect(this->tdLibReceiver, &TDLibReceiver::messageInteractionInfoUpdated, this, &TDLibWrapper::messageInteractionInfoUpdated);
-    connect(this->tdLibReceiver, &TDLibReceiver::okReceived, this, &TDLibWrapper::okReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::okReceived, this, &TDLibWrapper::handleOkReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::sessionsReceived, this, &TDLibWrapper::sessionsReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::availableReactionsReceived, this, &TDLibWrapper::availableReactionsReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::activeEmojiReactionsUpdated, this, &TDLibWrapper::handleActiveEmojiReactionsUpdated);
@@ -458,18 +460,20 @@ void TDLibWrapper::logout() {
 void TDLibWrapper::loadChats(bool archive) {
     LOG("Loading chats archive:" << archive);
     this->sendRequest(QVariantMap{
-                          {_TYPE, "loadChats"},
+                          {_TYPE, TYPE_LOAD_CHATS},
                           {LIMIT, 5},
-                          {CHAT_LIST, QVariantMap{{_TYPE, (archive ? TYPE_CHAT_LIST_ARCHIVE : TYPE_CHAT_LIST_MAIN)}}}
+                          {CHAT_LIST, QVariantMap{{_TYPE, (archive ? TYPE_CHAT_LIST_ARCHIVE : TYPE_CHAT_LIST_MAIN)}}},
+                          {_EXTRA, QString("loadChats:")+(archive ? "!" : "")}
                       });
 }
 
 void TDLibWrapper::loadChatsForFolder(int folderId) {
     LOG("Loading chats for folder" << folderId);
     this->sendRequest(QVariantMap{
-                          {_TYPE, "loadChats"},
+                          {_TYPE, TYPE_LOAD_CHATS},
                           {LIMIT, 5},
-                          {CHAT_LIST, QVariantMap{{_TYPE, TYPE_CHAT_LIST_FOLDER}, {CHAT_FOLDER_ID, folderId}}}
+                          {CHAT_LIST, QVariantMap{{_TYPE, TYPE_CHAT_LIST_FOLDER}, {CHAT_FOLDER_ID, folderId}}},
+                          {_EXTRA, "loadChatsForFolder:"+QString::number(folderId)}
                       });
 }
 
@@ -2222,6 +2226,9 @@ void TDLibWrapper::handleErrorReceived(int code, const QString &message, const Q
             LOG("Saved notification sound not found" << soundId);
             emit savedNotificationSoundErrorReceived(soundId);
             return;
+        } else if (code == 404 && parts.size() == 2 && (parts.at(0) == TYPE_LOAD_CHATS || parts.at(0) == EXTRA_LOAD_CHATS_FOR_FOLDER)) {
+            LOG("All chats were loaded in a list; ignoring" << parts.at(1)); // Chats model will simply be kept in cooldown
+            return;
         } else {
             QRegularExpressionMatch match = RE_EXTRA_CHAT_MESSAGE_COUNT.match(extraString);
             if (match.hasMatch()) {
@@ -2244,6 +2251,26 @@ void TDLibWrapper::handleErrorReceived(int code, const QString &message, const Q
     }
 
     emit errorReceived(code, message, extra);
+}
+
+void TDLibWrapper::handleOkReceived(const QVariant &extra) {
+    const QString extraString = extra.toString();
+    if (extra.userType() == QMetaType::QString && !extraString.isEmpty()) {
+        QStringList parts(extraString.split(':'));
+
+        if (parts.size() == 2 && parts.at(0) == TYPE_LOAD_CHATS) {
+            bool forArchive = parts.at(1).size();
+            LOG("Chats chunk loaded archive:" << forArchive);
+            if (forArchive)
+                emit archiveChatListChatsLoaded();
+            else
+                emit mainChatListChatsLoaded();
+        } else if (parts.size() == 2 && parts.at(0) == EXTRA_LOAD_CHATS_FOR_FOLDER) {
+            int folderId = parts.at(1).toInt();
+            LOG("Folder chats chunk loaded" << folderId);
+            emit folderChatListChatsLoaded(folderId);
+        }
+    }
 }
 
 void TDLibWrapper::handleMessageInformation(qlonglong chatId, qlonglong messageId, const QVariantMap &receivedInformation) {

@@ -489,18 +489,21 @@ signals:
     void mainChatListChatPositionUpdated(qlonglong chatId, qlonglong order, bool isPinned);
     void mainChatListUnreadMessageCountUpdated(const QVariantMap &messageCountInformation);
     void mainChatListUnreadChatCountUpdated(const QVariantMap &chatCountInformation);
+    void mainChatListChatsLoaded();
 
     void chatAddedToArchiveList(ChatData *chatData, qlonglong order, bool isPinned);
     void chatRemovedFromArchiveList(qlonglong chatId);
     void archiveChatListChatPositionUpdated(qlonglong chatId, qlonglong order, bool isPinned);
     void archiveChatListUnreadMessageCountUpdated(const QVariantMap &messageCountInformation);
     void archiveChatListUnreadChatCountUpdated(const QVariantMap &chatCountInformation);
+    void archiveChatListChatsLoaded();
 
     void chatAddedToFolderList(int folderId, ChatData *chatData, qlonglong order, bool isPinned);
     void chatRemovedFromFolderList(int folderId, qlonglong chatId);
     void folderChatListChatPositionUpdated(int folderId, qlonglong chatId, qlonglong order, bool isPinned);
     void folderChatListUnreadMessageCountUpdated(int folderId, const QVariantMap &messageCountInformation);
     void folderChatListUnreadChatCountUpdated(int folderId, const QVariantMap &chatCountInformation);
+    void folderChatListChatsLoaded(int folderId);
 
     void chatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles = QVector<int>());
 
@@ -682,6 +685,7 @@ private slots:
     void handleScopeNotificationSettingsUpdated(const QString &scopeType, const QVariantMap &settings);
     void handleDefaultReactionTypeUpdated(const QVariantMap &reactionType);
     void handleChatActionUpdated(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &sender, const QVariantMap &action);
+    void handleOkReceived(const QVariant &extra);
 
 private:
     void initializePropertyMaps();

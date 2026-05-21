@@ -1245,3 +1245,8 @@ void TDLibReceiver::processUpdateDefaultReactionType(const QVariantMap &received
     LOG("Default reaction type updated" << reactionType.value(_TYPE).toString());
     emit defaultReactionTypeUpdated(reactionType);
 }
+
+void TDLibReceiver::processText(const QVariantMap &receivedInformation) {
+    LOG("Text received");
+    emit textReceived(receivedInformation.value(TEXT).toString(), receivedInformation.value(_EXTRA).toString());
+}

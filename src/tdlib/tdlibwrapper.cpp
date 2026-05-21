@@ -365,6 +365,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::notificationSoundsReceived, this, &TDLibWrapper::notificationSoundsReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::savedNotificationSoundsUpdated, this, &TDLibWrapper::savedNotificationSoundsUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::defaultReactionTypeUpdated, this, &TDLibWrapper::handleDefaultReactionTypeUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::textReceived, this, &TDLibWrapper::handleTextReceived);
 
     this->tdLibReceiver->start();
 }
@@ -1732,30 +1733,40 @@ QVariant TDLibWrapper::getOption(const QString &optionName) {
     return this->options->value(optionName);
 }
 
-void TDLibWrapper::copyFileToDownloads(const QString &filePath, bool openAfterCopy) {
-    LOG("Copy file to downloads" << filePath << openAfterCopy);
-    QFileInfo fileInfo(filePath);
-    if (fileInfo.exists()) {
-        QString downloadFilePath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + "/" + fileInfo.fileName();
-        if (QFile::exists(downloadFilePath)) {
-            if (openAfterCopy) {
-                QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
-            } else {
-                emit copyToDownloadsSuccessful(fileInfo.fileName(), downloadFilePath);
-            }
-        } else {
-            if (QFile::copy(filePath, downloadFilePath)) {
-                if (openAfterCopy) {
-                    QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
-                } else {
-                    emit copyToDownloadsSuccessful(fileInfo.fileName(), downloadFilePath);
-                }
-            } else {
-                emit copyToDownloadsError(fileInfo.fileName(), downloadFilePath);
-            }
+void TDLibWrapper::copyFileToDownloads(qlonglong fileId, const QString &filePath, bool openAfterCopy) {
+    LOG("Copying file to downloads" << fileId << openAfterCopy);
+
+    if (QFileInfo::exists(filePath)) {
+        LOG("Getting suggested file name for file" << fileId);
+        sendRequest({
+            {_TYPE, "getSuggestedFileName"},
+            {FILE_ID, fileId},
+            {"directory", QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)},
+            {_EXTRA, QString("getSuggestedFileName:")+(openAfterCopy ? "!:" : ":")+filePath}
+        });
+    } else
+        emit copyToDownloadsError();
+}
+
+void TDLibWrapper::handleTextReceived(const QString &text, const QString &extra) {
+    const QStringList parts = extra.split(":");
+    if (parts.size() >= 3 && parts.at(0) == "getSuggestedFileName") {
+        bool openAfterCopy = parts.at(1).size();
+        const QString sourcePath = parts.mid(2).join(":");
+
+        if (!QFile::exists(sourcePath)) {
+            emit copyToDownloadsError();
+            return;
         }
-    } else {
-        emit copyToDownloadsError(fileInfo.fileName(), filePath);
+
+        const QString downloadFilePath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + "/" + text;
+        if (QFile::copy(sourcePath, downloadFilePath)) {
+            if (openAfterCopy)
+                QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFilePath));
+            else
+                emit copyToDownloadsSuccessful(text, downloadFilePath);
+        } else
+            emit copyToDownloadsError();
     }
 }
 

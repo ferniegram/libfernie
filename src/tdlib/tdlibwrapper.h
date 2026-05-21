@@ -251,7 +251,7 @@ public:
     Q_INVOKABLE QVariantMap getSecretChatFromCache(qlonglong secretChatId);
     Q_INVOKABLE QStringList getChatReactions(qlonglong chatId);
     QVariant getOption(const QString &optionName);
-    Q_INVOKABLE void copyFileToDownloads(const QString &filePath, bool openAfterCopy = false);
+    Q_INVOKABLE void copyFileToDownloads(qlonglong fileId, const QString &filePath, bool openAfterCopy = false);
     Q_INVOKABLE bool getJoinChatRequested();
     Q_INVOKABLE void registerJoinChat();
     Q_INVOKABLE bool isDiceEmoji(const QString &text);
@@ -524,7 +524,7 @@ signals:
     void messageLinkInfoReceived(qlonglong chatId, qlonglong messageId);
     void newMessageReceived(qlonglong chatId, const QVariantMap &message);
     void copyToDownloadsSuccessful(const QString &fileName, const QString &filePath);
-    void copyToDownloadsError(const QString &fileName, const QString &filePath);
+    void copyToDownloadsError();
     void receivedMessage(qlonglong chatId, qlonglong messageId, const QVariantMap &message);
     void messageSendSucceeded(qlonglong chatId, qlonglong oldMessageId, qlonglong messageId, const QVariantMap &message);
     void activeNotificationsUpdated(const QVariantList &notificationGroups);
@@ -686,6 +686,7 @@ private slots:
     void handleDefaultReactionTypeUpdated(const QVariantMap &reactionType);
     void handleChatActionUpdated(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &sender, const QVariantMap &action);
     void handleOkReceived(const QVariant &extra);
+    void handleTextReceived(const QString &text, const QString &extra);
 
 private:
     void initializePropertyMaps();

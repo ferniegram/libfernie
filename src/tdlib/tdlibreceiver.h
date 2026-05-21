@@ -153,6 +153,7 @@ signals:
     void notificationSoundsReceived(const QVariantList &sounds);
     void savedNotificationSoundsUpdated(const QStringList &soundIds);
     void defaultReactionTypeUpdated(const QVariantMap &reactionType);
+    void textReceived(const QString &text, const QString &extra);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -268,7 +269,8 @@ private:
         {"notificationSound", &TDLibReceiver::processNotificationSound},
         {"notificationSounds", &TDLibReceiver::processNotificationSounds},
         {"updateSavedNotificationSounds", &TDLibReceiver::processUpdateSavedNotificationSounds},
-        {"updateDefaultReactionType", &TDLibReceiver::processUpdateDefaultReactionType}
+        {"updateDefaultReactionType", &TDLibReceiver::processUpdateDefaultReactionType},
+        {"text", &TDLibReceiver::processText}
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},
@@ -395,4 +397,5 @@ private:
     void processNotificationSounds(const QVariantMap &receivedInformation);
     void processUpdateSavedNotificationSounds(const QVariantMap &receivedInformation);
     void processUpdateDefaultReactionType(const QVariantMap &receivedInformation);
+    void processText(const QVariantMap &receivedInformation);
 };

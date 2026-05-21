@@ -461,7 +461,7 @@ void TDLibWrapper::loadChats(bool archive) {
     LOG("Loading chats archive:" << archive);
     this->sendRequest(QVariantMap{
                           {_TYPE, TYPE_LOAD_CHATS},
-                          {LIMIT, 5},
+                          {LIMIT, 25},
                           {CHAT_LIST, QVariantMap{{_TYPE, (archive ? TYPE_CHAT_LIST_ARCHIVE : TYPE_CHAT_LIST_MAIN)}}},
                           {_EXTRA, QString("loadChats:")+(archive ? "!" : "")}
                       });
@@ -471,7 +471,7 @@ void TDLibWrapper::loadChatsForFolder(int folderId) {
     LOG("Loading chats for folder" << folderId);
     this->sendRequest(QVariantMap{
                           {_TYPE, TYPE_LOAD_CHATS},
-                          {LIMIT, 5},
+                          {LIMIT, 25},
                           {CHAT_LIST, QVariantMap{{_TYPE, TYPE_CHAT_LIST_FOLDER}, {CHAT_FOLDER_ID, folderId}}},
                           {_EXTRA, "loadChatsForFolder:"+QString::number(folderId)}
                       });

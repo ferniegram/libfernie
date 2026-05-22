@@ -133,7 +133,7 @@ void ChatMessagesModel::insertMessagesAt(int insertIndex, const QList<MessageDat
         QModelIndex modelIndex = index(insertIndex - 1);
         emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsLastInSequence});
     }
-    const int isFirstChangedIndex = insertIndex + newMessages.size() + 1;
+    const int isFirstChangedIndex = insertIndex + newMessages.size();
     if (isFirstChangedIndex < messages.size()) {
         QModelIndex modelIndex = index(isFirstChangedIndex);
         emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsFirstInSequence});

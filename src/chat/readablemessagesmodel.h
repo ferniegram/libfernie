@@ -43,6 +43,16 @@ protected:
 
     virtual void processMessageData(MessageData *message) override;
 
+
+    // Proper isFirst/LastInSequence handling
+    virtual void removeRange(int firstDeleted, int lastDeleted, bool updateAlbums = true) override;
+    virtual void insertMessagesAt(int index, const QList<MessageData*> newMessages) override;
+    virtual void appendMessages(const QList<MessageData*> newMessages) override;
+    virtual void prependMessages(const QList<MessageData*> newMessages) override;
+
+    virtual bool messageIsFirstInSequence(const int index, const MessageData *message) const override;
+    virtual bool messageIsLastInSequence(const int index, const MessageData *message) const override;
+
 protected slots:
     virtual void handlePrepareMessagesReceived(int totalCount, UpdateType fromUpdate) override;
 

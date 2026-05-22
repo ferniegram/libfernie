@@ -3,6 +3,8 @@
 #define DEBUG_MODULE ReadableMessagesModel
 #include "debuglog.h"
 
+#include "utilities.h"
+
 namespace {
     const QString ID("id");
     const QString CHAT_ID("chat_id");
@@ -165,4 +167,82 @@ void ReadableMessagesModel::processMessageData(MessageData *message) {
         LOG("Marking generated content as unread since the message is unread" << message->messageId);
         message->generatedContentUnread = true;
     }
+}
+
+
+// isFirst/LastInSequence handling
+
+void ReadableMessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAlbums) {
+    if (firstDeleted >= 0 && firstDeleted <= lastDeleted) {
+        MessagesModel::removeRange(firstDeleted, lastDeleted, updateAlbums);
+
+        // Update isFirst/LastInSequence
+        QModelIndex modelIndex;
+        if (firstDeleted > 0) {
+            modelIndex = index(firstDeleted - 1);
+            emit dataChanged(modelIndex, modelIndex, {MessageData::RoleIsLastInSequence});
+        }
+        if (messages.size() > 0) {
+            modelIndex = index(firstDeleted);
+            emit dataChanged(modelIndex, modelIndex, {MessageData::RoleIsFirstInSequence});
+        }
+    }
+}
+
+void ReadableMessagesModel::insertMessagesAt(int insertIndex, const QList<MessageData*> newMessages) {
+    MessagesModel::insertMessagesAt(insertIndex, newMessages);
+
+    // Update isFirst/LastInSequence
+    if (insertIndex > 0) {
+        QModelIndex modelIndex = index(insertIndex - 1);
+        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsLastInSequence});
+    }
+    const int isFirstChangedIndex = insertIndex + newMessages.size();
+    if (isFirstChangedIndex < messages.size()) {
+        QModelIndex modelIndex = index(isFirstChangedIndex);
+        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsFirstInSequence});
+    }
+}
+
+void ReadableMessagesModel::appendMessages(const QList<MessageData *> newMessages) {
+    const int oldSize = messages.size();
+    MessagesModel::appendMessages(newMessages);
+
+    if (oldSize > 0) { // Update isLastInSequence
+        QModelIndex modelIndex = index(oldSize - 1);
+        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsLastInSequence});
+    }
+}
+
+void ReadableMessagesModel::prependMessages(const QList<MessageData*> newMessages) {
+    const bool wasEmpty = messages.isEmpty();
+    MessagesModel::prependMessages(newMessages);
+
+    // Update isFirstInSequence
+    if (!wasEmpty) {
+        QModelIndex modelIndex = index(newMessages.size());
+        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsFirstInSequence});
+    }
+}
+
+bool ReadableMessagesModel::messageIsFirstInSequence(const int index, const MessageData *message) const {
+    if (index == 0) return true;
+    if (message->albumEntryFilter) return false;
+    return !MessageData::areTogether(message, this->messages.at(index - 1));
+}
+
+bool ReadableMessagesModel::messageIsLastInSequence(const int index, const MessageData *message) const {
+    if (index == messages.size() - 1) return true;
+    if (message->albumEntryFilter) return false;
+
+    if (!message->albumMessageIds.isEmpty()) {
+        qlonglong lastMessageId = std::max_element(message->albumMessageIds.begin(), message->albumMessageIds.end(), &Utilities::compareQlonglongVariant)->toLongLong();
+        if (messageIndexMap.contains(lastMessageId)) {
+            const int lastMessageIndex = messageIndexMap.value(lastMessageId);
+            if (lastMessageIndex ==  messages.size() - 1) return true;
+            return !MessageData::areTogether(messages.at(lastMessageIndex), messages.at(lastMessageIndex + 1));
+        }
+    }
+
+    return !MessageData::areTogether(message, this->messages.at(index + 1));
 }

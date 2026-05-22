@@ -3,8 +3,6 @@
 #define DEBUG_MODULE ChatManagerAndModel
 #include "debuglog.h"
 
-#include "utilities.h"
-
 namespace {
     const QString _TYPE("@type");
     const QString ID("id");
@@ -108,38 +106,6 @@ void ChatMessagesModel::insertSponsoredMessage(int insertIndex, const QVariantMa
     }
 }
 
-void ChatMessagesModel::removeRange(int firstDeleted, int lastDeleted, bool updateAlbums) {
-    if (firstDeleted >= 0 && firstDeleted <= lastDeleted) {
-        ReadableMessagesModel::removeRange(firstDeleted, lastDeleted, updateAlbums);
-
-        // Update isFirst/LastInSequence
-        QModelIndex modelIndex;
-        if (firstDeleted > 0) {
-            modelIndex = index(firstDeleted - 1);
-            emit dataChanged(modelIndex, modelIndex, {MessageData::RoleIsLastInSequence});
-        }
-        if (messages.size() > 0) {
-            modelIndex = index(firstDeleted);
-            emit dataChanged(modelIndex, modelIndex, {MessageData::RoleIsFirstInSequence});
-        }
-    }
-}
-
-void ChatMessagesModel::insertMessagesAt(int insertIndex, const QList<MessageData*> newMessages) {
-    ReadableMessagesModel::insertMessagesAt(insertIndex, newMessages);
-
-    // Update isFirst/LastInSequence
-    if (insertIndex > 0) {
-        QModelIndex modelIndex = index(insertIndex - 1);
-        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsLastInSequence});
-    }
-    const int isFirstChangedIndex = insertIndex + newMessages.size();
-    if (isFirstChangedIndex < messages.size()) {
-        QModelIndex modelIndex = index(isFirstChangedIndex);
-        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsFirstInSequence});
-    }
-}
-
 void ChatMessagesModel::appendMessages(const QList<MessageData *> newMessages) {
     LOG("Appending" << newMessages.size() << "messages");
     if (containsSponsoredMessages && sponsoredMessagesMessagesBetween == 0) {
@@ -150,49 +116,9 @@ void ChatMessagesModel::appendMessages(const QList<MessageData *> newMessages) {
                 break;
         }
         insertMessagesAt(lastIndex, newMessages);
-    } else {
+    } else
         // Have multiple sponsored messages, don't move anything and instead add pending ones when needed
-        const int oldSize = messages.size();
         ReadableMessagesModel::appendMessages(newMessages);
-
-        if (oldSize > 0) { // Update isLastInSequence
-            QModelIndex modelIndex = index(oldSize - 1);
-            emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsLastInSequence});
-        }
-    }
-}
-
-void ChatMessagesModel::prependMessages(const QList<MessageData*> newMessages) {
-    const bool wasEmpty = messages.isEmpty();
-    ReadableMessagesModel::prependMessages(newMessages);
-
-    // Update isFirstInSequence
-    if (!wasEmpty) {
-        QModelIndex modelIndex = index(newMessages.size());
-        emit dataChanged(modelIndex, modelIndex, QVector<int>{MessageData::RoleIsFirstInSequence});
-    }
-}
-
-bool ChatMessagesModel::messageIsFirstInSequence(const int index, const MessageData *message) const {
-    if (index == 0) return true;
-    if (message->albumEntryFilter) return false;
-    return !MessageData::areTogether(message, this->messages.at(index - 1));
-}
-
-bool ChatMessagesModel::messageIsLastInSequence(const int index, const MessageData *message) const {
-    if (index == messages.size() - 1) return true;
-    if (message->albumEntryFilter) return false;
-
-    if (!message->albumMessageIds.isEmpty()) {
-        qlonglong lastMessageId = std::max_element(message->albumMessageIds.begin(), message->albumMessageIds.end(), &Utilities::compareQlonglongVariant)->toLongLong();
-        if (messageIndexMap.contains(lastMessageId)) {
-            const int lastMessageIndex = messageIndexMap.value(lastMessageId);
-            if (lastMessageIndex ==  messages.size() - 1) return true;
-            return !MessageData::areTogether(messages.at(lastMessageIndex), messages.at(lastMessageIndex + 1));
-        }
-    }
-
-    return !MessageData::areTogether(message, this->messages.at(index + 1));
 }
 
 void ChatMessagesModel::handleSponsoredMessagesReceived(qlonglong chatId, const QVariantList &sponsoredMessages, int messagesBetween) {

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(libfernie CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 find_package(Qt5 COMPONENTS Core Network DBus Multimedia Positioning Qml Gui Quick LinguistTools REQUIRED)
 
 include(FindPkgConfig)
@@ -88,6 +92,18 @@ endif()
 
 add_library(libfernie STATIC)
 
+# tgcalls
+option(USE_CALLS "Whether to enable calls support" ON)
+
+if(USE_CALLS)
+    target_include_directories(libfernie PUBLIC tg_owt/include)
+
+    include(tgcalls.cmake)
+    target_link_libraries(libfernie tgcalls)
+    target_include_directories(libfernie PUBLIC tgcalls)
+endif()
+
+
 target_include_directories(libfernie PUBLIC
     ${NEMONOTIFICATIONS_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
@@ -101,6 +117,7 @@ target_link_libraries(libfernie
     Qt5::Positioning
     ${NEMONOTIFICATIONS_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    TDLib
     rlottie
 )
 
@@ -187,15 +204,4 @@ target_sources(libfernie PRIVATE
     src/chat/invertedmediamessagesmodel.h
     src/userprofilepicturesmodel.h
     src/chat/chatphotosmodel.h
-)
-
-target_link_libraries(libfernie
-    Qt5::Quick
-    Qt5::DBus
-    Qt5::Multimedia
-    Qt5::Positioning
-    ${NEMONOTIFICATIONS_LIBRARIES}
-    ${ZLIB_LIBRARIES}
-    TDLib
-    rlottie
 )

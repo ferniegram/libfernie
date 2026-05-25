@@ -165,7 +165,7 @@ target_sources(rnnoise PRIVATE
 target_link_libraries(tgcalls PRIVATE rnnoise)
 
 
-target_compile_definitions(tgcalls PRIVATE WEBRTC_POSIX WEBRTC_LINUX)
+target_compile_definitions(tgcalls PUBLIC WEBRTC_POSIX WEBRTC_LINUX)
 
 # target_compile_definitions(lib_tgcalls
 # PUBLIC

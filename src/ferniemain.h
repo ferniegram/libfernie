@@ -17,6 +17,10 @@
 #include "suggestedactionsmanager.h"
 #include "dbusadaptor.h"
 
+#ifdef USE_CALLS
+#include "callsmanager.h"
+#endif
+
 namespace FernieMain {
     static const char *uri = "io.libfernie";
 
@@ -32,6 +36,10 @@ namespace FernieMain {
         QSortFilterProxyModel knownUsersProxyModel;
         ContactsModel contactsModel;
         SuggestedActionsManager suggestedActionsManager;
+
+#ifdef USE_CALLS
+        CallsManager callsManager;
+#endif
 
         AppContext(QSharedPointer<QQuickView> view,
                    TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities,

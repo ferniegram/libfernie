@@ -147,6 +147,7 @@ namespace {
     const QString TYPE_MESSAGE_SENDER_CHAT("messageSenderChat");
     const QString TYPE_LOAD_CHATS("loadChats");
     const QString EXTRA_LOAD_CHATS_FOR_FOLDER("loadChatsForFolder");
+    const QString CALL_ID("call_id");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -366,6 +367,9 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::savedNotificationSoundsUpdated, this, &TDLibWrapper::savedNotificationSoundsUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::defaultReactionTypeUpdated, this, &TDLibWrapper::handleDefaultReactionTypeUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::textReceived, this, &TDLibWrapper::handleTextReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::callIdReceived, this, &TDLibWrapper::callIdReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::callUpdated, this, &TDLibWrapper::callUpdated);
+    connect(this->tdLibReceiver, &TDLibReceiver::newCallSignalingDataReceived, this, &TDLibWrapper::newCallSignalingDataReceived);
 
     this->tdLibReceiver->start();
 }
@@ -3412,4 +3416,31 @@ void TDLibWrapper::handleChatActionUpdated(qlonglong chatId, const QVariantMap &
     } else
         // TODO: handle forum topic chat actions and others
         emit chatActionUpdated(chatId, topicId, sender, action);
+}
+
+void TDLibWrapper::createCall(qlonglong userId, const QVariantMap &protocol, bool isVideo) {
+    LOG("Creating a call" << userId << isVideo);
+    sendRequest({
+        {_TYPE, "createCall"},
+        {USER_ID, userId},
+        {"protocol", protocol},
+        {"is_video", isVideo}
+    });
+}
+
+void TDLibWrapper::discardCall(int callId) {
+    LOG("Discarding a call" << callId);
+    sendRequest({
+        {_TYPE, "discardCall"},
+        {CALL_ID, callId}
+    });
+}
+
+void TDLibWrapper::sendCallSignalingData(int callId, const QByteArray &data) {
+    LOG("Sending call signaling data" << callId);
+    sendRequest({
+        {_TYPE, "sendCallSignalingData"},
+        {CALL_ID, callId},
+        {"data", QString::fromLatin1(data.toBase64())}
+    });
 }

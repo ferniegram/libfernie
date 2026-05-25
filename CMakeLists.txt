@@ -10,6 +10,7 @@ find_package(Qt5 COMPONENTS Core Network DBus Multimedia Positioning Qml Gui Qui
 include(FindPkgConfig)
 pkg_search_module(NEMONOTIFICATIONS nemonotifications-qt5 REQUIRED)
 pkg_search_module(ZLIB zlib REQUIRED)
+pkg_search_module(LIBPULSE libpulse REQUIRED)
 
 set(CMAKE_INSTALL_MESSAGE NEVER)
 set(CMAKE_AUTOMOC ON)
@@ -101,12 +102,23 @@ if(USE_CALLS)
     include(tgcalls.cmake)
     target_link_libraries(libfernie tgcalls)
     target_include_directories(libfernie PUBLIC tgcalls)
+
+    target_compile_definitions(libfernie PRIVATE USE_CALLS)
+
+    target_sources(libfernie PRIVATE
+        src/callsmanager.cpp
+        src/callaudio.cpp
+
+        src/callsmanager.h
+        src/callaudio.h
+    )
 endif()
 
 
 target_include_directories(libfernie PUBLIC
     ${NEMONOTIFICATIONS_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
+    ${LIBPULSE_INCLUDE_DIRS}
     tdlib/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -117,13 +129,12 @@ target_link_libraries(libfernie
     Qt5::Positioning
     ${NEMONOTIFICATIONS_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    ${LIBPULSE_LIBRARIES}
     TDLib
     rlottie
 )
 
-target_compile_definitions(libfernie PRIVATE
-    QT_STATICPLUGIN
-)
+target_compile_definitions(libfernie PRIVATE QT_STATICPLUGIN)
 
 target_sources(libfernie PRIVATE
     src/settings.cpp

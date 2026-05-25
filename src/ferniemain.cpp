@@ -37,6 +37,7 @@
 
 #include <QGuiApplication>
 #include <QLoggingCategory>
+#include <QAudioDeviceInfo>
 
 #ifdef QT_QML_DEBUG
 #include <QtQuick>
@@ -59,11 +60,23 @@ FernieMain::AppContext::AppContext(QSharedPointer<QQuickView> view,
     knownUsersProxyModel(view.data()),
     contactsModel(tdLibWrapper, view.data()),
     suggestedActionsManager(tdLibWrapper, view.data())
+
+#ifdef USE_CALLS
+    , callsManager(tdLibWrapper, view.data())
+#endif
 {}
 
 FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view,
                                                   const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
                                                   const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) {
+    WARN("Hello" << QAudioDeviceInfo::defaultOutputDevice().deviceName() << QAudioDeviceInfo::defaultInputDevice().deviceName());
+
+    for (const QAudioDeviceInfo &info : QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
+        WARN("Output device ::" << info.deviceName() << info.isNull() << info.preferredFormat() << info.supportedCodecs());
+    for (const QAudioDeviceInfo &info : QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+        WARN("Input device ::" << info.deviceName() << info.isNull() << info.preferredFormat() << info.supportedCodecs());
+    WARN("byeeee");
+
     QQmlContext *context = view->rootContext();
 
     qmlRegisterType<TDLibFile>(uri, 1, 0, "TDLibFile");
@@ -117,6 +130,11 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("stickerManager", &appContext->stickerManager);
     context->setContextProperty("contactsModel", &appContext->contactsModel);
     context->setContextProperty("suggestedActionsManager", &appContext->suggestedActionsManager);
+
+#ifdef USE_CALLS
+    context->setContextProperty("callsManager", &appContext->callsManager);
+    qmlRegisterUncreatableType<CallsManager>(uri, 1, 0, "CallsManager", QString());
+#endif
 
     return appContext;
 }

@@ -93,6 +93,7 @@ namespace {
     const QString STICKER_IDS("sticker_ids");
     const QString TYPE("type");
     const QString TOPIC_ID("topic_id");
+    const QString STATE("state");
 
     const QString _TYPE("@type");
     const QString _EXTRA("@extra");
@@ -194,7 +195,7 @@ void TDLibReceiver::processUpdateAuthorizationState(const QVariantMap &receivedI
 }
 
 void TDLibReceiver::processUpdateConnectionState(const QVariantMap &receivedInformation) {
-    QString connectionState = receivedInformation.value("state").toMap().value(_TYPE).toString();
+    QString connectionState = receivedInformation.value(STATE).toMap().value(_TYPE).toString();
     LOG("Connection state changed: " << connectionState);
     emit connectionStateChanged(connectionState);
 }
@@ -1249,4 +1250,27 @@ void TDLibReceiver::processUpdateDefaultReactionType(const QVariantMap &received
 void TDLibReceiver::processText(const QVariantMap &receivedInformation) {
     LOG("Text received");
     emit textReceived(receivedInformation.value(TEXT).toString(), receivedInformation.value(_EXTRA).toString());
+}
+
+void TDLibReceiver::processCallId(const QVariantMap &receivedInformation) {
+    int id = receivedInformation.value(ID).toInt();
+    LOG("Call ID received" << id);
+    emit callIdReceived(id);
+}
+
+void TDLibReceiver::processUpdateCall(const QVariantMap &receivedInformation) {
+    const QVariantMap call = receivedInformation.value("call").toMap();
+    int id = call.value(ID).toInt();
+    qlonglong uniqueId = call.value("unique_id").toLongLong(),
+            userId = call.value(USER_ID).toLongLong();
+    LOG("Call updated" << id << uniqueId << userId);
+
+    emit callUpdated(id, uniqueId, userId, call.value("is_outgoing").toBool(), call.value("is_video").toBool(), call.value(STATE).toMap());
+}
+
+void TDLibReceiver::processUpdateNewCallSignalingData(const QVariantMap &receivedInformation) {
+    int callId = receivedInformation.value("call_id").toInt();
+    LOG("New call signaling data received" << callId);
+
+    emit newCallSignalingDataReceived(callId, QByteArray::fromBase64(receivedInformation.value("data").toString().toUtf8()));
 }

@@ -467,6 +467,9 @@ public:
     Q_INVOKABLE void addSavedNotificationSound(const QString &path);
     Q_INVOKABLE void addSavedNotificationSound(int fileId);
     Q_INVOKABLE void getFile(int fileId);
+    void createCall(qlonglong userId, const QVariantMap &protocol, bool isVideo = false);
+    void discardCall(int callId);
+    void sendCallSignalingData(int callId, const QByteArray &data);
 
 public:
     const Group* getGroup(qlonglong groupId) const;
@@ -619,6 +622,9 @@ signals:
     void savedNotificationSoundsUpdated(const QStringList &soundIds);
     void savedNotificationSoundErrorReceived(const QString &soundId);
     void defaultReactionTypeChanged();
+    void callIdReceived(int id);
+    void callUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
+    void newCallSignalingDataReceived(int callId, const QByteArray &data);
 
     // Link types
     void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);

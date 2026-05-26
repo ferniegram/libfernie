@@ -34,6 +34,14 @@ CallsManager::CallsManager(TDLibWrapper *tdLibWrapper, QObject *parent) :
     tgcalls::Register<tgcalls::InstanceV2ReferenceImpl>();
 }
 
+CallsManager::~CallsManager() {
+    LOG("Destroying");
+    if (instance) {
+        LOG("Stopping tgcalls instance");
+        instance->stop([](tgcalls::FinalState) {});
+    }
+}
+
 QVariantMap CallsManager::protocol() {
     QStringList versions;
     for (const auto &version : tgcalls::Meta::Versions())
@@ -59,52 +67,63 @@ void CallsManager::createCall(qlonglong userId) {
 void CallsManager::handleCallIdReceived(int id) {
     LOG("Call ID received" << id);
     currentCallId = id;
+
+    emit callStarted();
 }
 
-CallsManager::CallState CallsManager::getCallState(const QString &type) {
+CallsManager::TdCallState CallsManager::getTdCallState(const QString &type) {
     if (type == "callStatePending")
-        return CallState::Pending;
+        return TdCallState::Pending;
     if (type == "callStateExchangingKeys")
-        return CallState::ExchangingKeys;
+        return TdCallState::ExchangingKeys;
     if (type == "callStateReady")
-        return CallState::Ready;
+        return TdCallState::Ready;
     if (type == "callStateHangingUp")
-        return CallState::HangingUp;
+        return TdCallState::HangingUp;
     if (type == "callStateDiscarded")
-        return CallState::Discarded;
+        return TdCallState::Discarded;
     if (type == "callStateError")
-        return CallState::Error;
+        return TdCallState::Error;
 
-    return CallState::Discarded;
+    return TdCallState::Discarded;
 }
 
 void CallsManager::handleCallUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state) {
     if (id != this->currentCallId)
         return; // TODO: cancel current call or handle this somehow otherwise
 
-    this->currentCallState = getCallState(state.value(_TYPE).toString());
-    LOG("Call updated" << id << currentCallState << state);
+    if (currentCallUserId != userId) {
+        currentCallUserId = userId;
+        emit currentCallUserIdChanged();
+    }
 
-    switch (currentCallState) { // TODO
-    case CallState::Pending:
-    case CallState::ExchangingKeys:
-    case CallState::HangingUp:
+    this->currentCallState = getTdCallState(state.value(_TYPE).toString());
+    this->currentCallStateData = state;
+    LOG("Call updated" << id << static_cast<int>(currentCallState) << getCurrentCallState() << state);
+
+    switch (currentCallState) {
+    case TdCallState::Pending:
+    case TdCallState::ExchangingKeys:
+    case TdCallState::HangingUp:
         break;
-    case CallState::Discarded:
+    case TdCallState::Discarded:
         handleCallDiscarded();
         break;
-    case CallState::Error:
+    case TdCallState::Error:
     {
         const QVariantMap error = state.value("error").toMap();
         WARN("Error" << error.value("code").toInt() << error.value("message").toString());
         break;
     }
-    case CallState::Ready:
+    case TdCallState::Ready:
         handleCallReady(outgoing, state);
+        break;
+    default:
         break;
     }
 
     emit currentCallStateChanged();
+    emit currentCallEmojisChanged();
 }
 
 void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
@@ -115,7 +134,8 @@ void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
         .initializationTimeout = tdLibWrapper->getOption("call_packet_timeout_ms").toDouble() / 1000,
         .receiveTimeout = tdLibWrapper->getOption("call_connect_timeout_ms").toDouble() / 1000,
         .enableP2P = protocol.value(UDP_P2P).toBool() && protocol.value("allow_p2p").toBool(),
-        .maxApiLayer = protocol.value(MAX_LAYER).toInt()
+        .maxApiLayer = protocol.value(MAX_LAYER).toInt(),
+        .customParameters = state.value("custom_parameters").toString().toStdString()
     };
 
     QByteArray key = QByteArray::fromBase64(state.value("encryption_key").toString().toUtf8());
@@ -185,20 +205,41 @@ void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
         }
     }
 
-    descriptor.stateUpdated = [](tgcalls::State state) {
-        LOG("State updated" << static_cast<int>(state));
+    descriptor.stateUpdated = [this](tgcalls::State state) {
+        if (currentCallState != TdCallState::Ready)
+            return;
+
+        currentCallReadyState = static_cast<CallReadyState>(state);
+
+        LOG("State updated" << static_cast<int>(state) << static_cast<int>(currentCallState) << getCurrentCallState());
+        emit currentCallStateChanged();
     };
-    descriptor.signalBarsUpdated = [](int bars) {
+    descriptor.signalBarsUpdated = [this](int bars) {
         LOG("Signal bars updated" << bars);
+        const bool wasZero = signalBars == 0;
+        this->signalBars = bars;
+        emit signalBarsChanged();
+
+        if (wasZero || bars == 0)
+            emit currentCallStateChanged();
     };
     descriptor.audioLevelUpdated = [](float level) {
         LOG("Audio level updated" << level);
     };
-    descriptor.remoteBatteryLevelIsLowUpdated = [](bool value) {
+    descriptor.remoteBatteryLevelIsLowUpdated = [this](bool value) {
         LOG("Remote battery level is low updated" << value);
+        this->remoteBatteryLevelIsLow = value;
+        emit remoteBatteryLevelIsLowChanged();
     };
-    descriptor.remoteMediaStateUpdated = [](tgcalls::AudioState audioState, tgcalls::VideoState videoState) {
+    descriptor.remoteMediaStateUpdated = [this](tgcalls::AudioState audioState, tgcalls::VideoState videoState) {
         LOG("Remote media state updated audio:" << static_cast<int>(audioState) << "video:" << static_cast<int>(videoState));
+
+        bool muted = audioState == tgcalls::AudioState::Muted;
+        if (this->remoteAudioMuted != muted) {
+            LOG("Remote audio muted changed" << muted);
+            this->remoteAudioMuted = muted;
+            emit remoteAudioMutedChanged();
+        }
     };
     descriptor.remotePrefferedAspectRatioUpdated = [](float ratio) {
         LOG("Remote preferred aspect ratio updated" << ratio);
@@ -209,12 +250,59 @@ void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
         tdLibWrapper->sendCallSignalingData(currentCallId, bytes);
     };
 
-    descriptor.config.logPath.data = "/home/defaultuser/Downloads/call-log.txt";
-    descriptor.config.statsLogPath.data = "/home/defaultuser/Downloads/stats-call-log.txt";
+    // TODO: setting to save call logs
 
     instance = tgcalls::Meta::Create(protocol.value("library_versions").toStringList().first().toStdString(), std::move(descriptor));
+}
 
-    emit callStarted();
+CallsManager::CallState CallsManager::getCurrentCallState() {
+    switch (currentCallState) {
+    case TdCallState::Ready:
+        if (signalBars == 0)
+            return CallState::Connecting;
+
+        switch (currentCallReadyState) {
+        case CallReadyState::WaitInit:
+        case CallReadyState::WaitInitAck:
+            return CallState::Connecting;
+        case CallReadyState::Established:
+            return CallState::Connected;
+        case CallReadyState::Failed:
+            return CallState::UnknownError;
+        case CallReadyState::Reconnecting:
+            return CallState::Connecting;
+        default:
+            return CallState::Connecting;
+        }
+    case TdCallState::Pending:
+        return currentCallStateData.value("is_received").toBool() ? CallState::Ringing : CallState::Pending;
+    case TdCallState::ExchangingKeys:
+        return CallState::ExchangingKeys;
+    case TdCallState::HangingUp:
+        return CallState::HangingUp;
+    case TdCallState::Discarded:
+    {
+        const QString discardReason = currentCallStateData.value("discard_reason").toMap().value(_TYPE).toString();
+        if (discardReason == "callDiscardReasonDeclined")
+            return CallState::Declined;
+        if (discardReason == "callDiscardReasonDisconnected")
+            return CallState::Disconnected;
+        if (discardReason == "callDiscardReasonHungUp")
+            return CallState::HungUp;
+        return CallState::Discarded;
+    }
+    case TdCallState::Error:
+        return CallState::Error;
+    }
+
+    return static_cast<CallState>(currentCallState);
+}
+
+QStringList CallsManager::currentCallEmojis() {
+    if (currentCallState != TdCallState::Ready)
+        return {};
+
+    return currentCallStateData.value("emojis").toStringList();
 }
 
 void CallsManager::handleNewCallSignalingDataReceived(int callId, const QByteArray &data) {
@@ -234,6 +322,7 @@ void CallsManager::discardCurrentCall() {
 void CallsManager::handleCallDiscarded() {
     LOG("Call discarded");
     currentCallId = 0;
+
     if (instance) {
         instance->stop([](tgcalls::FinalState) {
             LOG("tgcalls instance stopped");
@@ -241,5 +330,24 @@ void CallsManager::handleCallDiscarded() {
         instance.reset();
     }
 
+    currentCallReadyState = CallReadyState::Reconnecting;
+
     emit callDiscarded();
+
+    if (signalBars != 0) {
+        signalBars = 0;
+        emit signalBarsChanged();
+    }
+    if (remoteBatteryLevelIsLow) {
+        remoteBatteryLevelIsLow = false;
+        emit remoteBatteryLevelIsLowChanged();
+    }
+    if (remoteAudioMuted) {
+        remoteAudioMuted = false;
+        emit remoteAudioMutedChanged();
+    }
+}
+
+void CallsManager::toggleSpeakerphone(bool enabled) {
+    CallAudio::toggleSpeakerphone(enabled);
 }

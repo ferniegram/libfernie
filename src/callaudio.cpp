@@ -96,3 +96,8 @@ void CallAudio::toggleSpeakerphone(const QString &deviceName, bool enabled) {
     pa_context_unref(context);
     pa_mainloop_free(mainloop);
 }
+
+void CallAudio::toggleSpeakerphone(bool enabled) {
+    // FIXME: this was not tested
+    toggleSpeakerphone(getOutputDeviceName(), enabled);
+}

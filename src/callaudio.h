@@ -7,4 +7,5 @@ namespace CallAudio {
     QString getInputDeviceName();
 
     void toggleSpeakerphone(const QString &deviceName, bool enabled);
+    void toggleSpeakerphone(bool enabled);
 };

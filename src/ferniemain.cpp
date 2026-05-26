@@ -69,14 +69,6 @@ FernieMain::AppContext::AppContext(QSharedPointer<QQuickView> view,
 FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view,
                                                   const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
                                                   const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) {
-    WARN("Hello" << QAudioDeviceInfo::defaultOutputDevice().deviceName() << QAudioDeviceInfo::defaultInputDevice().deviceName());
-
-    for (const QAudioDeviceInfo &info : QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
-        WARN("Output device ::" << info.deviceName() << info.isNull() << info.preferredFormat() << info.supportedCodecs());
-    for (const QAudioDeviceInfo &info : QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
-        WARN("Input device ::" << info.deviceName() << info.isNull() << info.preferredFormat() << info.supportedCodecs());
-    WARN("byeeee");
-
     QQmlContext *context = view->rootContext();
 
     qmlRegisterType<TDLibFile>(uri, 1, 0, "TDLibFile");

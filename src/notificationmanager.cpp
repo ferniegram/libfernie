@@ -163,11 +163,6 @@ void NotificationManager::setActiveChatId(qlonglong chatId) {
     this->activeChatId = chatId;
 }
 
-bool NotificationManager::acceptNotificationGroupType(const QVariantMap &groupType) {
-    const QString type = groupType.value(_TYPE).toString();
-    return type != "notificationGroupTypeCalls";
-}
-
 void NotificationManager::handleUpdateActiveNotifications(const QVariantList &notificationGroups) {
     LOG("Received active notifications" << notificationGroups.size());
     for (const QVariant &groupVariant : notificationGroups) {
@@ -199,6 +194,8 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
     NotificationGroup* notificationGroup = notificationGroups.value(groupId);
 
     NotificationGroupType groupType = getGroupType(type);
+    if (groupType == NotificationGroupTypeCalls)
+        return;
 
     LOG("Received notification group update, group ID:" << groupId << "total count" << totalCount);
     if (totalCount) {

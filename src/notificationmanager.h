@@ -75,7 +75,6 @@ private:
         QList<int> notificationOrder;
     };
 
-    static bool acceptNotificationGroupType(const QVariantMap &type);
     void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
     void controlLedNotification(bool enabled);
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,

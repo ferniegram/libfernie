@@ -250,7 +250,13 @@ void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
         tdLibWrapper->sendCallSignalingData(currentCallId, bytes);
     };
 
-    // TODO: setting to save call logs
+    if (settings->saveCallLogs()) {
+        const QString location = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + QDir::separator();
+        const QString prefix = QString("ferniegram-call-log-%2%1.txt").arg(QDate::currentDate().toString(Qt::ISODate));
+
+        descriptor.config.logPath.data = (location + prefix.arg("")).toStdString();
+        descriptor.config.statsLogPath.data = (location + prefix.arg("stat-")).toStdString();
+    }
 
     instance = tgcalls::Meta::Create(protocol.value("library_versions").toStringList().first().toStdString(), std::move(descriptor));
 }

@@ -74,6 +74,8 @@ public:
     SETTING_(bool, unreadCountIncludeMuted)
     SETTING(bool, foldersUnreadCountIncludeMuted, true)
 
+    SETTING_(bool, saveCallLogs)
+
 private:
     QSettings settings;
 };

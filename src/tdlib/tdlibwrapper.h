@@ -470,6 +470,7 @@ public:
     void createCall(qlonglong userId, const QVariantMap &protocol, bool isVideo = false);
     void discardCall(int callId);
     void sendCallSignalingData(int callId, const QByteArray &data);
+    void acceptCall(int callId, const QVariantMap &protocol);
 
 public:
     const Group* getGroup(qlonglong groupId) const;

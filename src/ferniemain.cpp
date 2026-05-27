@@ -46,24 +46,31 @@
 Q_IMPORT_PLUGIN(TgsIOPlugin)
 
 FernieMain::AppContext::AppContext(QSharedPointer<QQuickView> view,
-                                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities,
+                                   TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
                                    const QString &appName, const QUrl &appIconPath, const QString &dbusPath,
                                    const QString &dbusServiceName, const QString &dbusInterface) :
     settings(settings),
     tdLibWrapper(tdLibWrapper),
-    dbusAdaptor(dbusAdaptor),
+#ifdef USE_CALLS
+    callsManager(new CallsManager(tdLibWrapper, settings, view.data())),
+#endif
+    dbusAdaptor(new DBusAdaptor(tdLibWrapper,
+#ifdef USE_CALLS
+                                callsManager,
+#endif
+                                view.data())),
     waveformManager(view.data()),
     chatFoldersModel(tdLibWrapper, settings, utilities, view.data()),
-    notificationManager(tdLibWrapper, settings, utilities, appName, appIconPath, dbusPath, dbusServiceName, dbusInterface),
+    notificationManager(tdLibWrapper, settings, utilities,
+#ifdef USE_CALLS
+                        callsManager,
+#endif
+                        appName, appIconPath, dbusPath, dbusServiceName, dbusInterface),
     stickerManager(tdLibWrapper),
     knownUsersModel(tdLibWrapper, view.data()),
     knownUsersProxyModel(view.data()),
     contactsModel(tdLibWrapper, view.data()),
     suggestedActionsManager(tdLibWrapper, view.data())
-
-#ifdef USE_CALLS
-    , callsManager(tdLibWrapper, view.data())
-#endif
 {}
 
 FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view,
@@ -97,10 +104,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("utilities", utilities);
     qmlRegisterUncreatableType<Utilities>(uri, 1, 0, "Utilities", QString());
 
-    DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper, view.data());
-    context->setContextProperty("dBusAdaptor", dbusAdaptor);
-
-    AppContext *appContext = new AppContext(view, tdLibWrapper, dbusAdaptor, settings, utilities,
+    AppContext *appContext = new AppContext(view, tdLibWrapper, settings, utilities,
                                             appName, appIconPath, dbusPath, dbusServiceName, dbusInterface);
 
     context->setContextProperty("chatFoldersModel", &appContext->chatFoldersModel);
@@ -124,9 +128,11 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     context->setContextProperty("suggestedActionsManager", &appContext->suggestedActionsManager);
 
 #ifdef USE_CALLS
-    context->setContextProperty("callsManager", &appContext->callsManager);
+    context->setContextProperty("callsManager", appContext->callsManager);
     qmlRegisterUncreatableType<CallsManager>(uri, 1, 0, "CallsManager", QString());
 #endif
+
+    context->setContextProperty("dBusAdaptor", appContext->dbusAdaptor);
 
     return appContext;
 }

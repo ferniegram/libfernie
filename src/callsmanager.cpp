@@ -11,7 +11,8 @@
 #define DEBUG_MODULE CallsManager
 #include "debuglog.h"
 
-#include <QAudioDeviceInfo>
+#include <QStandardPaths>
+#include <QDir>
 
 namespace {
     const QString _TYPE("@type");
@@ -21,9 +22,10 @@ namespace {
 }
 
 
-CallsManager::CallsManager(TDLibWrapper *tdLibWrapper, QObject *parent) :
+CallsManager::CallsManager(TDLibWrapper *tdLibWrapper, Settings *settings, QObject *parent) :
     QObject(parent),
-    tdLibWrapper(tdLibWrapper)
+    tdLibWrapper(tdLibWrapper),
+    settings(settings)
 {
     connect(tdLibWrapper, &TDLibWrapper::callIdReceived, this, &CallsManager::handleCallIdReceived);
     connect(tdLibWrapper, &TDLibWrapper::callUpdated, this, &CallsManager::handleCallUpdated);
@@ -66,68 +68,125 @@ void CallsManager::createCall(qlonglong userId) {
 
 void CallsManager::handleCallIdReceived(int id) {
     LOG("Call ID received" << id);
+    setCurrentCallId(id);
+}
+
+CallsManager::CallState CallsManager::getTdCallState(const QString &type) {
+    if (type == "callStatePending")
+        return CallState::Pending;
+    if (type == "callStateExchangingKeys")
+        return CallState::ExchangingKeys;
+    if (type == "callStateReady")
+        return CallState::Ready;
+    if (type == "callStateHangingUp")
+        return CallState::HangingUp;
+    if (type == "callStateDiscarded")
+        return CallState::Discarded;
+    if (type == "callStateError")
+        return CallState::Error;
+
+    return CallState::Discarded;
+}
+
+CallsManager::Call::Call(qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state) {
+    update(uniqueId, userId, outgoing, video, state);
+}
+
+void CallsManager::Call::update(qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state) {
+    this->uniqueId = uniqueId;
+    this->userId = userId;
+    this->outgoing = outgoing;
+    this->video = video;
+
+    this->stateData = state;
+    this->state = CallsManager::getTdCallState(stateData.take(_TYPE).toString());
+}
+
+void CallsManager::handleCallUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state) {
+    Call *call = activeCalls.value(id);
+    const bool newCall = !call;
+    if (newCall)
+        activeCalls.insert(id, call = new Call());
+
+    const bool wasPending = call->state == CallState::Pending;
+    call->update(uniqueId, userId, outgoing, video, state);
+
+    if (newCall && !call->outgoing) {
+        LOG("New incoming call" << id);
+        emit pendingIncomingCall(id);
+    } else if (!call->outgoing && wasPending && call->state != CallState::Pending) {
+        LOG("Incoming call is no longer pending" << id);
+        emit incomingCallNotPending(id);
+    }
+
+    if (currentCallId == id) {
+        switch (call->state) {
+        case CallState::Pending:
+        case CallState::ExchangingKeys:
+        case CallState::HangingUp:
+            break;
+        case CallState::Discarded:
+            handleCallDiscarded();
+            break;
+        case CallState::Error:
+        {
+            const QVariantMap error = state.value("error").toMap();
+            WARN("Error" << error.value("code").toInt() << error.value("message").toString());
+            break;
+        }
+        case CallState::Ready:
+            handleCallReady();
+            break;
+        default:
+            break;
+        }
+
+        emit currentCallUserIdChanged();
+        emit currentCallStateChanged();
+        emit currentCallEmojisChanged();
+    }
+}
+
+void CallsManager::resetInstance() {
+    if (instance) {
+        instance->stop([](tgcalls::FinalState) {
+            LOG("tgcalls instance stopped");
+        });
+        instance.reset();
+    }
+
+    currentCallReadyState = CallReadyState::Reconnecting;
+
+    emit callDiscarded();
+
+    if (signalBars != 0) {
+        signalBars = 0;
+        emit signalBarsChanged();
+    }
+    if (remoteBatteryLevelIsLow) {
+        remoteBatteryLevelIsLow = false;
+        emit remoteBatteryLevelIsLowChanged();
+    }
+    if (remoteAudioMuted) {
+        remoteAudioMuted = false;
+        emit remoteAudioMutedChanged();
+    }
+}
+
+void CallsManager::setCurrentCallId(int id) {
+    resetInstance();
+    if (currentCallId)
+        delete activeCalls.take(currentCallId);
     currentCallId = id;
 
     emit callStarted();
 }
 
-CallsManager::TdCallState CallsManager::getTdCallState(const QString &type) {
-    if (type == "callStatePending")
-        return TdCallState::Pending;
-    if (type == "callStateExchangingKeys")
-        return TdCallState::ExchangingKeys;
-    if (type == "callStateReady")
-        return TdCallState::Ready;
-    if (type == "callStateHangingUp")
-        return TdCallState::HangingUp;
-    if (type == "callStateDiscarded")
-        return TdCallState::Discarded;
-    if (type == "callStateError")
-        return TdCallState::Error;
-
-    return TdCallState::Discarded;
-}
-
-void CallsManager::handleCallUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state) {
-    if (id != this->currentCallId)
-        return; // TODO: cancel current call or handle this somehow otherwise
-
-    if (currentCallUserId != userId) {
-        currentCallUserId = userId;
-        emit currentCallUserIdChanged();
-    }
-
-    this->currentCallState = getTdCallState(state.value(_TYPE).toString());
-    this->currentCallStateData = state;
-    LOG("Call updated" << id << static_cast<int>(currentCallState) << getCurrentCallState() << state);
-
-    switch (currentCallState) {
-    case TdCallState::Pending:
-    case TdCallState::ExchangingKeys:
-    case TdCallState::HangingUp:
-        break;
-    case TdCallState::Discarded:
-        handleCallDiscarded();
-        break;
-    case TdCallState::Error:
-    {
-        const QVariantMap error = state.value("error").toMap();
-        WARN("Error" << error.value("code").toInt() << error.value("message").toString());
-        break;
-    }
-    case TdCallState::Ready:
-        handleCallReady(outgoing, state);
-        break;
-    default:
-        break;
-    }
-
-    emit currentCallStateChanged();
-    emit currentCallEmojisChanged();
-}
-
-void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
+void CallsManager::handleCallReady() {
     LOG("Call is ready");
+    Call *call = activeCalls.value(currentCallId);
+    const QVariantMap state = call->stateData;
+
     const QVariantMap protocol = state.value(PROTOCOL).toMap();
 
     tgcalls::Config config{
@@ -155,7 +214,7 @@ void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
 
     tgcalls::Descriptor descriptor{
         .config = config,
-        .encryptionKey = tgcalls::EncryptionKey(encryptionKey, outgoing),
+        .encryptionKey = tgcalls::EncryptionKey(encryptionKey, call->outgoing),
         .mediaDevicesConfig = mediaConfig
     };
 
@@ -205,13 +264,13 @@ void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
         }
     }
 
-    descriptor.stateUpdated = [this](tgcalls::State state) {
-        if (currentCallState != TdCallState::Ready)
+    descriptor.stateUpdated = [this, call](tgcalls::State state) {
+        if (!call || call->state != CallState::Ready)
             return;
 
         currentCallReadyState = static_cast<CallReadyState>(state);
 
-        LOG("State updated" << static_cast<int>(state) << static_cast<int>(currentCallState) << getCurrentCallState());
+        LOG("State updated" << static_cast<int>(state) << static_cast<int>(call->state) << getCurrentCallState());
         emit currentCallStateChanged();
     };
     descriptor.signalBarsUpdated = [this](int bars) {
@@ -261,54 +320,66 @@ void CallsManager::handleCallReady(bool outgoing, const QVariantMap &state) {
     instance = tgcalls::Meta::Create(protocol.value("library_versions").toStringList().first().toStdString(), std::move(descriptor));
 }
 
-CallsManager::CallState CallsManager::getCurrentCallState() {
-    switch (currentCallState) {
-    case TdCallState::Ready:
+qlonglong CallsManager::currentCallUserId() const {
+    return currentCallId ? activeCalls.value(currentCallId)->userId : 0;
+}
+
+CallsManager::CurrentCallState CallsManager::getCurrentCallState() const {
+    if (!currentCallId)
+        return CurrentCallState::Discarded;
+    Call *call = activeCalls.value(currentCallId);
+
+    switch (call->state) {
+    case CallState::Ready:
         if (signalBars == 0)
-            return CallState::Connecting;
+            return CurrentCallState::Connecting;
 
         switch (currentCallReadyState) {
         case CallReadyState::WaitInit:
         case CallReadyState::WaitInitAck:
-            return CallState::Connecting;
+            return CurrentCallState::Connecting;
         case CallReadyState::Established:
-            return CallState::Connected;
+            return CurrentCallState::Connected;
         case CallReadyState::Failed:
-            return CallState::UnknownError;
+            return CurrentCallState::UnknownError;
         case CallReadyState::Reconnecting:
-            return CallState::Connecting;
+            return CurrentCallState::Connecting;
         default:
-            return CallState::Connecting;
+            return CurrentCallState::Connecting;
         }
-    case TdCallState::Pending:
-        return currentCallStateData.value("is_received").toBool() ? CallState::Ringing : CallState::Pending;
-    case TdCallState::ExchangingKeys:
-        return CallState::ExchangingKeys;
-    case TdCallState::HangingUp:
-        return CallState::HangingUp;
-    case TdCallState::Discarded:
+    case CallState::Pending:
+        return call->stateData.value("is_received").toBool() ? CurrentCallState::Ringing : CurrentCallState::Pending;
+    case CallState::ExchangingKeys:
+        return CurrentCallState::ExchangingKeys;
+    case CallState::HangingUp:
+        return CurrentCallState::HangingUp;
+    case CallState::Discarded:
     {
-        const QString discardReason = currentCallStateData.value("discard_reason").toMap().value(_TYPE).toString();
+        const QString discardReason = call->stateData.value("discard_reason").toMap().value(_TYPE).toString();
         if (discardReason == "callDiscardReasonDeclined")
-            return CallState::Declined;
+            return CurrentCallState::Declined;
         if (discardReason == "callDiscardReasonDisconnected")
-            return CallState::Disconnected;
+            return CurrentCallState::Disconnected;
         if (discardReason == "callDiscardReasonHungUp")
-            return CallState::HungUp;
-        return CallState::Discarded;
+            return CurrentCallState::HungUp;
+        return CurrentCallState::Discarded;
     }
-    case TdCallState::Error:
-        return CallState::Error;
+    case CallState::Error:
+        return CurrentCallState::Error;
     }
 
-    return static_cast<CallState>(currentCallState);
+    return CurrentCallState::Discarded;
 }
 
-QStringList CallsManager::currentCallEmojis() {
-    if (currentCallState != TdCallState::Ready)
+QStringList CallsManager::currentCallEmojis() const {
+    if (!currentCallId)
         return {};
 
-    return currentCallStateData.value("emojis").toStringList();
+    Call *call = activeCalls.value(currentCallId);
+    if (call->state != CallState::Ready)
+        return {};
+
+    return call->stateData.value("emojis").toStringList();
 }
 
 void CallsManager::handleNewCallSignalingDataReceived(int callId, const QByteArray &data) {
@@ -322,36 +393,30 @@ void CallsManager::handleNewCallSignalingDataReceived(int callId, const QByteArr
 }
 
 void CallsManager::discardCurrentCall() {
+    LOG("Discarding current call");
     tdLibWrapper->discardCall(currentCallId);
+}
+
+void CallsManager::acceptCall(int callId) {
+    LOG("Accepting call" << callId);
+    setCurrentCallId(callId);
+    tdLibWrapper->acceptCall(callId, protocol());
+}
+
+void CallsManager::discardCall(int callId) {
+    LOG("Discarding a call" << callId);
+    if (currentCallId != callId && activeCalls.contains(callId))
+        delete activeCalls.take(callId);
+    tdLibWrapper->discardCall(callId);
+}
+
+const CallsManager::Call* CallsManager::getCall(int id) {
+    return activeCalls.value(id);
 }
 
 void CallsManager::handleCallDiscarded() {
     LOG("Call discarded");
-    currentCallId = 0;
-
-    if (instance) {
-        instance->stop([](tgcalls::FinalState) {
-            LOG("tgcalls instance stopped");
-        });
-        instance.reset();
-    }
-
-    currentCallReadyState = CallReadyState::Reconnecting;
-
-    emit callDiscarded();
-
-    if (signalBars != 0) {
-        signalBars = 0;
-        emit signalBarsChanged();
-    }
-    if (remoteBatteryLevelIsLow) {
-        remoteBatteryLevelIsLow = false;
-        emit remoteBatteryLevelIsLowChanged();
-    }
-    if (remoteAudioMuted) {
-        remoteAudioMuted = false;
-        emit remoteAudioMutedChanged();
-    }
+    resetInstance();
 }
 
 void CallsManager::toggleSpeakerphone(bool enabled) {

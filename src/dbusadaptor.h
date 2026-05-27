@@ -22,13 +22,20 @@
 #include <QDBusAbstractAdaptor>
 
 #include "tdlib/tdlibwrapper.h"
+#ifdef USE_CALLS
+#include "callsmanager.h"
+#endif
 
 class DBusAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "io.libfernie.default")
 
 public:
-    DBusAdaptor(TDLibWrapper *tdLibWrapper, QObject *parent = nullptr);
+    DBusAdaptor(TDLibWrapper *tdLibWrapper,
+#ifdef USE_CALLS
+                CallsManager *callsManager,
+#endif
+                QObject *parent = nullptr);
 
 signals:
     void doOpenMessage(qlonglong chatId, qlonglong messageId);
@@ -41,8 +48,15 @@ public slots:
     virtual void replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent);
     virtual void reactToMessage(const QString &chatId, const QString &messageId);
     virtual void closeSecretChat(const QString &chatId);
+#ifdef USE_CALLS
+    virtual void acceptCall(int callId);
+    virtual void discardCall(int callId);
+#endif
 
 private:
     TDLibWrapper *tdLibWrapper;
+#ifdef USE_CALLS
+    CallsManager *callsManager;
+#endif
     bool defaultOpenUrl;
 };

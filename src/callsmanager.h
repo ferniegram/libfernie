@@ -6,12 +6,13 @@
 #include <tgcalls/Instance.h>
 
 #include "tdlib/tdlibwrapper.h"
+#include "settings.h"
 
 class CallsManager : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(qlonglong currentCallUserId MEMBER currentCallUserId NOTIFY currentCallUserIdChanged)
-    Q_PROPERTY(CallState currentCallState READ getCurrentCallState NOTIFY currentCallStateChanged)
+    Q_PROPERTY(qlonglong currentCallUserId READ currentCallUserId NOTIFY currentCallUserIdChanged)
+    Q_PROPERTY(CurrentCallState currentCallState READ getCurrentCallState NOTIFY currentCallStateChanged)
     Q_PROPERTY(int signalBars MEMBER signalBars NOTIFY signalBarsChanged) // 0-4
     Q_PROPERTY(bool remoteBatteryLevelIsLow MEMBER remoteBatteryLevelIsLow NOTIFY remoteBatteryLevelIsLowChanged)
     Q_PROPERTY(bool remoteAudioMuted MEMBER remoteAudioMuted NOTIFY remoteAudioMutedChanged)
@@ -20,6 +21,15 @@ class CallsManager : public QObject {
 
 public:
     enum class CallState {
+        Pending,
+        ExchangingKeys,
+        HangingUp,
+        Discarded,
+        Error,
+        Ready
+    };
+
+    enum class CurrentCallState {
         Pending,
         Ringing,
         ExchangingKeys,
@@ -34,29 +44,37 @@ public:
         Connected,
         UnknownError
     };
-    Q_ENUM(CallState)
+    Q_ENUM(CurrentCallState)
 
-    explicit CallsManager(TDLibWrapper *tdLibWrapper, QObject *parent = nullptr);
+    struct Call {
+        qlonglong uniqueId;
+        qlonglong userId;
+        bool outgoing;
+        bool video;
+        CallState state;
+        QVariantMap stateData;
+
+        Call() {}
+        Call(qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
+        void update(qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
+    };
+
+    explicit CallsManager(TDLibWrapper *tdLibWrapper, Settings *settings, QObject *parent = nullptr);
     ~CallsManager();
 
     Q_INVOKABLE void createCall(qlonglong userId);
     Q_INVOKABLE void discardCurrentCall();
+    Q_INVOKABLE void acceptCall(int callId);
+    Q_INVOKABLE void discardCall(int callId);
+    const Call *getCall(int callId);
 
-    CallState getCurrentCallState();
-    Q_INVOKABLE QStringList currentCallEmojis();
+    qlonglong currentCallUserId() const;
+    CurrentCallState getCurrentCallState() const;
+    Q_INVOKABLE QStringList currentCallEmojis() const;
 
     Q_INVOKABLE void toggleSpeakerphone(bool enabled);
 
 private:
-    enum class TdCallState {
-        Pending,
-        ExchangingKeys,
-        HangingUp,
-        Discarded,
-        Error,
-        Ready
-    };
-
     enum class CallReadyState {
         WaitInit,
         WaitInitAck,
@@ -66,6 +84,9 @@ private:
     };
 
 signals:
+    void pendingIncomingCall(int callId);
+    void incomingCallNotPending(int callId);
+
     void currentCallUserIdChanged();
     void currentCallStateChanged();
     void callStarted();
@@ -82,17 +103,18 @@ private slots:
 
 private:
     static QVariantMap protocol();
-    static TdCallState getTdCallState(const QString &type);
-    void handleCallReady(bool outgoing, const QVariantMap &state);
+    static CallState getTdCallState(const QString &type);
+    void resetInstance();
+    void setCurrentCallId(int id);
+    void handleCallReady();
     void handleCallDiscarded();
 
 private:
     TDLibWrapper *tdLibWrapper;
+    Settings *settings;
 
+    QHash<int, Call*> activeCalls;
     qlonglong currentCallId = 0;
-    qlonglong currentCallUserId = 0;
-    TdCallState currentCallState = TdCallState::Discarded;
-    QVariantMap currentCallStateData;
     CallReadyState currentCallReadyState = CallReadyState::Reconnecting;
     int signalBars = 0;
     bool remoteBatteryLevelIsLow = false;

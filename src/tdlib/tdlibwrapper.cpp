@@ -148,6 +148,7 @@ namespace {
     const QString TYPE_LOAD_CHATS("loadChats");
     const QString EXTRA_LOAD_CHATS_FOR_FOLDER("loadChatsForFolder");
     const QString CALL_ID("call_id");
+    const QString PROTOCOL("protocol");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -3423,7 +3424,7 @@ void TDLibWrapper::createCall(qlonglong userId, const QVariantMap &protocol, boo
     sendRequest({
         {_TYPE, "createCall"},
         {USER_ID, userId},
-        {"protocol", protocol},
+        {PROTOCOL, protocol},
         {"is_video", isVideo}
     });
 }
@@ -3442,5 +3443,14 @@ void TDLibWrapper::sendCallSignalingData(int callId, const QByteArray &data) {
         {_TYPE, "sendCallSignalingData"},
         {CALL_ID, callId},
         {"data", QString::fromLatin1(data.toBase64())}
+    });
+}
+
+void TDLibWrapper::acceptCall(int callId, const QVariantMap &protocol) {
+    LOG("Accepting call" << callId);
+    sendRequest({
+        {_TYPE, "acceptCall"},
+        {CALL_ID, callId},
+        {PROTOCOL, protocol}
     });
 }

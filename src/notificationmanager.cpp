@@ -59,6 +59,7 @@ namespace {
     const QString HINT_GROUP_ID("x-libfernie.group_id");        // int
     const QString HINT_CHAT_ID("x-libfernie.chat_id");          // qlonglong
     const QString HINT_TOTAL_COUNT("x-libfernie.total_count");  // int
+    const QString HINT_IS_CALL("x-libfernie.is_call");          // bool
 
     const QString HINT_VIBRA("x-nemo-vibrate");                     // bool
     const QString HINT_SUPPRESS_SOUND("suppress-sound");            // bool
@@ -87,12 +88,18 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
 }
 
 NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
+#ifdef USE_CALLS
+                                         CallsManager *callsManager,
+#endif
                                          const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
                                          const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
     tdLibWrapper(tdLibWrapper),
     settings(settings),
     mceInterface(new MceInterface(this)),
     utilities(utilities),
+#ifdef USE_CALLS
+    callsManager(callsManager),
+#endif
     appName(appName),
     dbusPath(dbusPath),
     dbusServiceName(dbusServiceName),
@@ -112,7 +119,13 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     connect(settings, &Settings::notificationSuppressContentChanged, this, &NotificationManager::updateAllNotifications);
     connect(settings, &Settings::notificationShowDefaultReactionChanged, this, &NotificationManager::updateAllNotifications);
 
+#ifdef USE_CALLS
+    connect(callsManager, SIGNAL(pendingIncomingCall(int)), this, SLOT(publishCallNotification(int)));
+    connect(callsManager, &CallsManager::incomingCallNotPending, this, &NotificationManager::removeCallNotification);
+#endif
+
     this->controlLedNotification(false);
+    this->controlCallLedNotification(false);
 
     // Restore notifications
     QList<QObject*> notifications = Notification::notifications();
@@ -127,7 +140,11 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
             const int groupId = notification->hintValue(HINT_GROUP_ID).toInt(&groupOk);
             const qlonglong chatId = notification->hintValue(HINT_CHAT_ID).toLongLong(&chatOk);
             const int totalCount = notification->hintValue(HINT_TOTAL_COUNT).toInt(&countOk);
-            if (typeOk && groupOk && chatOk && countOk && !notificationGroups.contains(groupId)) {
+            const bool isCall = notification->hintValue(HINT_IS_CALL).toBool();
+            if (isCall) {
+                LOG("Closing old call notification");
+                notification->close();
+            } else if (typeOk && groupOk && chatOk && countOk && !notificationGroups.contains(groupId)) {
                 LOG("Restoring notification group" << groupId << "chatId" << chatId << "count" << totalCount);
                 notificationGroups.insert(groupId, new NotificationGroup(NotificationGroupType(type), groupId, chatId, totalCount, notification));
                 continue;
@@ -186,6 +203,12 @@ void NotificationManager::handleUpdateNotificationGroup(const QVariantMap &updat
         settings->notificationFeedback(), update.value(NOTIFICATION_SOUND_ID).toLongLong());
 }
 
+void NotificationManager::fillBasicNotificationFields(Notification *notification) const {
+    notification->setCategory("x-nemo.messaging.im");
+    notification->setAppName(this->appName);
+    notification->setAppIcon(appIconFile);
+}
+
 void NotificationManager::updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
     const QVariantList &addedNotifications, const QVariantList &removedNotificationIds,
     Settings::NotificationFeedback feedback, qlonglong notificationSoundId)
@@ -204,9 +227,7 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
             notificationGroup->totalCount = totalCount;
         } else {
             Notification *notification = new Notification(this);
-            notification->setCategory("x-nemo.messaging.im");
-            notification->setAppName(this->appName);
-            notification->setAppIcon(appIconFile);
+            fillBasicNotificationFields(notification);
             notification->setHintValue(HINT_GROUP_TYPE, groupType);
             notification->setHintValue(HINT_GROUP_ID, groupId);
             notification->setHintValue(HINT_CHAT_ID, chatId);
@@ -305,6 +326,15 @@ void NotificationManager::updateNotificationForChat(qlonglong chatId, TDLibFile 
             publishNotification(group, false, false, QString(), chatPhotoFile);
             break;
         }
+
+    for (int callId : callNotifications.keys())
+        if (tdLibWrapper->getChatData(chatId)->isPrivateOrSecretChat()) {
+            const CallsManager::Call *call = callsManager->getCall(callId);
+            if (call && call->userId == chatId) {
+                LOG("Updating call notification" << callId);
+                publishCallNotification(callId, chatPhotoFile);
+            }
+        }
 }
 
 void NotificationManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles) {
@@ -314,17 +344,8 @@ void NotificationManager::handleChatRolesUpdated(qlonglong chatId, const QVector
     }
 }
 
-void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound, const QString &soundFilePath, TDLibFile *chatPhotoFile) {
-    const QVariantMap lastNotification = notificationGroup->lastNotification();
-    const QVariantMap notificationType = lastNotification.value(TYPE).toMap();
-    const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
-
-    Notification *nemoNotification = notificationGroup->nemoNotification;
-
-    nemoNotification->setSummary(utilities->getChatTitle(chat));
-    nemoNotification->setTimestamp(QDateTime::fromMSecsSinceEpoch(lastNotification.value(DATE).toLongLong() * 1000));
-    nemoNotification->setItemCount(notificationGroup->totalCount);
-    nemoNotification->setResident(true); // FIXME: decide if this is really needed
+void NotificationManager::fillChatNotificationFields(Notification *notification, const ChatData *chat, TDLibFile *chatPhotoFile) {
+    notification->setSummary(utilities->getChatTitle(chat));
 
     auto setIcon = [&](const QString &filePath) {
         QImage image(filePath);
@@ -343,7 +364,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
         p.drawImage(0, 0, image);
         p.end();
 
-        nemoNotification->setIconData(result);
+        notification->setIconData(result);
     };
 
     if (chatPhotoFile)
@@ -367,7 +388,19 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
                 delete file;
         }
     }
+}
 
+void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound, const QString &soundFilePath, TDLibFile *chatPhotoFile) {
+    const QVariantMap lastNotification = notificationGroup->lastNotification();
+    const QVariantMap notificationType = lastNotification.value(TYPE).toMap();
+    const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
+
+    Notification *nemoNotification = notificationGroup->nemoNotification;
+    fillChatNotificationFields(nemoNotification, chat, chatPhotoFile);
+
+    nemoNotification->setTimestamp(QDateTime::fromMSecsSinceEpoch(lastNotification.value(DATE).toLongLong() * 1000));
+    nemoNotification->setItemCount(notificationGroup->totalCount);
+    nemoNotification->setResident(true); // FIXME: decide if this is really needed
 
     QVariantList remoteActionArguments{QString::number(notificationGroup->chatId), ""};
     QVariantList remoteActions;
@@ -515,7 +548,65 @@ void NotificationManager::handleDefaultReactionTypeChanged() {
     }
 }
 
-void NotificationManager::controlLedNotification(bool enabled) {
+#ifdef USE_CALLS
+// Do not use notificationGroupTypeCalls so adding group calls support would be easier
+void NotificationManager::publishCallNotification(int callId, TDLibFile *chatPhotoFile) {
+    LOG("Publishing call notification" << callId);
+    const CallsManager::Call *call = callsManager->getCall(callId);
+    Notification *notification = callNotifications.value(callId);
+    if (!notification)
+        callNotifications.insert(callId, notification = new Notification(this));
+
+    // TODO: ideally only handle user data & updates for call notifications
+    fillChatNotificationFields(notification, tdLibWrapper->getChatData(call->userId), chatPhotoFile);
+    notification->setUrgency(Notification::Critical);
+    notification->setBody(call->video ? tr("Incoming video call", "notification") : tr("Incoming call", "notification"));
+
+    notification->setHintValue(HINT_IS_CALL, true);
+
+    const QVariantList arguments{callId};
+    notification->setRemoteActions({
+        // TODO: open a fullscreen call UI when clicking whole notification
+        /*Notification::remoteAction(
+            "default", "",
+            dbusServiceName, dbusPath, dbusInterface,
+            "openCall", remoteActionArguments
+        ),*/
+        Notification::remoteAction(
+            "", tr("Accept", "Accept a call"),
+            dbusServiceName, dbusPath, dbusInterface,
+            "acceptCall", arguments
+        ),
+        Notification::remoteAction(
+            "", tr("Decline", "Decline a call"),
+            dbusServiceName, dbusPath, dbusInterface,
+            "discardCall", arguments
+        )
+    });
+
+    notification->publish();
+    this->controlCallLedNotification(true);
+}
+
+void NotificationManager::removeCallNotification(int id) {
+    if (callNotifications.contains(id)) {
+        LOG("Removing a call notification" << id);
+        Notification *notification = callNotifications.take(id);
+        notification->close();
+        delete notification;
+
+        if (callNotifications.isEmpty())
+            this->controlCallLedNotification(false);
+    }
+}
+#endif
+
+void NotificationManager::controlLedNotification(bool enabled) const {
     static const QString PATTERN("PatternCommunicationIM");
+    mceInterface->setLedPattern(PATTERN, enabled);
+}
+
+void NotificationManager::controlCallLedNotification(bool enabled) const {
+    static const QString PATTERN("PatternCommunicationCall");
     mceInterface->setLedPattern(PATTERN, enabled);
 }

@@ -13,11 +13,13 @@ class CallsManager : public QObject {
 
     Q_PROPERTY(qlonglong currentCallUserId READ currentCallUserId NOTIFY currentCallUserIdChanged)
     Q_PROPERTY(CurrentCallState currentCallState READ getCurrentCallState NOTIFY currentCallStateChanged)
+
+    Q_PROPERTY(QVariantMap currentCallError READ currentCallError NOTIFY currentCallStateChanged)
+    Q_PROPERTY(QStringList currentCallEmojis READ currentCallEmojis NOTIFY currentCallEmojisChanged)
+
     Q_PROPERTY(int signalBars MEMBER signalBars NOTIFY signalBarsChanged) // 0-4
     Q_PROPERTY(bool remoteBatteryLevelIsLow MEMBER remoteBatteryLevelIsLow NOTIFY remoteBatteryLevelIsLowChanged)
     Q_PROPERTY(bool remoteAudioMuted MEMBER remoteAudioMuted NOTIFY remoteAudioMutedChanged)
-
-    Q_PROPERTY(QStringList currentCallEmojis READ currentCallEmojis NOTIFY currentCallEmojisChanged)
 
 public:
     enum class CallState {
@@ -70,7 +72,8 @@ public:
 
     qlonglong currentCallUserId() const;
     CurrentCallState getCurrentCallState() const;
-    Q_INVOKABLE QStringList currentCallEmojis() const;
+    QVariantMap currentCallError() const;
+    QStringList currentCallEmojis() const;
 
     Q_INVOKABLE void toggleSpeakerphone(bool enabled);
 

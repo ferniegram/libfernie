@@ -19,6 +19,7 @@ namespace {
     const QString PROTOCOL("protocol");
     const QString UDP_P2P("udp_p2p");
     const QString MAX_LAYER("max_layer");
+    const QString ERROR("error");
 }
 
 
@@ -130,7 +131,7 @@ void CallsManager::handleCallUpdated(int id, qlonglong uniqueId, qlonglong userI
             break;
         case CallState::Error:
         {
-            const QVariantMap error = state.value("error").toMap();
+            const QVariantMap error = state.value(ERROR).toMap();
             WARN("Error" << error.value("code").toInt() << error.value("message").toString());
             break;
         }
@@ -371,10 +372,17 @@ CallsManager::CurrentCallState CallsManager::getCurrentCallState() const {
     return CurrentCallState::Discarded;
 }
 
-QStringList CallsManager::currentCallEmojis() const {
-    if (!currentCallId)
+QVariantMap CallsManager::currentCallError() const {
+    if (!currentCallId) return {};
+    Call *call = activeCalls.value(currentCallId);
+    if (call->state != CallState::Error)
         return {};
 
+    return call->stateData.value(ERROR).toMap();
+}
+
+QStringList CallsManager::currentCallEmojis() const {
+    if (!currentCallId) return {};
     Call *call = activeCalls.value(currentCallId);
     if (call->state != CallState::Ready)
         return {};

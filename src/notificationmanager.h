@@ -39,7 +39,7 @@ class NotificationManager : public QObject {
 public:
     NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
 #ifdef USE_CALLS
-                        CallsManager *callsManager,
+                        QSharedPointer<CallsManager> callsManager,
 #endif
                         const QString &appName, const QUrl &appIconPath = QUrl(),
                         const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
@@ -104,7 +104,7 @@ private:
     MceInterface *mceInterface;
     Utilities *utilities;
 #ifdef USE_CALLS
-    CallsManager *callsManager;
+    QSharedPointer<CallsManager> callsManager;
 #endif
     QString appName;
     QString dbusPath;

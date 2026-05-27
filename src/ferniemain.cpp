@@ -48,9 +48,9 @@ Q_IMPORT_PLUGIN(TgsIOPlugin)
 FernieMain::AppContext::AppContext(QSharedPointer<QQuickView> view,
                                    TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
                                    #if USE_CALLS
-                                   CallsManager *callsManager,
+                                   QSharedPointer<CallsManager> callsManager,
                                    #endif
-                                   DBusAdaptor *dbusAdaptor,
+                                   QSharedPointer<DBusAdaptor> dbusAdaptor,
                                    const QString &appName, const QUrl &appIconPath, const QString &dbusPath,
                                    const QString &dbusServiceName, const QString &dbusInterface) :
     settings(settings),
@@ -105,17 +105,17 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     qmlRegisterUncreatableType<Utilities>(uri, 1, 0, "Utilities", QString());
 
 #ifdef USE_CALLS
-    CallsManager *callsManager = new CallsManager(tdLibWrapper, settings, view.data());
-    context->setContextProperty("callsManager", callsManager);
+    QSharedPointer<CallsManager> callsManager(new CallsManager(tdLibWrapper, settings));
+    context->setContextProperty("callsManager", callsManager.data());
     qmlRegisterUncreatableType<CallsManager>(uri, 1, 0, "CallsManager", QString());
 #endif
 
-    DBusAdaptor *dbusAdaptor = new DBusAdaptor(tdLibWrapper,
+    QSharedPointer<DBusAdaptor> dbusAdaptor(new DBusAdaptor(tdLibWrapper,
 #ifdef USE_CALLS
                                                callsManager,
 #endif
-                                               view.data());
-    context->setContextProperty("dBusAdaptor", dbusAdaptor);
+                                               view.data()));
+    context->setContextProperty("dBusAdaptor", dbusAdaptor.data());
 
     AppContext *appContext = new AppContext(view, tdLibWrapper, settings, utilities,
 #ifdef USE_CALLS

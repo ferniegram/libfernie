@@ -33,7 +33,7 @@ class DBusAdaptor : public QDBusAbstractAdaptor {
 public:
     DBusAdaptor(TDLibWrapper *tdLibWrapper,
 #ifdef USE_CALLS
-                CallsManager *callsManager,
+                QSharedPointer<CallsManager> callsManager,
 #endif
                 QObject *parent = nullptr);
 
@@ -56,7 +56,7 @@ public slots:
 private:
     TDLibWrapper *tdLibWrapper;
 #ifdef USE_CALLS
-    CallsManager *callsManager;
+    QSharedPointer<CallsManager> callsManager;
 #endif
     bool defaultOpenUrl;
 };

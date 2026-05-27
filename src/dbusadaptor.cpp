@@ -27,7 +27,7 @@
 
 DBusAdaptor::DBusAdaptor(TDLibWrapper *tdLibWrapper,
 #ifdef USE_CALLS
-                         CallsManager *callsManager,
+                         QSharedPointer<CallsManager> callsManager,
 #endif
                          QObject *parent)
     : QDBusAbstractAdaptor(parent),

@@ -43,7 +43,6 @@ CallsManager::~CallsManager() {
         LOG("Stopping tgcalls instance");
         instance->stop([](tgcalls::FinalState) {});
     }
-    qDeleteAll(activeCalls);
 }
 
 QVariantMap CallsManager::protocol() {
@@ -105,10 +104,10 @@ void CallsManager::Call::update(qlonglong uniqueId, qlonglong userId, bool outgo
 }
 
 void CallsManager::handleCallUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state) {
-    Call *call = activeCalls.value(id);
+    QSharedPointer<Call> call = activeCalls.value(id);
     const bool newCall = !call;
     if (newCall)
-        activeCalls.insert(id, call = new Call());
+        activeCalls.insert(id, call = QSharedPointer<Call>(new Call()));
 
     const bool wasPending = call->state == CallState::Pending;
     call->update(uniqueId, userId, outgoing, video, state);
@@ -178,7 +177,7 @@ void CallsManager::resetInstance() {
 void CallsManager::setCurrentCallId(int id) {
     resetInstance();
     if (currentCallId)
-        delete activeCalls.take(currentCallId);
+        activeCalls.remove(currentCallId);
     currentCallId = id;
 
     emit callStarted();
@@ -186,7 +185,7 @@ void CallsManager::setCurrentCallId(int id) {
 
 void CallsManager::handleCallReady() {
     LOG("Call is ready");
-    Call *call = activeCalls.value(currentCallId);
+    QSharedPointer<Call> call = activeCalls.value(currentCallId);
     const QVariantMap state = call->stateData;
 
     const QVariantMap protocol = state.value(PROTOCOL).toMap();
@@ -329,7 +328,7 @@ qlonglong CallsManager::currentCallUserId() const {
 CallsManager::CurrentCallState CallsManager::getCurrentCallState() const {
     if (!currentCallId)
         return CurrentCallState::Discarded;
-    Call *call = activeCalls.value(currentCallId);
+    QSharedPointer<Call> call = activeCalls.value(currentCallId);
 
     switch (call->state) {
     case CallState::Ready:
@@ -375,7 +374,7 @@ CallsManager::CurrentCallState CallsManager::getCurrentCallState() const {
 
 QVariantMap CallsManager::currentCallError() const {
     if (!currentCallId) return {};
-    Call *call = activeCalls.value(currentCallId);
+    QSharedPointer<Call> call = activeCalls.value(currentCallId);
     if (call->state != CallState::Error)
         return {};
 
@@ -384,7 +383,7 @@ QVariantMap CallsManager::currentCallError() const {
 
 QStringList CallsManager::currentCallEmojis() const {
     if (!currentCallId) return {};
-    Call *call = activeCalls.value(currentCallId);
+    QSharedPointer<Call> call = activeCalls.value(currentCallId);
     if (call->state != CallState::Ready)
         return {};
 
@@ -415,11 +414,11 @@ void CallsManager::acceptCall(int callId) {
 void CallsManager::discardCall(int callId) {
     LOG("Discarding a call" << callId);
     if (currentCallId != callId && activeCalls.contains(callId))
-        delete activeCalls.take(callId);
+        activeCalls.remove(callId);
     tdLibWrapper->discardCall(callId);
 }
 
-const CallsManager::Call* CallsManager::getCall(int id) {
+const QSharedPointer<CallsManager::Call> CallsManager::getCall(int id) {
     return activeCalls.value(id);
 }
 

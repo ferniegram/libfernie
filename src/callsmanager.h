@@ -68,7 +68,7 @@ public:
     Q_INVOKABLE void discardCurrentCall();
     Q_INVOKABLE void acceptCall(int callId);
     Q_INVOKABLE void discardCall(int callId);
-    const Call *getCall(int callId);
+    const QSharedPointer<Call> getCall(int callId);
 
     qlonglong currentCallUserId() const;
     CurrentCallState getCurrentCallState() const;
@@ -116,7 +116,7 @@ private:
     TDLibWrapper *tdLibWrapper;
     Settings *settings;
 
-    QHash<int, Call*> activeCalls;
+    QHash<int, QSharedPointer<Call>> activeCalls;
     qlonglong currentCallId = 0;
     CallReadyState currentCallReadyState = CallReadyState::Reconnecting;
     int signalBars = 0;

@@ -332,7 +332,7 @@ void NotificationManager::updateNotificationForChat(qlonglong chatId, TDLibFile 
 #ifdef USE_CALLS
     for (int callId : callNotifications.keys())
         if (tdLibWrapper->getChatData(chatId)->isPrivateOrSecretChat()) {
-            const CallsManager::Call *call = callsManager->getCall(callId);
+            const QSharedPointer<CallsManager::Call> call = callsManager->getCall(callId);
             if (call && call->userId == chatId) {
                 LOG("Updating call notification" << callId);
                 publishCallNotification(callId, chatPhotoFile);
@@ -556,7 +556,7 @@ void NotificationManager::handleDefaultReactionTypeChanged() {
 // Do not use notificationGroupTypeCalls so adding group calls support would be easier
 void NotificationManager::publishCallNotification(int callId, TDLibFile *chatPhotoFile) {
     LOG("Publishing call notification" << callId);
-    const CallsManager::Call *call = callsManager->getCall(callId);
+    const QSharedPointer<CallsManager::Call> call = callsManager->getCall(callId);
     Notification *notification = callNotifications.value(callId);
     if (!notification)
         callNotifications.insert(callId, notification = new Notification(this));

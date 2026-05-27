@@ -156,7 +156,11 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
 
 NotificationManager::~NotificationManager() {
     LOG("Destroying");
-    qDeleteAll(notificationGroups.values());
+    qDeleteAll(notificationGroups);
+    for (Notification *notification : callNotifications) {
+        notification->close();
+        delete notification;
+    }
 }
 
 NotificationManager::NotificationGroupType NotificationManager::getGroupType(const QVariantMap &groupType) {

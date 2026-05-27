@@ -43,6 +43,7 @@ CallsManager::~CallsManager() {
         LOG("Stopping tgcalls instance");
         instance->stop([](tgcalls::FinalState) {});
     }
+    qDeleteAll(activeCalls);
 }
 
 QVariantMap CallsManager::protocol() {

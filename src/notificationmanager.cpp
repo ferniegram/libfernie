@@ -146,7 +146,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
                 notification->close();
             } else if (typeOk && groupOk && chatOk && countOk && !notificationGroups.contains(groupId)) {
                 LOG("Restoring notification group" << groupId << "chatId" << chatId << "count" << totalCount);
-                notificationGroups.insert(groupId, new NotificationGroup(NotificationGroupType(type), groupId, chatId, totalCount, notification));
+                notificationGroups.insert(groupId, QSharedPointer<NotificationGroup>(new NotificationGroup(NotificationGroupType(type), groupId, chatId, totalCount, notification)));
                 continue;
             }
         }
@@ -156,7 +156,6 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
 
 NotificationManager::~NotificationManager() {
     LOG("Destroying");
-    qDeleteAll(notificationGroups);
     for (Notification *notification : callNotifications) {
         notification->close();
         delete notification;
@@ -218,7 +217,7 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
     Settings::NotificationFeedback feedback, qlonglong notificationSoundId)
 {
     bool needFeedback = false;
-    NotificationGroup* notificationGroup = notificationGroups.value(groupId);
+    QSharedPointer<NotificationGroup> notificationGroup = notificationGroups.value(groupId);
 
     NotificationGroupType groupType = getGroupType(type);
     if (groupType == NotificationGroupTypeCalls)
@@ -237,7 +236,7 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
             notification->setHintValue(HINT_CHAT_ID, chatId);
             notification->setHintValue(HINT_TOTAL_COUNT, totalCount);
             notificationGroups.insert(groupId, notificationGroup =
-                new NotificationGroup(groupType, groupId, chatId, totalCount, notification));
+                QSharedPointer<NotificationGroup>(new NotificationGroup(groupType, groupId, chatId, totalCount, notification)));
         }
 
         for (const QVariant &notificationVariant : addedNotifications) {
@@ -271,7 +270,7 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
         if (needFeedback && notificationSoundId > 0) {
             tdLibWrapper->getSavedNotificationSound(notificationSoundId, this,
                 [this, groupId, needFeedback](const QString &type, const QVariantMap &sound) {
-                    NotificationGroup *group = notificationGroups.value(groupId);
+                    QSharedPointer<NotificationGroup> group = notificationGroups.value(groupId);
                     if (!group) {
                         LOG("Notification was deleted before sound info was received");
                         return;
@@ -298,7 +297,6 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
         // No active notifications left in this group
         notificationGroup->nemoNotification->close();
         notificationGroups.remove(groupId);
-        delete notificationGroup;
     }
 
     if (notificationGroups.isEmpty())
@@ -312,7 +310,7 @@ void NotificationManager::handleUpdateNotification(int groupId, const QVariantMa
     int notificationId = notification.value(ID).toInt();
     LOG("Received notification update group ID" << groupId << "notification ID" << notificationId);
 
-    NotificationGroup *group = notificationGroups.value(groupId);
+    QSharedPointer<NotificationGroup> group = notificationGroups.value(groupId);
     if (group && group->activeNotifications.contains(notificationId)) {
         LOG("Updating notification" << notificationId << "group" << groupId);
         group->activeNotifications.insert(notificationId, notification);
@@ -324,7 +322,7 @@ void NotificationManager::handleUpdateNotification(int groupId, const QVariantMa
 
 void NotificationManager::updateNotificationForChat(qlonglong chatId, TDLibFile *chatPhotoFile) {
     // Silently update notifications
-    for (NotificationGroup *group : notificationGroups)
+    for (QSharedPointer<NotificationGroup> group : notificationGroups)
         if (group->chatId == chatId) {
             LOG("Updating notification for group ID" << group->notificationGroupId);
             publishNotification(group, false, false, QString(), chatPhotoFile);
@@ -396,7 +394,7 @@ void NotificationManager::fillChatNotificationFields(Notification *notification,
     }
 }
 
-void NotificationManager::publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound, const QString &soundFilePath, TDLibFile *chatPhotoFile) {
+void NotificationManager::publishNotification(const QSharedPointer<NotificationGroup> notificationGroup, bool needFeedback, bool suppressSound, const QString &soundFilePath, TDLibFile *chatPhotoFile) {
     const QVariantMap lastNotification = notificationGroup->lastNotification();
     const QVariantMap notificationType = lastNotification.value(TYPE).toMap();
     const ChatData *chat = tdLibWrapper->getChatData(notificationGroup->chatId);
@@ -477,7 +475,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
         return;
     }
 
-    if (notificationGroup->type == NotificationGroupTypeMentions) {
+    if (chat && notificationGroup->type == NotificationGroupTypeMentions) {
         QString summary;
         if (chat->chatType == TDLibWrapper::ChatTypeBasicGroup || chat->chatType == TDLibWrapper::ChatTypeSupergroup)
             summary = tr("Mentions in %1",
@@ -540,7 +538,7 @@ void NotificationManager::handleChatPhotoDownloadingCompletedChanged() {
 
 void NotificationManager::updateAllNotifications() {
     LOG("Updating all notifications");
-    for (NotificationGroup *group : notificationGroups) {
+    for (QSharedPointer<NotificationGroup> group : notificationGroups) {
         LOG("Updating notification for group ID" << group->notificationGroupId);
         publishNotification(group, false);
         break;

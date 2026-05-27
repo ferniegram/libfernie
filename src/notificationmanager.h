@@ -90,7 +90,7 @@ private:
     void fillBasicNotificationFields(Notification *notification) const;
     void fillChatNotificationFields(Notification *notification, const ChatData *chat, TDLibFile *chatPhotoFile);
 
-    void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
+    void publishNotification(const QSharedPointer<NotificationGroup> notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
     void controlLedNotification(bool enabled) const;
     void controlCallLedNotification(bool enabled) const;
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
@@ -110,7 +110,7 @@ private:
     QString dbusPath;
     QString dbusServiceName;
     QString dbusInterface;
-    QMap<int, NotificationGroup*> notificationGroups;
+    QMap<int, QSharedPointer<NotificationGroup>> notificationGroups;
     QString appIconFile;
     qlonglong activeChatId;
     QMap<int, qlonglong> pendingChatPhotoChats;

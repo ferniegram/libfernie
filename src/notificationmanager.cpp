@@ -331,6 +331,7 @@ void NotificationManager::updateNotificationForChat(qlonglong chatId, TDLibFile 
             break;
         }
 
+#ifdef USE_CALLS
     for (int callId : callNotifications.keys())
         if (tdLibWrapper->getChatData(chatId)->isPrivateOrSecretChat()) {
             const CallsManager::Call *call = callsManager->getCall(callId);
@@ -339,6 +340,7 @@ void NotificationManager::updateNotificationForChat(qlonglong chatId, TDLibFile 
                 publishCallNotification(callId, chatPhotoFile);
             }
         }
+#endif
 }
 
 void NotificationManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles) {

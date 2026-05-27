@@ -438,7 +438,7 @@ void NotificationManager::publishNotification(const NotificationGroup *notificat
         return;
     }
 
-    if (notificationGroup->type == NotificationGroupTypeMentions) {
+    if (chat && notificationGroup->type == NotificationGroupTypeMentions) {
         QString summary;
         if (chat->chatType == TDLibWrapper::ChatTypeBasicGroup || chat->chatType == TDLibWrapper::ChatTypeSupergroup)
             summary = tr("Mentions in %1",

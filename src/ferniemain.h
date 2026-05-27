@@ -42,6 +42,10 @@ namespace FernieMain {
 
         AppContext(QSharedPointer<QQuickView> view,
                    TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
+#if USE_CALLS
+                   CallsManager *callsManager,
+#endif
+                   DBusAdaptor *dbusAdaptor,
                    const QString &appName, const QUrl &appIconPath,
                    const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
     };

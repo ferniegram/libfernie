@@ -75,7 +75,7 @@ private:
         QList<int> notificationOrder;
     };
 
-    void publishNotification(const NotificationGroup *notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
+    void publishNotification(QSharedPointer<NotificationGroup> notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
     void controlLedNotification(bool enabled);
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
         const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
@@ -91,7 +91,7 @@ private:
     QString dbusPath;
     QString dbusServiceName;
     QString dbusInterface;
-    QMap<int, NotificationGroup*> notificationGroups;
+    QMap<int, QSharedPointer<NotificationGroup>> notificationGroups;
     QString appIconFile;
     qlonglong activeChatId;
     QMap<int, qlonglong> pendingChatPhotoChats;

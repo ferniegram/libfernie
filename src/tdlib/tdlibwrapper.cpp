@@ -3454,3 +3454,16 @@ void TDLibWrapper::acceptCall(int callId, const QVariantMap &protocol) {
         {PROTOCOL, protocol}
     });
 }
+
+void TDLibWrapper::addPollOption(qlonglong chatId, qlonglong messageId, const QString &text) {
+    LOG("Adding a poll option" << chatId << messageId);
+    sendRequest({
+        {_TYPE, "addPollOption"},
+        {CHAT_ID, chatId},
+        {MESSAGE_ID, messageId},
+        {"option", QVariantMap{
+            {_TYPE, "inputPollOption"},
+            {TEXT, Utilities::newFormattedText(text)}
+        }}
+    });
+}

@@ -471,6 +471,7 @@ public:
     void discardCall(int callId);
     void sendCallSignalingData(int callId, const QByteArray &data);
     void acceptCall(int callId, const QVariantMap &protocol);
+    Q_INVOKABLE void addPollOption(qlonglong chatId, qlonglong messageId, const QString &text);
 
 public:
     const Group* getGroup(qlonglong groupId) const;

@@ -603,6 +603,11 @@ QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, con
                     ? (myself ? tr("unhid this topic", "myself") : tr("unhid this topic"))
                     : (myself ? tr("unhid the general topic", "myself") : tr("unhid the general topic"));
     }
+    // TODO: open the poll when clicking on the message
+    if (contentType == "messagePollOptionAdded")
+        return tr("added \"%1\" to the poll").arg(enhanceMessageText(messageContent.value(TEXT).toMap(), true));
+    if (contentType == "messagePollOptionDeleted")
+        return tr("removed \"%1\" from the poll").arg(enhanceMessageText(messageContent.value(TEXT).toMap(), true));
     if (contentType == "messageUnsupported")
         return myself ? tr("sent an unsupported message", "myself") : tr("sent an unsupported message");
 

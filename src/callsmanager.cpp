@@ -20,6 +20,10 @@ namespace {
     const QString UDP_P2P("udp_p2p");
     const QString MAX_LAYER("max_layer");
     const QString ERROR("error");
+
+    const auto RegisterTag = tgcalls::Register<tgcalls::InstanceImpl>();
+    const auto RegisterTagV2 = tgcalls::Register<tgcalls::InstanceV2Impl>();
+    const auto RegisterTagV2Reference = tgcalls::Register<tgcalls::InstanceV2ReferenceImpl>();
 }
 
 
@@ -31,10 +35,6 @@ CallsManager::CallsManager(TDLibWrapper *tdLibWrapper, Settings *settings, QObje
     connect(tdLibWrapper, &TDLibWrapper::callIdReceived, this, &CallsManager::handleCallIdReceived);
     connect(tdLibWrapper, &TDLibWrapper::callUpdated, this, &CallsManager::handleCallUpdated);
     connect(tdLibWrapper, &TDLibWrapper::newCallSignalingDataReceived, this, &CallsManager::handleNewCallSignalingDataReceived);
-
-    tgcalls::Register<tgcalls::InstanceImpl>();
-    tgcalls::Register<tgcalls::InstanceV2Impl>();
-    tgcalls::Register<tgcalls::InstanceV2ReferenceImpl>();
 }
 
 CallsManager::~CallsManager() {

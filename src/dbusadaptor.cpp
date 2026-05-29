@@ -25,8 +25,16 @@
 #define DEBUG_MODULE DBusAdaptor
 #include "debuglog.h"
 
-DBusAdaptor::DBusAdaptor(TDLibWrapper *tdLibWrapper, QObject *parent)
-    : QDBusAbstractAdaptor(parent), tdLibWrapper(tdLibWrapper)
+DBusAdaptor::DBusAdaptor(TDLibWrapper *tdLibWrapper,
+#ifdef USE_CALLS
+                         QSharedPointer<CallsManager> callsManager,
+#endif
+                         QObject *parent)
+    : QDBusAbstractAdaptor(parent),
+      tdLibWrapper(tdLibWrapper)
+#ifdef USE_CALLS
+      , callsManager(callsManager)
+#endif
 {}
 
 void DBusAdaptor::openUrl(const QStringList &arguments) {
@@ -84,3 +92,15 @@ void DBusAdaptor::closeSecretChat(const QString &chatId) {
         tdLibWrapper->closeSecretChat(secretChatId);
     }
 }
+
+#ifdef USE_CALLS
+void DBusAdaptor::acceptCall(int callId) {
+    LOG("Accepting a call" << callId);
+    callsManager->acceptCall(callId);
+}
+
+void DBusAdaptor::discardCall(int callId) {
+    LOG("Discarding a call" << callId);
+    callsManager->discardCall(callId);
+}
+#endif

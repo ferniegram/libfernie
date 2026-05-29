@@ -27,6 +27,10 @@
 #include "mceinterface.h"
 #include "utilities.h"
 
+#ifdef USE_CALLS
+#include "callsmanager.h"
+#endif
+
 class NotificationManager : public QObject {
     Q_OBJECT
 
@@ -34,6 +38,9 @@ class NotificationManager : public QObject {
 
 public:
     NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
+#ifdef USE_CALLS
+                        QSharedPointer<CallsManager> callsManager,
+#endif
                         const QString &appName, const QUrl &appIconPath = QUrl(),
                         const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
     ~NotificationManager() override;
@@ -49,6 +56,11 @@ private slots:
     void updateAllNotifications();
     void handleDefaultReactionTypeChanged();
     void updateNotificationForChat(qlonglong chatId, TDLibFile *chatPhotoFile = nullptr);
+
+#ifdef USE_CALLS
+    void publishCallNotification(int callId, TDLibFile *chatPhotoFile = nullptr);
+    void removeCallNotification(int id);
+#endif
 
 private:
     enum NotificationGroupType {
@@ -75,8 +87,12 @@ private:
         QList<int> notificationOrder;
     };
 
-    void publishNotification(QSharedPointer<NotificationGroup> notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
-    void controlLedNotification(bool enabled);
+    void fillBasicNotificationFields(Notification *notification) const;
+    void fillChatNotificationFields(Notification *notification, const ChatData *chat, TDLibFile *chatPhotoFile);
+
+    void publishNotification(const QSharedPointer<NotificationGroup> notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
+    void controlLedNotification(bool enabled) const;
+    void controlCallLedNotification(bool enabled) const;
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
         const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
         Settings::NotificationFeedback feedback = Settings::NotificationFeedbackNone,
@@ -87,6 +103,9 @@ private:
     Settings *settings;
     MceInterface *mceInterface;
     Utilities *utilities;
+#ifdef USE_CALLS
+    QSharedPointer<CallsManager> callsManager;
+#endif
     QString appName;
     QString dbusPath;
     QString dbusServiceName;
@@ -95,4 +114,5 @@ private:
     QString appIconFile;
     qlonglong activeChatId;
     QMap<int, qlonglong> pendingChatPhotoChats;
+    QHash<int, Notification*> callNotifications;
 };

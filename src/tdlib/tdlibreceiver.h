@@ -154,6 +154,9 @@ signals:
     void savedNotificationSoundsUpdated(const QStringList &soundIds);
     void defaultReactionTypeUpdated(const QVariantMap &reactionType);
     void textReceived(const QString &text, const QString &extra);
+    void callIdReceived(int id);
+    void callUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
+    void newCallSignalingDataReceived(int callId, const QByteArray &data);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -270,7 +273,10 @@ private:
         {"notificationSounds", &TDLibReceiver::processNotificationSounds},
         {"updateSavedNotificationSounds", &TDLibReceiver::processUpdateSavedNotificationSounds},
         {"updateDefaultReactionType", &TDLibReceiver::processUpdateDefaultReactionType},
-        {"text", &TDLibReceiver::processText}
+        {"text", &TDLibReceiver::processText},
+        {"callId", &TDLibReceiver::processCallId},
+        {"updateCall", &TDLibReceiver::processUpdateCall},
+        {"updateNewCallSignalingData", &TDLibReceiver::processUpdateNewCallSignalingData}
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},
@@ -398,4 +404,7 @@ private:
     void processUpdateSavedNotificationSounds(const QVariantMap &receivedInformation);
     void processUpdateDefaultReactionType(const QVariantMap &receivedInformation);
     void processText(const QVariantMap &receivedInformation);
+    void processCallId(const QVariantMap &receivedInformation);
+    void processUpdateCall(const QVariantMap &receivedInformation);
+    void processUpdateNewCallSignalingData(const QVariantMap &receivedInformation);
 };

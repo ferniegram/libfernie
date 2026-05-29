@@ -17,13 +17,20 @@
 #include "suggestedactionsmanager.h"
 #include "dbusadaptor.h"
 
+#ifdef USE_CALLS
+#include "callsmanager.h"
+#endif
+
 namespace FernieMain {
     static const char *uri = "io.libfernie";
 
     struct AppContext {
         Settings *settings;
         TDLibWrapper *tdLibWrapper;
-        DBusAdaptor *dbusAdaptor;
+#ifdef USE_CALLS
+        QSharedPointer<CallsManager> callsManager;
+#endif
+        QSharedPointer<DBusAdaptor> dbusAdaptor;
         WaveformManager waveformManager;
         ChatFoldersModel chatFoldersModel;
         NotificationManager notificationManager;
@@ -34,7 +41,11 @@ namespace FernieMain {
         SuggestedActionsManager suggestedActionsManager;
 
         AppContext(QSharedPointer<QQuickView> view,
-                   TDLibWrapper *tdLibWrapper, DBusAdaptor *dbusAdaptor, Settings *settings, Utilities *utilities,
+                   TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
+#if USE_CALLS
+                   QSharedPointer<CallsManager> callsManager,
+#endif
+                   QSharedPointer<DBusAdaptor> dbusAdaptor,
                    const QString &appName, const QUrl &appIconPath,
                    const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
     };

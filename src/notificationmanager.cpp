@@ -459,7 +459,6 @@ void NotificationManager::publishNotification(const QSharedPointer<NotificationG
             remoteActions.append(replyAction);
         }
 
-        // TODO: hide the button when reacted
         if (settings->notificationShowDefaultReaction()) {
             const QVariantMap reactionType = tdLibWrapper->getDefaultReactionType();
             if (reactionType.value(_TYPE).toString() == "reactionTypeEmoji")
@@ -543,7 +542,6 @@ void NotificationManager::updateAllNotifications() {
     for (QSharedPointer<NotificationGroup> group : notificationGroups) {
         LOG("Updating notification for group ID" << group->notificationGroupId);
         publishNotification(group, false);
-        break;
     }
 }
 

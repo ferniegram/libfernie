@@ -156,10 +156,12 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
 
 NotificationManager::~NotificationManager() {
     LOG("Destroying");
+#ifdef USE_CALLS
     for (Notification *notification : callNotifications) {
         notification->close();
         delete notification;
     }
+#endif
 }
 
 NotificationManager::NotificationGroupType NotificationManager::getGroupType(const QVariantMap &groupType) {

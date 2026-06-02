@@ -57,5 +57,5 @@ namespace FernieMain {
         qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);
     }
 
-    void registerDBusService(QSharedPointer<QGuiApplication> app, QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName);
+    void registerDBusService(QSharedPointer<QGuiApplication> app, QSharedPointer<QQuickView> view, const QString &serviceName, const QString &path = QString());
 }

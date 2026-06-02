@@ -147,7 +147,7 @@ FernieMain::AppContext* FernieMain::registerTypes(int argc, char *argv[], QShare
     return appContext;
 }
 
-void FernieMain::registerDBusService(QSharedPointer<QGuiApplication> app, QSharedPointer<QQuickView> view, const QString &path, const QString &serviceName) {
+void FernieMain::registerDBusService(QSharedPointer<QGuiApplication> app, QSharedPointer<QQuickView> view, const QString &serviceName, const QString &path) {
     LOG("Initializing DBus connectivity");
     QDBusConnection sessionBusConnection = QDBusConnection::sessionBus();
 
@@ -156,7 +156,7 @@ void FernieMain::registerDBusService(QSharedPointer<QGuiApplication> app, QShare
         return;
     }
 
-    if (!sessionBusConnection.registerObject(path, view.data())) {
+    if (!path.isEmpty() && !sessionBusConnection.registerObject(path, view.data())) {
         WARN("Error registering DBus root object" << sessionBusConnection.lastError().message());
         return;
     }
@@ -182,7 +182,8 @@ void FernieMain::registerDBusService(QSharedPointer<QGuiApplication> app, QShare
             return;
         }
 
-        sessionBusConnection.unregisterObject(path);
+        if (!path.isEmpty())
+            sessionBusConnection.unregisterObject(path);
 
         LOG("DBus service unregistered successfully");
     });

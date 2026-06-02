@@ -46,6 +46,7 @@ public:
     ~NotificationManager() override;
 
     void setActiveChatId(qlonglong chatId);
+    void setDbusServiceName(const QString &serviceName);
 
 private slots:
     void handleUpdateActiveNotifications(const QVariantList &notificationGroups);

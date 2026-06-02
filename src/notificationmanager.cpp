@@ -614,3 +614,22 @@ void NotificationManager::controlCallLedNotification(bool enabled) const {
     static const QString PATTERN("PatternCommunicationCall");
     mceInterface->setLedPattern(PATTERN, enabled);
 }
+
+void NotificationManager::setDbusServiceName(const QString &serviceName) {
+    if (this->dbusServiceName != serviceName) {
+        LOG("Changing DBus service name to" << serviceName);
+        this->dbusServiceName = serviceName;
+
+        for (QSharedPointer<NotificationGroup> group : notificationGroups) {
+            LOG("Updating notification group" << group->notificationGroupId);
+            QVariantList newActions;
+            for (const QVariant &actionVariant : group->nemoNotification->remoteActions()) {
+                QVariantMap action = actionVariant.toMap();
+                action.insert(QStringLiteral("service"), serviceName);
+                newActions.append(action);
+            }
+            group->nemoNotification->setRemoteActions(newActions);
+            group->nemoNotification->publish();
+        }
+    }
+}

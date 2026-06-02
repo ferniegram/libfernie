@@ -255,7 +255,7 @@ void TDLibReceiver::processUpdateUnreadChatCount(const QVariantMap &receivedInfo
 void TDLibReceiver::processUpdateChatLastMessage(const QVariantMap &receivedInformation) {
     qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong();
     const QVariantMap lastMessage = receivedInformation.value(LAST_MESSAGE).toMap();
-    LOG("Last message of chat" << chatId << "updated, type" << lastMessage.value(_TYPE).toString());
+    LOG("Last chat message updated" << chatId << lastMessage.value(ID).toLongLong());
     /*if (order.isValid() && order.toLongLong() == 0) // this seems to be already done by tdlib in updateChatRemovedFromList
         emit chatRemovedFromList(chatId);
     else*/

@@ -39,7 +39,7 @@ class NotificationManager : public QObject {
 public:
     NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
 #ifdef USE_CALLS
-                        QSharedPointer<CallsManager> callsManager,
+                        CallsManager *callsManager,
 #endif
                         const QString &appName, const QUrl &appIconPath = QUrl(),
                         const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
@@ -105,7 +105,8 @@ private:
     MceInterface *mceInterface;
     Utilities *utilities;
 #ifdef USE_CALLS
-    QSharedPointer<CallsManager> callsManager;
+    CallsManager *callsManager;
+    QHash<int, Notification*> callNotifications;
 #endif
     QString appName;
     QString dbusPath;
@@ -115,5 +116,4 @@ private:
     QString appIconFile;
     qlonglong activeChatId;
     QMap<int, qlonglong> pendingChatPhotoChats;
-    QHash<int, Notification*> callNotifications;
 };

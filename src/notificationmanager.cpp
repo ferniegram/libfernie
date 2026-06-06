@@ -89,7 +89,7 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
 
 NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
 #ifdef USE_CALLS
-                                         QSharedPointer<CallsManager> callsManager,
+                                         CallsManager *callsManager,
 #endif
                                          const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
                                          const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
@@ -120,8 +120,8 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     connect(settings, &Settings::notificationShowDefaultReactionChanged, this, &NotificationManager::updateAllNotifications);
 
 #ifdef USE_CALLS
-    connect(callsManager.data(), SIGNAL(pendingIncomingCall(int)), this, SLOT(publishCallNotification(int)));
-    connect(callsManager.data(), &CallsManager::incomingCallNotPending, this, &NotificationManager::removeCallNotification);
+    connect(callsManager, SIGNAL(pendingIncomingCall(int)), this, SLOT(publishCallNotification(int)));
+    connect(callsManager, &CallsManager::incomingCallNotPending, this, &NotificationManager::removeCallNotification);
 #endif
 
     this->controlLedNotification(false);

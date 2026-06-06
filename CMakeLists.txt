@@ -103,7 +103,7 @@ if(USE_CALLS)
     target_link_libraries(libfernie tgcalls)
     target_include_directories(libfernie PUBLIC tgcalls)
 
-    target_compile_definitions(libfernie PRIVATE USE_CALLS)
+    target_compile_definitions(libfernie PUBLIC USE_CALLS)
 
     target_sources(libfernie PRIVATE
         src/callsmanager.cpp

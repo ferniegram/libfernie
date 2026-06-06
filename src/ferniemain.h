@@ -28,9 +28,9 @@ namespace FernieMain {
         Settings *settings;
         TDLibWrapper *tdLibWrapper;
 #ifdef USE_CALLS
-        QSharedPointer<CallsManager> callsManager;
+        CallsManager callsManager;
 #endif
-        QSharedPointer<DBusAdaptor> dbusAdaptor;
+        DBusAdaptor dbusAdaptor;
         WaveformManager waveformManager;
         ChatFoldersModel chatFoldersModel;
         NotificationManager notificationManager;
@@ -42,10 +42,6 @@ namespace FernieMain {
 
         AppContext(QSharedPointer<QQuickView> view,
                    TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
-#if USE_CALLS
-                   QSharedPointer<CallsManager> callsManager,
-#endif
-                   QSharedPointer<DBusAdaptor> dbusAdaptor,
                    const QString &appName, const QUrl &appIconPath,
                    const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
     };

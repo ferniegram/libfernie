@@ -309,7 +309,7 @@ void CallsManager::handleCallReady() {
 
     if (settings->saveCallLogs()) {
         const QString location = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + QDir::separator();
-        const QString prefix = QString("ferniegram-call-log-%2%1.txt").arg(QDate::currentDate().toString(Qt::ISODate));
+        const QString prefix = QString("libfernie-call-log-%2%1.txt").arg(QDate::currentDate().toString(Qt::ISODate));
 
         descriptor.config.logPath.data = (location + prefix.arg("")).toStdString();
         descriptor.config.statsLogPath.data = (location + prefix.arg("stat-")).toStdString();

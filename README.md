@@ -1,6 +1,6 @@
 # libfernie
 
-libfernie is the Ferniegram backend.
+libfernie is the YAST Client backend.
 
 ## Credits
 
@@ -25,13 +25,13 @@ This project uses
 
 ## Usage
 
-First, you would need to implement `PlatformApp`. See `platformapp.h` for details, or `platformapp.cpp` in Ferniegram source for an example.
+First, you would need to implement `PlatformApp`. See `platformapp.h` for details, or `platformapp.cpp` in YAST source for an example.
 
 The installation of TDLib should be handled by the application. **The version of TDLib currently supported by libfernie is 1.8.63.**
 
-See Ferniegram for a complete example of including libfernie in your project.
+See YAST for a complete example of including libfernie in your project.
 
-**Important:** Libfernie's API is not stable, and it is not versioned. Ferniegram generally adapts to the latest API changes, since that is the main project relying on this library. This is unlikely to change in the future, since no code is ideal and there's always room for improvement.
+**Important:** Libfernie's API is not stable, and it is not versioned. YAST generally adapts to the latest API changes, since that is the main project relying on this library. This is unlikely to change in the future, since no code is ideal and there's always room for improvement.
 
 ## TODO
 

@@ -558,15 +558,16 @@ void NotificationManager::publishCallNotification(int callId, TDLibFile *chatPho
     LOG("Publishing call notification" << callId);
     const QSharedPointer<CallsManager::Call> call = callsManager->getCall(callId);
     Notification *notification = callNotifications.value(callId);
-    if (!notification)
+    if (!notification) {
         callNotifications.insert(callId, notification = new Notification(this));
+        notification->setUrgency(Notification::Critical);
+        notification->setResident(true);
+        notification->setHintValue(HINT_IS_CALL, true);
+    }
 
     // TODO: ideally only handle user data & updates for call notifications
     fillChatNotificationFields(notification, tdLibWrapper->getChatData(call->userId), chatPhotoFile);
-    notification->setUrgency(Notification::Critical);
     notification->setBody(call->video ? tr("Incoming video call", "notification") : tr("Incoming call", "notification"));
-
-    notification->setHintValue(HINT_IS_CALL, true);
 
     const QVariantList arguments{callId};
     notification->setRemoteActions({

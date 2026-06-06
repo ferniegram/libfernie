@@ -66,6 +66,15 @@ namespace {
     const QString HINT_DISPLAY_ON("x-nemo-display-on");             // bool
     const QString HINT_VISIBILITY("x-nemo-visibility");             // QString
     const QString VISIBILITY_PUBLIC("public");
+
+    // Actions
+    const QString ACTION_DEFAULT("default");
+    const QString ACTION_CLOSE("close");
+    const QString ACTION_MARK_AS_READ("mark_as_read");
+    const QString ACTION_REPLY("reply");
+    const QString ACTION_REACT("react");
+    const QString ACTION_ACCEPT("accept");
+    const QString ACTION_DISCARD("discard");
 }
 
 NotificationManager::NotificationGroup::NotificationGroup(NotificationGroupType type, int group, qlonglong chat, int count, Notification *notification) :
@@ -87,16 +96,18 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
     return activeNotifications.value(notificationOrder.last());
 }
 
-NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
+NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, DBusAdaptor *dbusAdaptor,
 #ifdef USE_CALLS
                                          CallsManager *callsManager,
 #endif
                                          const QString &appName = QGuiApplication::applicationName(), const QUrl &appIconPath,
-                                         const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface) :
+                                         const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface,
+                                         bool useSignalActions) :
     tdLibWrapper(tdLibWrapper),
     settings(settings),
     mceInterface(new MceInterface(this)),
     utilities(utilities),
+    dbusAdaptor(dbusAdaptor),
 #ifdef USE_CALLS
     callsManager(callsManager),
 #endif
@@ -104,6 +115,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
     dbusPath(dbusPath),
     dbusServiceName(dbusServiceName),
     dbusInterface(dbusInterface),
+    useSignalActions(useSignalActions),
     appIconFile(appIconPath.toLocalFile()),
     activeChatId(0)
 {
@@ -239,6 +251,22 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
             notification->setHintValue(HINT_TOTAL_COUNT, totalCount);
             notificationGroups.insert(groupId, notificationGroup =
                 QSharedPointer<NotificationGroup>(new NotificationGroup(groupType, groupId, chatId, totalCount, notification)));
+
+            connect(notification, &Notification::actionInvoked, [this, chatId, notificationGroup](const QString &actionName) {
+                if (!useSignalActions) return;
+
+                const QString chatIdString = QString::number(chatId);
+                const auto getMessageId = [notificationGroup]() {
+                    return notificationGroup->lastNotification().value(TYPE).toMap().value(MESSAGE).toMap().value(ID).toString();
+                };
+
+                if (actionName == ACTION_MARK_AS_READ)
+                    dbusAdaptor->markMessageAsRead(chatIdString, getMessageId());
+                else if (actionName == ACTION_REACT)
+                    dbusAdaptor->reactToMessage(chatIdString, getMessageId());
+                else if (actionName == ACTION_CLOSE)
+                    dbusAdaptor->closeSecretChat(chatIdString);
+            });
         }
 
         for (const QVariant &notificationVariant : addedNotifications) {
@@ -416,8 +444,8 @@ void NotificationManager::publishNotification(const QSharedPointer<NotificationG
         nemoNotification->setBody(tr("This secret chat was created", "Notification"));
 
         remoteActions.append(Notification::remoteAction(
-                                 "", tr("Close", "Notification button for closing a newly created secret chat"),
-                                 dbusServiceName, dbusPath, dbusInterface,
+                                 useSignalActions ? ACTION_CLOSE : "", tr("Close", "Notification button for closing a newly created secret chat"),
+                                 useSignalActions ? "" : dbusServiceName, dbusPath, dbusInterface,
                                  "closeSecretChat", remoteActionArguments
                                  ));
         break;
@@ -444,13 +472,14 @@ void NotificationManager::publishNotification(const QSharedPointer<NotificationG
         remoteActionArguments.append(message.value(ID).toString());
 
         remoteActions.append(Notification::remoteAction(
-                                 "", tr("Mark as read", "Notification button"),
-                                 dbusServiceName, dbusPath, dbusInterface,
+                                 ACTION_MARK_AS_READ, tr("Mark as read", "Notification button"),
+                                 useSignalActions ? "" : dbusServiceName, dbusPath, dbusInterface,
                                  "markMessageAsRead", remoteActionArguments
                                  ));
 
         if (showPreview && !chat->isChannel()) {
-            QVariantMap replyAction = Notification::remoteAction("", tr("Reply", "Reply to a message in a notification"),
+            // Ignore useSignalBasedActions here
+            QVariantMap replyAction = Notification::remoteAction(ACTION_REPLY, tr("Reply", "Reply to a message in a notification"),
                                                                 dbusServiceName, dbusPath, dbusInterface,
                                                                 "replyToMessage", remoteActionArguments).toMap();
             // See https://github.com/sailfishos/nemo-qml-plugin-notifications/blob/d4d0a0ce8257b90293b8df469830f0e288faeeae/src/notification.cpp#L213
@@ -461,10 +490,11 @@ void NotificationManager::publishNotification(const QSharedPointer<NotificationG
 
         if (settings->notificationShowDefaultReaction()) {
             const QVariantMap reactionType = tdLibWrapper->getDefaultReactionType();
+            // TODO: hide action if already reacted or add indication that the reaction is already set to allow unreacting
             if (reactionType.value(_TYPE).toString() == "reactionTypeEmoji")
                 remoteActions.append(Notification::remoteAction(
-                                         "", reactionType.value("emoji").toString(),
-                                         dbusServiceName, dbusPath, dbusInterface,
+                                         ACTION_REACT, reactionType.value("emoji").toString(),
+                                         useSignalActions ? "" : dbusServiceName, dbusPath, dbusInterface,
                                          "reactToMessage", remoteActionArguments
                                          ));
         }
@@ -490,8 +520,9 @@ void NotificationManager::publishNotification(const QSharedPointer<NotificationG
         nemoNotification->setSummary(summary.arg(nemoNotification->summary()));
     }
 
+    // Ignore useSignalBasedActions here
     remoteActions.append(Notification::remoteAction(
-                             "default", "",
+                             ACTION_DEFAULT, "",
                              dbusServiceName, dbusPath, dbusInterface,
                              "openMessage", remoteActionArguments
                              ));
@@ -563,6 +594,15 @@ void NotificationManager::publishCallNotification(int callId, TDLibFile *chatPho
         notification->setUrgency(Notification::Critical);
         notification->setResident(true);
         notification->setHintValue(HINT_IS_CALL, true);
+
+        connect(notification, &Notification::actionInvoked, [this, callId](const QString &actionName) {
+            if (!useSignalActions) return;
+
+            if (actionName == ACTION_ACCEPT)
+                dbusAdaptor->acceptCall(callId);
+            else if (actionName == ACTION_DISCARD)
+                dbusAdaptor->discardCall(callId);
+        });
     }
 
     // TODO: ideally only handle user data & updates for call notifications
@@ -573,18 +613,18 @@ void NotificationManager::publishCallNotification(int callId, TDLibFile *chatPho
     notification->setRemoteActions({
         // TODO: open a fullscreen call UI when clicking whole notification
         /*Notification::remoteAction(
-            "default", "",
+            ACTION_DEFAULT, "",
             dbusServiceName, dbusPath, dbusInterface,
             "openCall", remoteActionArguments
         ),*/
         Notification::remoteAction(
-            "", tr("Accept", "Accept a call"),
-            dbusServiceName, dbusPath, dbusInterface,
+            ACTION_ACCEPT, tr("Accept", "Accept a call"),
+            useSignalActions ? "" : dbusServiceName, dbusPath, dbusInterface,
             "acceptCall", arguments
         ),
         Notification::remoteAction(
-            "", tr("Decline", "Decline a call"),
-            dbusServiceName, dbusPath, dbusInterface,
+            ACTION_DISCARD, tr("Decline", "Decline a call"),
+            useSignalActions ? "" : dbusServiceName, dbusPath, dbusInterface,
             "discardCall", arguments
         )
     });
@@ -616,17 +656,19 @@ void NotificationManager::controlCallLedNotification(bool enabled) const {
     mceInterface->setLedPattern(PATTERN, enabled);
 }
 
-void NotificationManager::setDbusServiceName(const QString &serviceName) {
-    if (this->dbusServiceName != serviceName) {
-        LOG("Changing DBus service name to" << serviceName);
-        this->dbusServiceName = serviceName;
+void NotificationManager::setUseSignalActions(bool value) {
+    if (this->useSignalActions != value) {
+        LOG("Toggling usage of signal actions" << value);
 
         for (QSharedPointer<NotificationGroup> group : notificationGroups) {
             LOG("Updating notification group" << group->notificationGroupId);
             QVariantList newActions;
             for (const QVariant &actionVariant : group->nemoNotification->remoteActions()) {
                 QVariantMap action = actionVariant.toMap();
-                action.insert(QStringLiteral("service"), serviceName);
+                const QString actionName = action.value(QStringLiteral("name")).toString();
+
+                if (actionName != ACTION_DEFAULT && actionName != ACTION_REPLY)
+                    action.insert(QStringLiteral("service"), useSignalActions ? "" : dbusServiceName);
                 newActions.append(action);
             }
             group->nemoNotification->setRemoteActions(newActions);

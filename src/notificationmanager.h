@@ -26,6 +26,7 @@
 #include "settings.h"
 #include "mceinterface.h"
 #include "utilities.h"
+#include "dbusadaptor.h"
 
 #ifdef USE_CALLS
 #include "callsmanager.h"
@@ -37,16 +38,17 @@ class NotificationManager : public QObject {
     Q_PROPERTY(qlonglong activeChatId MEMBER activeChatId WRITE setActiveChatId)
 
 public:
-    NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
+    NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, DBusAdaptor *dbusAdaptor,
 #ifdef USE_CALLS
                         CallsManager *callsManager,
 #endif
                         const QString &appName, const QUrl &appIconPath = QUrl(),
-                        const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
+                        const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default",
+                        bool useSignalActions = false);
     ~NotificationManager() override;
 
     void setActiveChatId(qlonglong chatId);
-    void setDbusServiceName(const QString &serviceName);
+    void setUseSignalActions(bool value);
 
 private slots:
     void handleUpdateActiveNotifications(const QVariantList &notificationGroups);
@@ -104,6 +106,7 @@ private:
     Settings *settings;
     MceInterface *mceInterface;
     Utilities *utilities;
+    DBusAdaptor *dbusAdaptor;
 #ifdef USE_CALLS
     CallsManager *callsManager;
     QHash<int, Notification*> callNotifications;
@@ -112,6 +115,7 @@ private:
     QString dbusPath;
     QString dbusServiceName;
     QString dbusInterface;
+    bool useSignalActions;
     QMap<int, QSharedPointer<NotificationGroup>> notificationGroups;
     QString appIconFile;
     qlonglong activeChatId;

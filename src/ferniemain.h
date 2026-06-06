@@ -43,11 +43,12 @@ namespace FernieMain {
         AppContext(QSharedPointer<QQuickView> view,
                    TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities,
                    const QString &appName, const QUrl &appIconPath,
-                   const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface);
+                   const QString &dbusPath, const QString &dbusServiceName, const QString &dbusInterface, bool useSignalActions);
     };
     AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view,
                               const QString &appName, const QUrl &appIconPath = QUrl(),
-                              const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default");
+                              const QString &dbusPath = QString(), const QString &dbusServiceName = QString(),
+                              bool useSignalActions = false, const QString &dbusInterface = "io.libfernie.default");
     inline void registerDebugLogJS(AppContext *context) {
         // Declare in header so definitions would not be ignored
         qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);

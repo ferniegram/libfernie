@@ -1,5 +1,4 @@
-#ifndef PLATFORMAPP_H
-#define PLATFORMAPP_H
+#pragma once
 
 #include <QUrl>
 
@@ -8,5 +7,3 @@
 namespace PlatformApp {
     QUrl pathToChatFolderIcon(ChatFoldersModel::Icon icon);
 }
-
-#endif // PLATFORMAPP_H

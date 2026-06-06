@@ -1,5 +1,4 @@
-#ifndef CALLSMANAGER_H
-#define CALLSMANAGER_H
+#pragma once
 
 #include <QObject>
 
@@ -125,5 +124,3 @@ private:
 
     std::unique_ptr<tgcalls::Instance> instance;
 };
-
-#endif // CALLSMANAGER_H

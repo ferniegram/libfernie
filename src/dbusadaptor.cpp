@@ -25,6 +25,11 @@
 #define DEBUG_MODULE DBusAdaptor
 #include "debuglog.h"
 
+namespace {
+    const QString LAST_MESSAGE("last_message");
+    const QString ID("id");
+}
+
 DBusAdaptor::DBusAdaptor(TDLibWrapper *tdLibWrapper,
 #ifdef USE_CALLS
                          CallsManager *callsManager,
@@ -60,7 +65,7 @@ void DBusAdaptor::markMessageAsRead(const QString &chatIdString, const QString &
     LOG("Requested to mark message as read" << chatIdString << messageId);
 
     qlonglong chatId = chatIdString.toLongLong();
-    qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
+    qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value(LAST_MESSAGE).toMap().value(ID).toLongLong();
     if (lastMessageId) {
         LOG("Marking message as read" << chatId << messageId << lastMessageId);
         tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
@@ -71,7 +76,7 @@ void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &mes
     LOG("Replying to message" << chatIdString << messageId);
     qlonglong chatId = chatIdString.toLongLong();
 
-    qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value("last_message").toMap().value("id").toLongLong();
+    qlonglong lastMessageId = tdLibWrapper->getChat(chatId).value(LAST_MESSAGE).toMap().value(ID).toLongLong();
     if (lastMessageId)
         tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
 

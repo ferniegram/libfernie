@@ -58,5 +58,4 @@ private:
 #ifdef USE_CALLS
     CallsManager *callsManager;
 #endif
-    bool defaultOpenUrl;
 };

@@ -5,9 +5,6 @@
 #include <tgcalls/v2/InstanceV2Impl.h>
 #include <tgcalls/v2/InstanceV2ReferenceImpl.h>
 
-#include "modules/audio_device/include/audio_device.h"
-#include "modules/audio_device/linux/audio_device_pulse_linux.h"
-
 #define DEBUG_MODULE CallsManager
 #include "debuglog.h"
 

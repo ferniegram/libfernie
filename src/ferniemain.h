@@ -22,7 +22,7 @@
 #endif
 
 namespace FernieMain {
-    static const char *uri = "io.libfernie";
+    static const char *uri = "io.yaqtlib";
 
     struct AppContext {
         Settings *settings;
@@ -48,7 +48,7 @@ namespace FernieMain {
     AppContext* registerTypes(int argc, char *argv[], QSharedPointer<QQuickView> view,
                               const QString &appName, const QUrl &appIconPath = QUrl(),
                               const QString &dbusPath = QString(), const QString &dbusServiceName = QString(),
-                              bool useSignalActions = false, const QString &dbusInterface = "io.libfernie.default");
+                              bool useSignalActions = false, const QString &dbusInterface = "io.yaqtlib.default");
     inline void registerDebugLogJS(AppContext *context) {
         // Declare in header so definitions would not be ignored
         qmlRegisterSingletonType<DebugLogJS>(uri, 1, 0, "DebugLog", DebugLogJS::createSingleton);

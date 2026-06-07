@@ -24,7 +24,7 @@
 #include <QLoggingCategory>
 
 #ifndef JS_DEBUG_ROOT_MODULE
-#define JS_DEBUG_ROOT_MODULE "libfernie.JS"
+#define JS_DEBUG_ROOT_MODULE "yaqtlib.JS"
 #endif
 
 class DebugLogJS : public QObject {

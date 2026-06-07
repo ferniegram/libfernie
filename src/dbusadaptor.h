@@ -28,7 +28,7 @@
 
 class DBusAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "io.libfernie.default")
+    Q_CLASSINFO("D-Bus Interface", "io.yaqtlib.default")
 
 public:
     DBusAdaptor(TDLibWrapper *tdLibWrapper,

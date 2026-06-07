@@ -55,11 +55,11 @@ namespace {
     const QString CHAT_TYPE_SUPERGROUP("chatTypeSupergroup");
 
     // Notification hints
-    const QString HINT_GROUP_TYPE("x-libfernie.group_type");
-    const QString HINT_GROUP_ID("x-libfernie.group_id");        // int
-    const QString HINT_CHAT_ID("x-libfernie.chat_id");          // qlonglong
-    const QString HINT_TOTAL_COUNT("x-libfernie.total_count");  // int
-    const QString HINT_IS_CALL("x-libfernie.is_call");          // bool
+    const QString HINT_GROUP_TYPE("x-yaqtlib.group_type");
+    const QString HINT_GROUP_ID("x-yaqtlib.group_id");        // int
+    const QString HINT_CHAT_ID("x-yaqtlib.chat_id");          // qlonglong
+    const QString HINT_TOTAL_COUNT("x-yaqtlib.total_count");  // int
+    const QString HINT_IS_CALL("x-yaqtlib.is_call");          // bool
 
     const QString HINT_VIBRA("x-nemo-vibrate");                     // bool
     const QString HINT_SUPPRESS_SOUND("suppress-sound");            // bool

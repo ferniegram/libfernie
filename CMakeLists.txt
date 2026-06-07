@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(libfernie CXX)
+project(yaqtlib CXX)
 
 if(POLICY CMP0077)
     cmake_policy(SET CMP0077 NEW)
@@ -95,21 +95,21 @@ else()
 endif()
 
 
-add_library(libfernie STATIC)
+add_library(yaqtlib STATIC)
 
 # tgcalls
 option(USE_CALLS "Whether to enable calls support" ON)
 
 if(USE_CALLS)
-    target_include_directories(libfernie PUBLIC tg_owt/include)
+    target_include_directories(yaqtlib PUBLIC tg_owt/include)
 
     include(tgcalls.cmake)
-    target_link_libraries(libfernie tgcalls)
-    target_include_directories(libfernie PUBLIC tgcalls)
+    target_link_libraries(yaqtlib tgcalls)
+    target_include_directories(yaqtlib PUBLIC tgcalls)
 
-    target_compile_definitions(libfernie PUBLIC USE_CALLS)
+    target_compile_definitions(yaqtlib PUBLIC USE_CALLS)
 
-    target_sources(libfernie PRIVATE
+    target_sources(yaqtlib PRIVATE
         src/callsmanager.cpp
         src/callaudio.cpp
 
@@ -119,14 +119,14 @@ if(USE_CALLS)
 endif()
 
 
-target_include_directories(libfernie PUBLIC
+target_include_directories(yaqtlib PUBLIC
     ${NEMONOTIFICATIONS_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
     ${LIBPULSE_INCLUDE_DIRS}
     tdlib/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_link_libraries(libfernie
+target_link_libraries(yaqtlib
     Qt5::Quick
     Qt5::DBus
     Qt5::Multimedia
@@ -138,9 +138,9 @@ target_link_libraries(libfernie
     rlottie
 )
 
-target_compile_definitions(libfernie PRIVATE QT_STATICPLUGIN)
+target_compile_definitions(yaqtlib PRIVATE QT_STATICPLUGIN)
 
-target_sources(libfernie PRIVATE
+target_sources(yaqtlib PRIVATE
     src/settings.cpp
     src/boolfiltermodel.cpp
     src/chat/jumpablemessagesmodel.cpp

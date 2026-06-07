@@ -43,7 +43,7 @@ public:
                         CallsManager *callsManager,
 #endif
                         const QString &appName, const QUrl &appIconPath = QUrl(),
-                        const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.libfernie.default",
+                        const QString &dbusPath = QString(), const QString &dbusServiceName = QString(), const QString &dbusInterface = "io.yaqtlib.default",
                         bool useSignalActions = false);
     ~NotificationManager() override;
 

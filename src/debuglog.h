@@ -22,7 +22,7 @@
 #include <QLoggingCategory>
 
 #ifndef DEBUG_ROOT_MODULE
-#define DEBUG_ROOT_MODULE "libfernie"
+#define DEBUG_ROOT_MODULE "yaqtlib"
 #endif
 
 #ifndef DEBUG_MODULE

@@ -8,7 +8,7 @@
 
 Settings::Settings(QObject *parent) :
     QObject(parent),
-    settings(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/" + QGuiApplication::organizationName() + "/" + QGuiApplication::applicationName() + "/libfernie-settings.conf", QSettings::NativeFormat)
+    settings(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/" + QGuiApplication::organizationName() + "/" + QGuiApplication::applicationName() + "/yaqtlib-settings.conf", QSettings::NativeFormat)
 {}
 
 void Settings::log(const QString &key, const QVariant &value) {

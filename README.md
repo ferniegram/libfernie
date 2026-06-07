@@ -1,6 +1,6 @@
-# libfernie
+# yaqtlib
 
-libfernie is the YAST Client backend.
+yaqtlib is a yet another Qt TDLib Library.
 
 ## Credits
 
@@ -27,11 +27,11 @@ This project uses
 
 First, you would need to implement `PlatformApp`. See `platformapp.h` for details, or `platformapp.cpp` in YAST source for an example.
 
-The installation of TDLib should be handled by the application. **The version of TDLib currently supported by libfernie is 1.8.63.**
+The installation of TDLib should be handled by the application. **The version of TDLib currently supported by yaqtlib is 1.8.63.**
 
-See YAST for a complete example of including libfernie in your project.
+See YAST for a complete example of including yaqtlib in your project.
 
-**Important:** Libfernie's API is not stable, and it is not versioned. YAST generally adapts to the latest API changes, since that is the main project relying on this library. This is unlikely to change in the future, since no code is ideal and there's always room for improvement.
+**Important:** yaqtlib's API is not stable, and it is not versioned. YAST generally adapts to the latest API changes, since that is the main project relying on this library. This is unlikely to change in the future, since no code is ideal and there's always room for improvement.
 
 ## TODO
 

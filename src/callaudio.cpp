@@ -51,7 +51,7 @@ void CallAudio::toggleSpeakerphone(const QString &deviceName, bool enabled) {
     }
 
     pa_mainloop_api *api = pa_mainloop_get_api(mainloop);
-    pa_context *context = pa_context_new(api, "libfernie_CallAudio");
+    pa_context *context = pa_context_new(api, "yaqtlib_CallAudio");
     if (!context) {
         WARN("Unable to create pa context");
         pa_mainloop_free(mainloop);

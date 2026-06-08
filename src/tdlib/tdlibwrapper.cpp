@@ -2084,7 +2084,7 @@ void TDLibWrapper::handleChatReadOutboxUpdated(const QString &chatId, const QStr
     qlonglong id = chatId.toLongLong(&ok);
     if (ok) {
         if (this->getChatDataForce(id)->updateLastReadOutboxMessageId(lastReadOutboxMessageId.toLongLong()))
-            emit chatRolesUpdated(id, QVector<int>{ChatData::RoleLastMessageStatus});
+            emit chatRolesUpdated(id, {ChatData::RoleLastReadOutboxMessageId});
 
         emit chatReadOutboxUpdated(chatId, lastReadOutboxMessageId);
     }

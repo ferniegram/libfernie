@@ -88,10 +88,6 @@ const QVariantMap ForumTopic::lastMessage() const {
     return data.value(LAST_MESSAGE).toMap();
 }
 
-qlonglong ForumTopic::lastMessageId() const {
-    return lastMessage().value(ID).toLongLong();
-}
-
 const QVariantMap ForumTopic::draftMessage() const {
     return data.value(DRAFT_MESSAGE).toMap();
 }
@@ -109,7 +105,7 @@ const QVector<int> ForumTopic::updateIsPinned(bool value) {
 }
 
 const QVector<int> ForumTopic::updateLastReadInboxMessageId(qlonglong value) {
-    if (data.value(LAST_READ_INBOX_MESSAGE_ID).toLongLong() != value) {
+    if (lastReadInboxMessageId() != value) {
         data.insert(LAST_READ_INBOX_MESSAGE_ID, value);
         return {RoleLastReadInboxMessageId};
     }
@@ -117,28 +113,27 @@ const QVector<int> ForumTopic::updateLastReadInboxMessageId(qlonglong value) {
 }
 
 const QVector<int> ForumTopic::updateLastReadOutboxMessageId(qlonglong value) {
-    if (data.value(LAST_READ_OUTBOX_MESSAGE_ID).toLongLong() != value) {
-        const QString prevLastMessageStatus(lastMessageStatus());
+    if (lastReadOutboxMessageId() != value) {
         data.insert(LAST_READ_OUTBOX_MESSAGE_ID, value);
-        if (prevLastMessageStatus != lastMessageStatus())
-            return {RoleLastMessageStatus};
+        return {RoleLastReadOutboxMessageId};
     }
     return {};
 }
 
 const QVector<int> ForumTopic::updateLastMessage(const QVariantMap &message) {
-    const qlonglong prevLastMessageId = lastMessage().value(ID).toLongLong();
-    const qlonglong prevSenderUserId(lastMessageSenderUserId());
-    const qlonglong prevLastMessageDate(lastMessageDate());
-    const QString prevLastMessageText(lastMessageText());
-    const QVariant prevLastMessageMinithumbnail(lastMessageMinithumbnail());
-    const bool prevLastMessageIsService(lastMessageIsService());
-    const QString prevLastMessageStatus(lastMessageStatus());
+    const qlonglong prevLastMessageId = lastMessageId();
+    const qlonglong prevSenderUserId = lastMessageSenderUserId();
+    const qlonglong prevLastMessageDate = lastMessageDate();
+    const QString prevLastMessageText = lastMessageText();
+    const QVariant prevLastMessageMinithumbnail = lastMessageMinithumbnail();
+    const bool prevLastMessageIsService = lastMessageIsService();
+    const QVariant prevLastMessageSendingState = lastMessageSendingState();
+    const bool prevLastMessageIsOutgoing = lastMessageIsOutgoing();
 
     data.insert(LAST_MESSAGE, message);
 
     QVector<int> changedRoles;
-    if (prevLastMessageId != lastMessage().value(ID).toLongLong())
+    if (prevLastMessageId != lastMessageId())
         changedRoles.append(RoleLastMessageId);
     if (prevSenderUserId != lastMessageSenderUserId())
         changedRoles.append(RoleLastMessageSenderId);
@@ -150,8 +145,10 @@ const QVector<int> ForumTopic::updateLastMessage(const QVariantMap &message) {
         changedRoles.append(RoleLastMessageMinithumbnail);
     if (prevLastMessageIsService != lastMessageIsService())
         changedRoles.append(RoleLastMessageIsService);
-    if (prevLastMessageStatus != lastMessageStatus())
-        changedRoles.append(RoleLastMessageStatus);
+    if (prevLastMessageSendingState != lastMessageSendingState())
+        changedRoles.append(RoleLastMessageSendingState);
+    if (prevLastMessageIsOutgoing != lastMessageIsOutgoing())
+        changedRoles.append(RoleLastMessageIsOutgoing);
 
     return changedRoles;
 }

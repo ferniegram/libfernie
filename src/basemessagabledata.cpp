@@ -15,6 +15,7 @@ namespace {
     const QString CONTENT("content");
     const QString SENDING_STATE("sending_state");
     const QString TEXT("text");
+    const QString IS_OUTGOING("is_outgoing");
 }
 
 BaseMessagableData::BaseMessagableData(TDLibWrapper *tdLibWrapper, Utilities *utilities) :
@@ -24,6 +25,10 @@ BaseMessagableData::BaseMessagableData(TDLibWrapper *tdLibWrapper, Utilities *ut
 
 const QVariant BaseMessagableData::lastMessage(const QString &key) const {
     return lastMessage().value(key);
+}
+
+qlonglong BaseMessagableData::lastMessageId() const {
+    return lastMessage(ID).toLongLong();
 }
 
 qlonglong BaseMessagableData::lastMessageSenderUserId() const {
@@ -54,26 +59,12 @@ bool BaseMessagableData::lastMessageIsService() const {
     return Utilities::messageContentIsService(lastMessage(CONTENT).toMap().value(_TYPE).toString());
 }
 
+QVariant BaseMessagableData::lastMessageSendingState() const {
+    return lastMessage(SENDING_STATE);
+}
 
-QString BaseMessagableData::lastMessageStatus() const {
-    if (tdLibWrapper->myUserId() != lastMessageSenderUserId())
-        return "";
-
-    if (lastReadOutboxMessageId() >= lastMessage(ID).toLongLong())
-        return "&nbsp;&nbsp;✅";
-    else {
-        QVariantMap message = lastMessage();
-        if (message.contains(SENDING_STATE)) {
-            QVariantMap sendingState = message.value(SENDING_STATE).toMap();
-            if (sendingState.value(_TYPE).toString() == "messageSendingStatePending") {
-                return "&nbsp;&nbsp;🕙";
-            } else {
-                return "&nbsp;&nbsp;❌";
-            }
-        } else {
-            return "&nbsp;&nbsp;☑️";
-        }
-    }
+bool BaseMessagableData::lastMessageIsOutgoing() const {
+    return lastMessage(IS_OUTGOING).toBool();
 }
 
 

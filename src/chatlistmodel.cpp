@@ -147,13 +147,16 @@ QHash<int,QByteArray> ChatListModel::roleNames() const {
         {ChatData::RoleUnreadMentionCount, "unread_mention_count"},
         {ChatData::RoleUnreadReactionCount, "unread_reaction_count"},
         {ChatData::RoleAvailableReactions, "available_reactions"},
+        {ChatData::RoleLastReadOutboxMessageId, "last_read_outbox_message_id"},
         {ChatData::RoleLastReadInboxMessageId, "last_read_inbox_message_id"},
+        {ChatData::RoleLastMessageId, "last_message_id"},
         {ChatData::RoleLastMessageSenderId, "last_message_sender_id"},
         {ChatData::RoleLastMessageDate, "last_message_date"},
         {ChatData::RoleLastMessageText, "last_message_text"},
         {ChatData::RoleLastMessageMinithumbnail, "last_message_minithumbnail"},
         {ChatData::RoleLastMessageIsService, "last_message_is_service"},
-        {ChatData::RoleLastMessageStatus, "last_message_status"},
+        {ChatData::RoleLastMessageSendingState, "last_message_sending_state"},
+        {ChatData::RoleLastMessageIsOutgoing, "last_message_is_outgoing"},
         {ChatData::RoleChatMemberStatus, "chat_member_status"},
         {ChatData::RoleSecretChatState, "secret_chat_state"},
         {ChatData::RoleVerificationStatus, "verification_status"},
@@ -190,12 +193,15 @@ QVariant ChatListModel::data(const QModelIndex &index, int role) const {
         case ChatData::RoleAvailableReactions: return data->data->availableReactions();
         case ChatData::RoleUnreadReactionCount: return data->data->unreadReactionCount();
         case ChatData::RoleLastReadInboxMessageId: return data->data->lastReadInboxMessageId();
+        case ChatData::RoleLastReadOutboxMessageId: return data->data->lastReadOutboxMessageId();
+        case ChatData::RoleLastMessageId: return data->data->lastMessageId();
         case ChatData::RoleLastMessageSenderId: return data->data->lastMessageSenderUserId();
         case ChatData::RoleLastMessageText: return data->data->lastMessageText();
         case ChatData::RoleLastMessageMinithumbnail: return data->data->lastMessageMinithumbnail();
         case ChatData::RoleLastMessageIsService: return data->data->lastMessageIsService();
         case ChatData::RoleLastMessageDate: return data->data->lastMessageDate();
-        case ChatData::RoleLastMessageStatus: return data->data->lastMessageStatus();
+        case ChatData::RoleLastMessageSendingState: return data->data->lastMessageSendingState();
+        case ChatData::RoleLastMessageIsOutgoing: return data->data->lastMessageIsOutgoing();
         case ChatData::RoleChatMemberStatus: return data->data->memberStatus;
         case ChatData::RoleSecretChatState: return data->data->secretChatState;
         case ChatData::RoleVerificationStatus: return data->data->verificationStatus;
@@ -388,10 +394,7 @@ void ChatListModel::handleMessageSendSucceeded(qlonglong chatId, qlonglong oldMe
 
 void ChatListModel::handleRelativeTimeRefreshTimer() {
     LOG("Refreshing timestamps");
-    emit dataChanged(index(0), index(chatList.size() - 1), {
-                         ChatData::RoleLastMessageDate,
-                         ChatData::RoleLastMessageStatus // FIXME: why was this added here?
-                     });
+    emit dataChanged(index(0), index(chatList.size() - 1), {ChatData::RoleLastMessageDate});
 }
 
 

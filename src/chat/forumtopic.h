@@ -25,9 +25,11 @@ struct ForumTopic : public BaseMessagableData {
         RoleLastMessageText,
         RoleLastMessageMinithumbnail,
         RoleLastMessageIsService,
-        RoleLastMessageStatus,
+        RoleLastMessageSendingState,
+        RoleLastMessageIsOutgoing,
         RoleIsPinned,
         RoleUnreadCount,
+        RoleLastReadOutboxMessageId,
         RoleLastReadInboxMessageId,
         RoleUnreadMentionCount,
         RoleUnreadReactionCount,
@@ -54,7 +56,6 @@ struct ForumTopic : public BaseMessagableData {
     const QVariantMap notificationSettings() const;
 
     virtual const QVariantMap lastMessage() const override;
-    qlonglong lastMessageId() const;
     virtual const QVariantMap draftMessage() const override;
 
     const QVector<int> updateIsPinned(bool value);

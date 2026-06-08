@@ -17,13 +17,16 @@ public:
         RoleUnreadMentionCount,
         RoleUnreadReactionCount,
         RoleAvailableReactions,
+        RoleLastReadOutboxMessageId,
         RoleLastReadInboxMessageId,
+        RoleLastMessageId,
         RoleLastMessageSenderId,
         RoleLastMessageDate,
         RoleLastMessageText,
         RoleLastMessageMinithumbnail,
         RoleLastMessageIsService,
-        RoleLastMessageStatus,
+        RoleLastMessageSendingState,
+        RoleLastMessageIsOutgoing,
         RoleChatMemberStatus,
         RoleSecretChatState,
         RoleVerificationStatus,
@@ -58,7 +61,6 @@ public:
 
     void updateChatData(const QVariantMap &data);
     virtual const QVariantMap lastMessage() const override;
-    virtual QString lastMessageStatus() const override;
     virtual const QVariantMap draftMessage() const override;
     QString title() const;
     int unreadCount() const;

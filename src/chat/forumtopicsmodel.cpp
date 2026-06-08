@@ -81,7 +81,10 @@ QHash<int,QByteArray> ForumTopicsModel::roleNames() const {
         {ForumTopic::RoleLastMessageText, "last_message_text"},
         {ForumTopic::RoleLastMessageMinithumbnail, "last_message_minithumbnail"},
         {ForumTopic::RoleLastMessageIsService, "last_message_is_service"},
-        {ForumTopic::RoleLastMessageStatus, "last_message_status"},
+        {ForumTopic::RoleLastMessageSendingState, "last_message_sending_state"},
+        {ForumTopic::RoleLastMessageIsOutgoing, "last_message_is_outgoing"},
+        {ForumTopic::RoleLastReadOutboxMessageId, "last_read_outbox_message_id"},
+        {ForumTopic::RoleLastReadInboxMessageId, "last_read_inbox_message_id"},
         {ForumTopic::RoleIsPinned, "is_pinned"},
         {ForumTopic::RoleUnreadCount, "unread_count"},
         {ForumTopic::RoleUnreadMentionCount, "unread_mention_count"},
@@ -136,7 +139,11 @@ QVariant ForumTopicsModel::data(const QModelIndex &index, int role) const {
         case ForumTopic::RoleLastMessageMinithumbnail: return topic->lastMessageMinithumbnail();
         case ForumTopic::RoleLastMessageIsService: return topic->lastMessageIsService();
         case ForumTopic::RoleLastMessageDate: return topic->lastMessageDate();
-        case ForumTopic::RoleLastMessageStatus: return topic->lastMessageStatus();
+        case ForumTopic::RoleLastMessageSendingState: return topic->lastMessageSendingState();
+        case ForumTopic::RoleLastMessageIsOutgoing: return topic->lastMessageIsOutgoing();
+
+        case ForumTopic::RoleLastReadOutboxMessageId: return topic->lastReadOutboxMessageId();
+        case ForumTopic::RoleLastReadInboxMessageId: return topic->lastReadInboxMessageId();
 
         case ForumTopic::RoleIsPinned: return topic->isPinned();
         case ForumTopic::RoleUnreadCount: return topic->unreadCount();
@@ -351,10 +358,7 @@ void ForumTopicsModel::enableRefreshTimer() {
 
 void ForumTopicsModel::handleRelativeTimeRefreshTimer() {
     LOG("Refreshing timestamps");
-    emit dataChanged(index(0), index(topics.size() - 1), {
-                         ForumTopic::RoleLastMessageDate,
-                         ForumTopic::RoleLastMessageStatus // FIXME: why was this added here?
-                     });
+    emit dataChanged(index(0), index(topics.size() - 1), {ForumTopic::RoleLastMessageDate});
 }
 
 void ForumTopicsModel::handleMessageContentUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &content) {

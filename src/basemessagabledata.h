@@ -15,6 +15,7 @@ public:
 
     const QVariant lastMessage(const QString &key) const;
 
+    qlonglong lastMessageId() const;
     qlonglong lastMessageSenderUserId() const;
     qlonglong lastMessageSenderChatId() const;
     bool lastMessageSenderIsChat() const;
@@ -22,7 +23,8 @@ public:
     QString lastMessageText() const;
     QVariant lastMessageMinithumbnail() const;
     bool lastMessageIsService() const;
-    virtual QString lastMessageStatus() const;
+    QVariant lastMessageSendingState() const;
+    bool lastMessageIsOutgoing() const;
 
     qlonglong draftMessageDate() const;
     QString draftMessageText() const;

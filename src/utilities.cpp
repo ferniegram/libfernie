@@ -389,7 +389,7 @@ QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, con
     const QString contentType = messageContent.value(_TYPE).toString();
     const bool myself = !isSponsored
             && messageSenderType == MESSAGE_SENDER_USER
-            && messageSenderUserId == this->tdLibWrapper->getUserInformation().value(ID).toLongLong();
+            && messageSenderUserId == this->tdLibWrapper->myUserId();
 
     auto getCaption = [&](const QString &simpleText) -> QString {
         const QVariantMap caption = messageContent.value(CAPTION).toMap();
@@ -497,16 +497,17 @@ QString Utilities::getMessageTextInternal(const QVariantMap &messageContent, con
                 if (i > 0) {
                     addedUserNames += ", ";
                 }
-                addedUserNames += getUserName(this->tdLibWrapper->getUserInformation(memberUserIds.at(i).toString()));
+                addedUserNames += getUserName(this->tdLibWrapper->getUserInformation(memberUserIds.at(i).toLongLong()));
             }
             return myself ? tr("have added %1 to the chat", "myself").arg(addedUserNames) : tr("has added %1 to the chat").arg(addedUserNames);
         }
     }
     if (contentType == "messageChatDeleteMember") {
-        if (messageSenderType == MESSAGE_SENDER_TYPE_USER && messageSenderUserId == messageContent.value(USER_ID).toLongLong()) {
+        if (messageSenderType == MESSAGE_SENDER_TYPE_USER && messageSenderUserId == messageContent.value(USER_ID).toLongLong())
             return myself ? tr("left this chat", "myself") : tr("left this chat");
-        } else {
-            return myself ? tr("have removed %1 from the chat", "myself").arg(getUserName(this->tdLibWrapper->getUserInformation(messageContent.value("user_id").toString()))) : tr("has removed %1 from the chat").arg(getUserName(this->tdLibWrapper->getUserInformation(messageContent.value("user_id").toString())));
+        else {
+            const QString name = getUserName(this->tdLibWrapper->getUserInformation(messageContent.value("user_id").toLongLong()));
+            return (myself ? tr("have removed %1 from the chat", "myself") : tr("has removed %1 from the chat")).arg(name);
         }
     }
     if (contentType == "messageChatChangeTitle")
@@ -762,7 +763,7 @@ QString Utilities::getChatTitle(const ChatData *chat) const {
         title = chat->title().trimmed();
         if (title.isEmpty() && (chat->chatType == TDLibWrapper::ChatTypePrivate || chat->chatType == TDLibWrapper::ChatTypeSecret)) {
             qlonglong userId = chat->chatData.value(TYPE).toMap().value(USER_ID).toLongLong();
-            title = getUnknownUserName(tdLibWrapper->getUserInformation(QString::number(userId)));
+            title = getUnknownUserName(tdLibWrapper->getUserInformation(userId));
         }
     }
 
@@ -773,7 +774,7 @@ QString Utilities::formatMessageSender(const TDLibWrapper::MessageSender &messag
     if (messageSender.isChat)
         return getChatTitleById(messageSender.id);
     else
-        return Utilities::getUserName(tdLibWrapper->getUserInformation(QString::number(messageSender.id)));
+        return Utilities::getUserName(tdLibWrapper->getUserInformation(messageSender.id));
 }
 
 QString Utilities::formatDuration(int seconds) {

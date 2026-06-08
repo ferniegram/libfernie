@@ -326,7 +326,7 @@ qlonglong ChatManager::groupId() const {
 QVariant ChatManager::userInfo() const {
     const TDLibWrapper::ChatType type = chatType();
     if (type == TDLibWrapper::ChatTypePrivate || type == TDLibWrapper::ChatTypeSecret)
-        return tdLibWrapper->getUserInformation(QString::number(this->userId()));
+        return tdLibWrapper->getUserInformation(this->userId());
     return QVariant();
 }
 

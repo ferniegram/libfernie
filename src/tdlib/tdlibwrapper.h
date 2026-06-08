@@ -234,7 +234,7 @@ public:
 
     qlonglong myUserId() const;
     Q_INVOKABLE QVariantMap getUserInformation();
-    Q_INVOKABLE QVariantMap getUserInformation(const QString &userId);
+    Q_INVOKABLE QVariantMap getUserInformation(qlonglong userId);
     Q_INVOKABLE bool hasUserInformation(const QString &userId);
     Q_INVOKABLE bool hasUserNameInformation(const QString &userName);
     Q_INVOKABLE QVariantMap getUserInformationByName(const QString &userName);

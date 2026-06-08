@@ -67,7 +67,7 @@ int ContactsListModel::rowCount(const QModelIndex &) const {
 
 QVariant ContactsListModel::data(const QModelIndex &index, int role) const {
     if (index.isValid()) {
-        QVariantMap requestedContact = this->tdLibWrapper->getUserInformation(this->contactIds.value(index.row()));
+        QVariantMap requestedContact = this->tdLibWrapper->getUserInformation(this->contactIds.value(index.row()).toLongLong());
         switch (static_cast<ContactRole>(role)) {
             case ContactRole::RoleDisplay: return requestedContact;
             case ContactRole::RoleTitle: return QString(requestedContact.value(FIRST_NAME).toString() + " " + requestedContact.value(LAST_NAME).toString()).trimmed();
@@ -179,8 +179,8 @@ bool ContactsListModel::compareUsersByName(const QVariantMap &user1, const QVari
 }
 
 bool ContactsListModel::compare(const QModelIndex &index1, const QModelIndex &index2) const {
-    const QVariantMap user1 = tdLibWrapper->getUserInformation(contactIds.value(index1.row()));
-    const QVariantMap user2 = tdLibWrapper->getUserInformation(contactIds.value(index2.row()));
+    const QVariantMap user1 = tdLibWrapper->getUserInformation(contactIds.value(index1.row()).toLongLong());
+    const QVariantMap user2 = tdLibWrapper->getUserInformation(contactIds.value(index2.row()).toLongLong());
 
     // todo: compare by status (and add an option to compare by name, like right now)
     return compareUsersByName(user1, user2);

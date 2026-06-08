@@ -1605,9 +1605,8 @@ QVariantMap TDLibWrapper::getUserInformation() {
     return this->userInformation;
 }
 
-QVariantMap TDLibWrapper::getUserInformation(const QString &userId) {
-    // LOG("Returning user information for ID" << userId);
-    return this->usersById.value(userId.toLongLong());
+QVariantMap TDLibWrapper::getUserInformation(qlonglong userId) {
+    return this->usersById.value(userId);
 }
 
 bool TDLibWrapper::hasUserInformation(const QString &userId) {
@@ -1871,7 +1870,7 @@ void TDLibWrapper::handleOptionUpdated(const QString &optionName, const QVariant
             versionNumber = VERSION_NUMBER(major, minor, release);
         }
     } else if (optionName == MY_ID) {
-        QString id = optionValue.toString();
+        qlonglong id = optionValue.toLongLong();
         this->userInformation = this->getUserInformation(id);
         emit myUserIdUpdated();
         emit myUserUpdated();
@@ -1930,7 +1929,7 @@ void TDLibWrapper::handleUserStatusUpdated(qlonglong userId, const QVariantMap &
 void TDLibWrapper::updateUserInformation(qlonglong userId, const QVariantMap &userInformation) {
     const QString username = userInformation.value(USERNAMES).toMap().value(EDITABLE_USERNAME).toString().toLower();
     if (hasUserInformation(QString::number(userId))) {
-        const QString prevUsername = getUserInformation(QString::number(userId)).value(USERNAMES).toMap().value(EDITABLE_USERNAME).toString().toLower();
+        const QString prevUsername = getUserInformation(userId).value(USERNAMES).toMap().value(EDITABLE_USERNAME).toString().toLower();
         if (prevUsername != username)
             this->usersByName.remove(prevUsername);
     }

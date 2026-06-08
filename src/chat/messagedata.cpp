@@ -289,9 +289,11 @@ bool MessageData::areTogether(const MessageData *message1, const MessageData *me
     if (Utilities::messageContentIsService(message1->messageContentType) || Utilities::messageContentIsService(message2->messageContentType))
         return false;
 
-    if (message1->lastMessageSenderIsChat() && message2->lastMessageSenderIsChat() && message1->lastMessageSenderChatId() != message2->lastMessageSenderChatId())
+    if (message1->lastMessageSenderIsChat() != message2->lastMessageSenderIsChat())
         return false;
-    else if (!message1->lastMessageSenderIsChat() && !message2->lastMessageSenderIsChat() && message1->lastMessageSenderUserId() != message2->lastMessageSenderUserId())
+    if (message1->lastMessageSenderIsChat() && message1->lastMessageSenderChatId() != message2->lastMessageSenderChatId())
+        return false;
+    if (!message1->lastMessageSenderIsChat() && message1->lastMessageSenderUserId() != message2->lastMessageSenderUserId())
         return false;
 
     return qAbs(message1->messageData.value(DATE).toInt() - message2->messageData.value(DATE).toInt()) <= 900;

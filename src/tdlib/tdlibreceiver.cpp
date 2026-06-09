@@ -1274,3 +1274,14 @@ void TDLibReceiver::processUpdateNewCallSignalingData(const QVariantMap &receive
 
     emit newCallSignalingDataReceived(callId, QByteArray::fromBase64(receivedInformation.value("data").toString().toUtf8()));
 }
+
+void TDLibReceiver::processMessageReadDate(const QVariantMap &receivedInformation) {
+    const QVariantMap extra = receivedInformation.value(_EXTRA).toMap();
+    qlonglong chatId = extra.value(CHAT_ID).toLongLong(),
+            messageId = extra.value(MESSAGE_ID).toLongLong();
+    const QString type = receivedInformation.value(_TYPE).toString();
+    LOG("Received" << type << chatId << messageId);
+
+    QVariant readDate = type == "messageReadDateRead" ? receivedInformation.value("read_date") : type;
+    emit messageReadDateReceived(chatId, messageId, readDate);
+}

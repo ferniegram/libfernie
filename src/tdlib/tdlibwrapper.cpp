@@ -371,6 +371,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::callIdReceived, this, &TDLibWrapper::callIdReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::callUpdated, this, &TDLibWrapper::callUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::newCallSignalingDataReceived, this, &TDLibWrapper::newCallSignalingDataReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::messageReadDateReceived, this, &TDLibWrapper::messageReadDateReceived);
 
     this->tdLibReceiver->start();
 }
@@ -3465,4 +3466,16 @@ void TDLibWrapper::addPollOption(qlonglong chatId, qlonglong messageId, const QS
             {TEXT, Utilities::newFormattedText(text)}
         }}
     });
+}
+
+void TDLibWrapper::getMessageReadDate(qlonglong chatId, qlonglong messageId) {
+    LOG("Getting message read date" << chatId << messageId);
+    QVariantMap request{
+        {CHAT_ID, chatId},
+        {MESSAGE_ID, messageId}
+    };
+    QVariantMap extra(request);
+    request.insert(_EXTRA, extra);
+    request.insert(_TYPE, "getMessageReadDate");
+    sendRequest(request);
 }

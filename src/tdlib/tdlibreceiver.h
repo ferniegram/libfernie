@@ -157,6 +157,7 @@ signals:
     void callIdReceived(int id);
     void callUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
     void newCallSignalingDataReceived(int callId, const QByteArray &data);
+    void messageReadDateReceived(qlonglong chatId, qlonglong messageId, const QVariant &readDate);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -280,6 +281,7 @@ private:
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},
+        {"messageReadDate", &TDLibReceiver::processMessageReadDate}
     };
     int clientId;
     bool isActive = true;
@@ -407,4 +409,5 @@ private:
     void processCallId(const QVariantMap &receivedInformation);
     void processUpdateCall(const QVariantMap &receivedInformation);
     void processUpdateNewCallSignalingData(const QVariantMap &receivedInformation);
+    void processMessageReadDate(const QVariantMap &receivedInformation);
 };

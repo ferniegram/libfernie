@@ -472,6 +472,7 @@ public:
     void sendCallSignalingData(int callId, const QByteArray &data);
     void acceptCall(int callId, const QVariantMap &protocol);
     Q_INVOKABLE void addPollOption(qlonglong chatId, qlonglong messageId, const QString &text);
+    Q_INVOKABLE void getMessageReadDate(qlonglong chatId, qlonglong messageId);
 
 public:
     const Group* getGroup(qlonglong groupId) const;
@@ -627,6 +628,7 @@ signals:
     void callIdReceived(int id);
     void callUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
     void newCallSignalingDataReceived(int callId, const QByteArray &data);
+    void messageReadDateReceived(qlonglong chatId, qlonglong messageId, const QVariant &readDate);
 
     // Link types
     void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);

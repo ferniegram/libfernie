@@ -1537,7 +1537,7 @@ void TDLibWrapper::getMessageAvailableReactions(qlonglong chatId, qlonglong mess
 }
 
 void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType) {
-    LOG("Add message reaction" << chatId << messageId << reactionType.value(_TYPE).toString());
+    LOG("Adding message reaction" << chatId << messageId << reactionType);
     this->sendRequest(QVariantMap{
                           {_TYPE, "addMessageReaction"},
                           {CHAT_ID, chatId},
@@ -1547,13 +1547,13 @@ void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, con
                       });
 }
 
-void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction) {
-    LOG("Add message reaction" << chatId << messageId << reaction);
+void TDLibWrapper::addMessageEmojiReaction(qlonglong chatId, qlonglong messageId, const QString &reaction) {
+    LOG("Adding message emoji reaction" << chatId << messageId << reaction);
     addMessageReaction(chatId, messageId, {{_TYPE, REACTION_TYPE_EMOJI}, {EMOJI, reaction}});
 }
 
 void TDLibWrapper::removeMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType) {
-    LOG("Remove message reaction" << chatId << messageId << reactionType.value(_TYPE).toString());
+    LOG("Removing message reaction" << chatId << messageId << reactionType.value(_TYPE).toString());
     this->sendRequest(QVariantMap{
                           {_TYPE, "removeMessageReaction"},
                           {CHAT_ID, chatId},
@@ -1562,8 +1562,8 @@ void TDLibWrapper::removeMessageReaction(qlonglong chatId, qlonglong messageId, 
                       });
 }
 
-void TDLibWrapper::removeMessageReaction(qlonglong chatId, qlonglong messageId, const QString &reaction) {
-    LOG("Remove message reaction" << chatId << messageId << reaction);
+void TDLibWrapper::removeMessageEmojiReaction(qlonglong chatId, qlonglong messageId, const QString &reaction) {
+    LOG("Removing message emoji reaction" << chatId << messageId << reaction);
     removeMessageReaction(chatId, messageId, {{_TYPE, REACTION_TYPE_EMOJI}, {EMOJI, reaction}});
 }
 

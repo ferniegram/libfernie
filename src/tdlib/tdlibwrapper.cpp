@@ -1526,23 +1526,25 @@ void TDLibWrapper::terminateSession(const QString &sessionId) {
     });
 }
 
-void TDLibWrapper::getMessageAvailableReactions(qlonglong chatId, qlonglong messageId) {
+void TDLibWrapper::getMessageAvailableReactions(qlonglong chatId, qlonglong messageId, int rowSize) {
     LOG("Get available reactions for message" << chatId << messageId);
     this->sendRequest(QVariantMap{
         {_TYPE, "getMessageAvailableReactions"},
-        {_EXTRA, QString::number(messageId)},
+        {_EXTRA, QString::number(chatId)+":"+QString::number(messageId)},
         {CHAT_ID, chatId},
-        {MESSAGE_ID, messageId}
+        {MESSAGE_ID, messageId},
+        {"row_size", rowSize}
     });
 }
 
-void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType) {
+void TDLibWrapper::addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType, bool updateRecentReactions, bool isBig) {
     LOG("Adding message reaction" << chatId << messageId << reactionType);
     this->sendRequest(QVariantMap{
                           {_TYPE, "addMessageReaction"},
                           {CHAT_ID, chatId},
                           {MESSAGE_ID, messageId},
-                          {"is_big", false},
+                          {"is_big", isBig},
+                          {"update_recent_reactions", updateRecentReactions},
                           {REACTION_TYPE, reactionType},
                       });
 }

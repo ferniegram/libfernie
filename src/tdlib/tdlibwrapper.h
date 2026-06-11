@@ -397,7 +397,7 @@ public:
     Q_INVOKABLE void getActiveSessions();
     Q_INVOKABLE void terminateSession(const QString &sessionId);
     Q_INVOKABLE void getMessageAvailableReactions(qlonglong chatId, qlonglong messageId, int rowSize);
-    Q_INVOKABLE void addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType);
+    Q_INVOKABLE void addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType, bool updateRecentReactions = false, bool isBig = false);
     Q_INVOKABLE void addMessageEmojiReaction(qlonglong chatId, qlonglong messageId, const QString &reaction);
     Q_INVOKABLE void removeMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType);
     Q_INVOKABLE void removeMessageEmojiReaction(qlonglong chatId, qlonglong messageId, const QString &reaction);

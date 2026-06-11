@@ -213,6 +213,14 @@ public:
     };
     Q_ENUM(ChatActionType)
 
+    enum class ReactionUnavailabilityReason {
+        None,
+        AnonymousAdministrator,
+        Guest,
+        Restricted
+    };
+    Q_ENUM(ReactionUnavailabilityReason)
+
     struct Group {
         Group(qlonglong id) : groupId(id) { }
         ChatMemberStatus chatMemberStatus() const;
@@ -388,7 +396,7 @@ public:
     Q_INVOKABLE void changeStickerSet(const QString &stickerSetId, bool isInstalled);
     Q_INVOKABLE void getActiveSessions();
     Q_INVOKABLE void terminateSession(const QString &sessionId);
-    Q_INVOKABLE void getMessageAvailableReactions(qlonglong chatId, qlonglong messageId);
+    Q_INVOKABLE void getMessageAvailableReactions(qlonglong chatId, qlonglong messageId, int rowSize);
     Q_INVOKABLE void addMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType);
     Q_INVOKABLE void addMessageEmojiReaction(qlonglong chatId, qlonglong messageId, const QString &reaction);
     Q_INVOKABLE void removeMessageReaction(qlonglong chatId, qlonglong messageId, const QVariantMap &reactionType);
@@ -577,7 +585,7 @@ signals:
     void messageInteractionInfoUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &updatedInfo);
     void okReceived(const QVariant &extra);
     void sessionsReceived(int inactive_session_ttl_days, const QVariantList &sessions);
-    void availableReactionsReceived(qlonglong messageId, const QStringList &reactions);
+    void availableReactionsReceived(qlonglong chatId, qlonglong messageId, const QVariantMap &reactions, ReactionUnavailabilityReason unavailabilityReason);
     void chatUnreadMentionCountUpdated(qlonglong chatId, int unreadMentionCount);
     void messageMentionRead(qlonglong chatId, qlonglong messageId);
     void chatUnreadReactionCountUpdated(qlonglong chatId, int unreadReactionCount);
@@ -697,6 +705,7 @@ private slots:
     void handleChatActionUpdated(qlonglong chatId, const QVariantMap &topicId, const QVariantMap &sender, const QVariantMap &action);
     void handleOkReceived(const QVariant &extra);
     void handleTextReceived(const QString &text, const QString &extra);
+    void handleAvailableReactionsReceived(qlonglong chatId, qlonglong messageId, const QVariantMap &reactions, const QVariantMap &unavailabilityReason);
 
 private:
     void initializePropertyMaps();

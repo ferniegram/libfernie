@@ -108,7 +108,7 @@ signals:
     void messageInteractionInfoUpdated(qlonglong chatId, qlonglong messageId, const QVariantMap &updatedInfo);
     void okReceived(const QVariant &extra);
     void sessionsReceived(int inactive_session_ttl_days, const QVariantList &sessions);
-    void availableReactionsReceived(qlonglong messageId, const QStringList &reactions);
+    void availableReactionsReceived(qlonglong chatId, qlonglong messageId, const QVariantMap &reactions, const QVariantMap &unavailabilityReason);
     void chatUnreadMentionCountUpdated(qlonglong chatId, int unreadMentionCount);
     void messageMentionRead(qlonglong chatId, qlonglong messageId);
     void chatUnreadReactionCountUpdated(qlonglong chatId, int unreadReactionCount);

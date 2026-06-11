@@ -674,13 +674,15 @@ void TDLibReceiver::processSessions(const QVariantMap &receivedInformation)
     emit sessionsReceived(inactiveSessionTTLDays, sessions);
 }
 
-void TDLibReceiver::processAvailableReactions(const QVariantMap &receivedInformation)
-{
-    const qlonglong messageId = receivedInformation.value(_EXTRA).toLongLong();
-    const QStringList reactions = receivedInformation.value("reactions").toStringList();
-    if (!reactions.isEmpty()) {
-        emit availableReactionsReceived(messageId, reactions);
-    }
+void TDLibReceiver::processAvailableReactions(const QVariantMap &receivedInformation) {
+    QVariantMap reactions(receivedInformation);
+
+    const QStringList extra = reactions.take(_EXTRA).toString().split(":");
+    qlonglong chatId = extra.value(0).toLongLong(), messageId = extra.value(1).toLongLong();
+    LOG("Received available reactions" << chatId << messageId);
+
+    const QVariantMap unavailabilityReason = reactions.take("unavailability_reason").toMap();
+    emit availableReactionsReceived(chatId, messageId, reactions, unavailabilityReason);
 }
 
 void TDLibReceiver::processUpdateChatUnreadMentionCount(const QVariantMap &receivedInformation) {

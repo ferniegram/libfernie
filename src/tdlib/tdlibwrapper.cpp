@@ -324,7 +324,7 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::messageInteractionInfoUpdated, this, &TDLibWrapper::messageInteractionInfoUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::okReceived, this, &TDLibWrapper::handleOkReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::sessionsReceived, this, &TDLibWrapper::sessionsReceived);
-    connect(this->tdLibReceiver, &TDLibReceiver::availableReactionsReceived, this, &TDLibWrapper::availableReactionsReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::availableReactionsReceived, this, &TDLibWrapper::handleAvailableReactionsReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::activeEmojiReactionsUpdated, this, &TDLibWrapper::handleActiveEmojiReactionsUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::messagePropertiesReceived, this, &TDLibWrapper::messagePropertiesReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::storageStatisticsFastReceived, this, &TDLibWrapper::storageStatisticsFastReceived);
@@ -3478,4 +3478,18 @@ void TDLibWrapper::getMessageReadDate(qlonglong chatId, qlonglong messageId) {
     request.insert(_EXTRA, extra);
     request.insert(_TYPE, "getMessageReadDate");
     sendRequest(request);
+}
+
+void TDLibWrapper::handleAvailableReactionsReceived(qlonglong chatId, qlonglong messageId, const QVariantMap &reactions, const QVariantMap &unavailabilityReasonMap) {
+    const QString unavailabilityReasonType = unavailabilityReasonMap.value(_TYPE).toString();
+    ReactionUnavailabilityReason unavailabilityReason = ReactionUnavailabilityReason::None;
+
+    if (unavailabilityReasonType == "reactionUnavailabilityReasonAnonymousAdministrator")
+        unavailabilityReason = ReactionUnavailabilityReason::AnonymousAdministrator;
+    else if (unavailabilityReasonType == "reactionUnavailabilityReasonGuest")
+        unavailabilityReason = ReactionUnavailabilityReason::Guest;
+    else if (unavailabilityReasonType == "reactionUnavailabilityReasonRestricted")
+        unavailabilityReason = ReactionUnavailabilityReason::Restricted;
+
+    emit availableReactionsReceived(chatId, messageId, reactions, unavailabilityReason);
 }

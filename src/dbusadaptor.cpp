@@ -80,7 +80,7 @@ void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &mes
     if (lastMessageId)
         tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
 
-    tdLibWrapper->sendTextMessage(chatId, messageContent, messageId.toLongLong(), QVariantMap(), TDLibWrapper::getMessageSendOptions(true));
+    tdLibWrapper->sendTextMessage(chatId, messageContent, messageId.toLongLong(), QVariantMap(), false, TDLibWrapper::getMessageSendOptions(true));
 }
 
 void DBusAdaptor::reactToMessage(const QString &chatId, const QString &messageId) {

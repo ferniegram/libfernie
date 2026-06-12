@@ -41,6 +41,11 @@ void ForumTopicMessagesModel::handleRolesUpdated(const QVector<int> &roles) {
     if (roles.contains(ForumTopic::RoleName))
         emit forumTopicNameChanged();
 
+    if (roles.contains(ForumTopic::RoleLastReadOutboxMessageId))
+        emit lastReadSentMessageUpdated();
+    if (roles.contains(ForumTopic::RoleLastReadInboxMessageId))
+        emit lastReadMessageIndexChanged();
+
     emit forumTopicDataChanged();
 }
 

@@ -681,11 +681,11 @@ void NotificationManager::setUseSignalActions(bool value) {
             group->nemoNotification->setRemoteActions(newActions);
 
             // Disable feedback
-            nemoNotification->setHintValue(HINT_VIBRA, false);
-            nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, true);
-            nemoNotification->setHintValue(HINT_DISPLAY_ON, false);
-            nemoNotification->setHintValue(HINT_VISIBILITY, QString());
-            nemoNotification->setUrgency(Notification::Low);
+            group->nemoNotification->setHintValue(HINT_VIBRA, false);
+            group->nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, true);
+            group->nemoNotification->setHintValue(HINT_DISPLAY_ON, false);
+            group->nemoNotification->setHintValue(HINT_VISIBILITY, QString());
+            group->nemoNotification->setUrgency(Notification::Low);
 
             group->nemoNotification->publish();
         }

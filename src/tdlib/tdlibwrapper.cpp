@@ -149,6 +149,7 @@ namespace {
     const QString EXTRA_LOAD_CHATS_FOR_FOLDER("loadChatsForFolder");
     const QString CALL_ID("call_id");
     const QString PROTOCOL("protocol");
+    const QString CLEAR_DRAFT("clear_draft");
 
     const QStringList ALL_FILE_TYPES(QStringList()
                                      << "fileTypeAnimation"
@@ -590,9 +591,9 @@ QVariantMap TDLibWrapper::getMessageSendOptions(bool fromBackground) {
     return {{_TYPE, "messageSendOptions"}, {"from_background", fromBackground}};
 }
 
-void TDLibWrapper::sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &options) {
+void TDLibWrapper::sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId, const QVariantMap &topicId, bool clearDraft, const QVariantMap &options) {
     LOG("Sending text message" << chatId << message << replyToMessageId);
-    sendMessage(chatId, replyToMessageId, topicId, {{_TYPE, "inputMessageText"}, {TEXT, Utilities::enhanceInputText(message)}}, options);
+    sendMessage(chatId, replyToMessageId, topicId, {{_TYPE, "inputMessageText"}, {TEXT, Utilities::enhanceInputText(message)}, {CLEAR_DRAFT, clearDraft}}, options);
 }
 
 void TDLibWrapper::sendFileMessage(qlonglong chatId, const QString &messageType, const QString &fileType, const QString &filePath, const QString &caption, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &additionalOptions) {
@@ -671,9 +672,9 @@ void TDLibWrapper::sendPollMessage(qlonglong chatId, const QString &question, co
     sendMessage(chatId, replyToMessageId, topicId, inputMessageContent);
 }
 
-void TDLibWrapper::sendDiceMessage(qlonglong chatId, const QString &emoji, qlonglong replyToMessageId, const QVariantMap &topicId) {
+void TDLibWrapper::sendDiceMessage(qlonglong chatId, const QString &emoji, qlonglong replyToMessageId, const QVariantMap &topicId, bool clearDraft) {
     LOG("Sending dice message" << chatId << emoji << replyToMessageId);
-    sendMessage(chatId, replyToMessageId, topicId, QVariantMap{{_TYPE, "inputMessageDice"}, {EMOJI, emoji}});
+    sendMessage(chatId, replyToMessageId, topicId, QVariantMap{{_TYPE, "inputMessageDice"}, {EMOJI, emoji}, {CLEAR_DRAFT, clearDraft}});
 }
 
 void TDLibWrapper::forwardMessages(const QString &chatId, const QString &fromChatId, const QVariantList &messageIds, bool sendCopy, bool removeCaption) {
@@ -1274,7 +1275,7 @@ void TDLibWrapper::setChatDraftMessage(qlonglong chatId, qlonglong replyToMessag
         {"input_message_text", QVariantMap{
             {_TYPE, "inputMessageText"},
             {TEXT, Utilities::newFormattedText(draft)},
-            {"clear_draft", draft.isEmpty()},
+            {CLEAR_DRAFT, draft.isEmpty()},
         }}
     };
 

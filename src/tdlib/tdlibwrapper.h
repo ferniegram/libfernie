@@ -309,14 +309,14 @@ public:
     Q_INVOKABLE void pinMessage(const QString &chatId, const QString &messageId, bool disableNotification = false);
     Q_INVOKABLE void unpinMessage(const QString &chatId, const QString &messageId);
     Q_INVOKABLE void sendFileMessage(qlonglong chatId, const QString &messageType, const QString &fileType, const QString &filePath, const QString &caption, qlonglong replyToMessageId, const QVariantMap &topicId = QVariantMap(), const QVariantMap &additionalOptions = QVariantMap());
-    Q_INVOKABLE void sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap(), const QVariantMap &options = QVariantMap());
+    Q_INVOKABLE void sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap(), bool clearDraft = false, const QVariantMap &options = QVariantMap());
     Q_INVOKABLE void sendLocationMessage(qlonglong chatId, double latitude, double longitude, double horizontalAccuracy, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
     Q_INVOKABLE void sendStickerMessage(qlonglong chatId, const QString &fileId, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
     Q_INVOKABLE void sendPollMessage(qlonglong chatId, const QString &question, const QStringList &options, const QString &description,
                                         bool anonymous, bool multiple, bool revoting, bool shuffle, int openPeriod, bool hideResultsUntilCloses,
                                         bool allowAddingOptions, QVariantList correctOptions, const QString &explanation,
                                         qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
-    Q_INVOKABLE void sendDiceMessage(qlonglong chatId, const QString &emoji, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
+    Q_INVOKABLE void sendDiceMessage(qlonglong chatId, const QString &emoji, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap(), bool clearDraft = false);
     Q_INVOKABLE void forwardMessages(const QString &chatId, const QString &fromChatId, const QVariantList &messageIds, bool sendCopy, bool removeCaption);
     Q_INVOKABLE void getMessage(qlonglong chatId, qlonglong messageId);
     Q_INVOKABLE void getMessageLinkInfo(const QString &url);

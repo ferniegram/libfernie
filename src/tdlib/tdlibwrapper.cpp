@@ -597,6 +597,7 @@ void TDLibWrapper::sendTextMessage(qlonglong chatId, const QString &message, qlo
 }
 
 void TDLibWrapper::sendFileMessage(qlonglong chatId, const QString &messageType, const QString &fileType, const QString &filePath, const QString &caption, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &additionalOptions) {
+    LOG("Sending a file message" << chatId << replyToMessageId << messageType << fileType << filePath);
     QVariantMap content = additionalOptions;
     content.insert(_TYPE, messageType);
     content.insert(CAPTION, Utilities::enhanceInputText(caption));

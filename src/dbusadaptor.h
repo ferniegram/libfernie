@@ -38,15 +38,15 @@ public:
                 QObject *parent = nullptr);
 
 signals:
-    void doOpenMessage(qlonglong chatId, qlonglong messageId);
+    void doOpenMessage(qlonglong chatId, qlonglong messageId, const QVariantMap &topicId);
     void activateWindow();
 
 public slots:
     virtual void openUrl(const QStringList &arguments);
-    void openMessage(const QString &chatId, const QString &messageId);
-    virtual void markMessageAsRead(const QString &chatId, const QString &messageId);
-    virtual void replyToMessage(const QString &chatId, const QString &messageId, const QString &messageContent);
-    virtual void reactToMessage(const QString &chatId, const QString &messageId);
+    void openMessage(const QString &chatId, const QString &messageId, const QVariantMap &topicId);
+    virtual void markMessageAsRead(const QString &chatId, const QString &messageId, const QVariantMap &topicId);
+    virtual void replyToMessage(const QString &chatId, const QString &messageId, const QVariantMap &topicId, const QString &messageContent);
+    virtual void reactToMessage(const QString &chatId, const QString &messageId, const QVariantMap &topicId);
     virtual void closeSecretChat(const QString &chatId);
 #ifdef USE_CALLS
     virtual void acceptCall(int callId);

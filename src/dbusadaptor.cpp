@@ -55,13 +55,14 @@ void DBusAdaptor::openUrl(const QStringList &arguments) {
     }
 }
 
-void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId) {
-    LOG("Opening message" << chatId << messageId);
+void DBusAdaptor::openMessage(const QString &chatId, const QString &messageId, const QVariantMap &topicId) {
+    LOG("Opening message" << chatId << messageId << topicId);
     emit activateWindow();
-    emit doOpenMessage(chatId.toLongLong(), messageId.toLongLong());
+    emit doOpenMessage(chatId.toLongLong(), messageId.toLongLong(), topicId);
 }
 
-void DBusAdaptor::markMessageAsRead(const QString &chatIdString, const QString &messageId) {
+void DBusAdaptor::markMessageAsRead(const QString &chatIdString, const QString &messageId, const QVariantMap &topicId) {
+    Q_UNUSED(topicId)
     LOG("Requested to mark message as read" << chatIdString << messageId);
 
     qlonglong chatId = chatIdString.toLongLong();
@@ -72,7 +73,7 @@ void DBusAdaptor::markMessageAsRead(const QString &chatIdString, const QString &
     }
 }
 
-void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &messageId, const QString &messageContent) {
+void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &messageId, const QVariantMap &topicId, const QString &messageContent) {
     LOG("Replying to message" << chatIdString << messageId);
     qlonglong chatId = chatIdString.toLongLong();
 
@@ -80,10 +81,11 @@ void DBusAdaptor::replyToMessage(const QString &chatIdString, const QString &mes
     if (lastMessageId)
         tdLibWrapper->viewMessage(chatId, lastMessageId, true, TDLibWrapper::MessageSourceNotification);
 
-    tdLibWrapper->sendTextMessage(chatId, messageContent, messageId.toLongLong(), QVariantMap(), false, TDLibWrapper::getMessageSendOptions(true));
+    tdLibWrapper->sendTextMessage(chatId, messageContent, messageId.toLongLong(), topicId, false, TDLibWrapper::getMessageSendOptions(true));
 }
 
-void DBusAdaptor::reactToMessage(const QString &chatId, const QString &messageId) {
+void DBusAdaptor::reactToMessage(const QString &chatId, const QString &messageId, const QVariantMap &topicId) {
+    Q_UNUSED(topicId)
     LOG("Reacting to message" << chatId << messageId);
     tdLibWrapper->addMessageReaction(chatId.toLongLong(), messageId.toLongLong(), tdLibWrapper->getDefaultReactionType());
 }

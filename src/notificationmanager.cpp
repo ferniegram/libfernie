@@ -50,6 +50,7 @@ namespace {
     const QString REMOVED_NOTIFICATION_IDS("removed_notification_ids");
     const QString NOTIFICATION("notification");
     const QString NOTIFICATION_SOUND_ID("notification_sound_id");
+    const QString TOPIC_ID("topic_id");
 
     const QString CHAT_TYPE_BASIC_GROUP("chatTypeBasicGroup");
     const QString CHAT_TYPE_SUPERGROUP("chatTypeSupergroup");
@@ -256,15 +257,18 @@ void NotificationManager::updateNotificationGroup(const QVariantMap &type, int g
                 if (!useSignalActions) return;
 
                 const QString chatIdString = QString::number(chatId);
-                const auto getMessageId = [notificationGroup]() {
-                    return notificationGroup->lastNotification().value(TYPE).toMap().value(MESSAGE).toMap().value(ID).toString();
+                const auto getMessageInfo = [notificationGroup]() {
+                    const QVariantMap message = notificationGroup->lastNotification().value(TYPE).toMap().value(MESSAGE).toMap();
+                    return QPair{message.value(ID).toString(), message.value(TOPIC_ID).toMap()};
                 };
 
-                if (actionName == ACTION_MARK_AS_READ)
-                    dbusAdaptor->markMessageAsRead(chatIdString, getMessageId());
-                else if (actionName == ACTION_REACT)
-                    dbusAdaptor->reactToMessage(chatIdString, getMessageId());
-                else if (actionName == ACTION_CLOSE)
+                if (actionName == ACTION_MARK_AS_READ) {
+                    QPair info = getMessageInfo();
+                    dbusAdaptor->markMessageAsRead(chatIdString, info.first, info.second);
+                } else if (actionName == ACTION_REACT) {
+                    QPair info = getMessageInfo();
+                    dbusAdaptor->reactToMessage(chatIdString, info.first, info.second);
+                } else if (actionName == ACTION_CLOSE)
                     dbusAdaptor->closeSecretChat(chatIdString);
             });
         }
@@ -436,7 +440,7 @@ void NotificationManager::publishNotification(const QSharedPointer<NotificationG
     nemoNotification->setItemCount(notificationGroup->totalCount);
     nemoNotification->setResident(true); // FIXME: decide if this is really needed
 
-    QVariantList remoteActionArguments{QString::number(notificationGroup->chatId), ""};
+    QVariantList remoteActionArguments{QString::number(notificationGroup->chatId), "", QVariantMap{}};
     QVariantList remoteActions;
 
     switch (notificationGroup->type) {
@@ -468,8 +472,11 @@ void NotificationManager::publishNotification(const QSharedPointer<NotificationG
             nemoNotification->setBody(tr("You have a new message", "Notification"));
 
 
-        remoteActionArguments.removeLast();
-        remoteActionArguments.append(message.value(ID).toString());
+        remoteActionArguments = {
+            remoteActionArguments[0],
+            message.value(ID).toString(),
+            message.value(TOPIC_ID).toMap()
+        };
 
         remoteActions.append(Notification::remoteAction(
                                  ACTION_MARK_AS_READ, tr("Mark as read", "Notification button"),

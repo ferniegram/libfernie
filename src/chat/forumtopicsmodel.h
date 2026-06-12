@@ -25,6 +25,7 @@ public:
 signals:
     void chatIdChanged();
     void forumTopicsReceived();
+    void highlightedForumTopicReceived();
 
 private slots:
     void handleForumTopicsReceived(qlonglong chatId, int totalCount, QVariantList newTopics, qint32 nextOffsetDate, qlonglong nextOffsetMessageId, int nextOffsetForumTopicId);
@@ -61,4 +62,6 @@ private:
     qlonglong nextOffsetMessageId;
     int nextOffsetForumTopicId;
     bool endReached;
+
+    int highlightedForumTopicId = 0;
 };

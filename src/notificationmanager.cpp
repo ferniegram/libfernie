@@ -679,6 +679,14 @@ void NotificationManager::setUseSignalActions(bool value) {
                 newActions.append(action);
             }
             group->nemoNotification->setRemoteActions(newActions);
+
+            // Disable feedback
+            nemoNotification->setHintValue(HINT_VIBRA, false);
+            nemoNotification->setHintValue(HINT_SUPPRESS_SOUND, true);
+            nemoNotification->setHintValue(HINT_DISPLAY_ON, false);
+            nemoNotification->setHintValue(HINT_VISIBILITY, QString());
+            nemoNotification->setUrgency(Notification::Low);
+
             group->nemoNotification->publish();
         }
     }

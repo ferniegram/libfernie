@@ -51,8 +51,8 @@ signals:
     void unreadChatCountUpdated(const QVariantMap &chatCountInformation);
     void chatLastMessageUpdated(qlonglong chatId, const QVariantMap &lastMessage, const QVariantList &positions);
     void chatPositionUpdated(qlonglong chatId, const QVariantMap &position);
-    void chatReadInboxUpdated(const QString &chatId, const QString &lastReadInboxMessageId, int unreadCount);
-    void chatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
+    void chatReadInboxUpdated(qlonglong chatId, qlonglong lastReadInboxMessageId, int unreadCount);
+    void chatReadOutboxUpdated(qlonglong chatId, qlonglong lastReadOutboxMessageId);
     void chatAvailableReactionsUpdated(qlonglong chatId, const QVariantMap &availableReactions);
     void basicGroupUpdated(qlonglong groupId, const QVariantMap &groupInformation);
     void supergroupUpdated(qlonglong groupId, const QVariantMap &groupInformation);

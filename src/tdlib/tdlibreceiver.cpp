@@ -270,18 +270,19 @@ void TDLibReceiver::processUpdateChatPosition(const QVariantMap &receivedInforma
     emit chatPositionUpdated(chatId, position);
 }
 
-void TDLibReceiver::processUpdateChatReadInbox(const QVariantMap &receivedInformation)
-{
-    const QString chatId(receivedInformation.value(CHAT_ID).toString());
-    const QString unreadCount(receivedInformation.value(UNREAD_COUNT).toString());
-    LOG("Chat read information updated for" << chatId << "unread count:" << unreadCount);
-    emit chatReadInboxUpdated(chatId, receivedInformation.value(LAST_READ_INBOX_MESSAGE_ID).toString(), unreadCount.toInt());
+void TDLibReceiver::processUpdateChatReadInbox(const QVariantMap &receivedInformation) {
+    qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong(),
+                lastReadInboxMessageId = receivedInformation.value(LAST_READ_INBOX_MESSAGE_ID).toLongLong();
+    int unreadCount = receivedInformation.value(UNREAD_COUNT).toInt();
+
+    LOG("Chat read information updated for" << chatId << "last read message ID:" << lastReadInboxMessageId <<  "unread count:" << unreadCount);
+    emit chatReadInboxUpdated(chatId, lastReadInboxMessageId, unreadCount);
 }
 
-void TDLibReceiver::processUpdateChatReadOutbox(const QVariantMap &receivedInformation)
-{
-    const QString chatId(receivedInformation.value(CHAT_ID).toString());
-    const QString lastReadOutboxMessageId(receivedInformation.value(LAST_READ_OUTBOX_MESSAGE_ID).toString());
+void TDLibReceiver::processUpdateChatReadOutbox(const QVariantMap &receivedInformation) {
+    qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong(),
+                lastReadOutboxMessageId = receivedInformation.value(LAST_READ_OUTBOX_MESSAGE_ID).toLongLong();
+
     LOG("Sent messages read information updated for" << chatId << "last read message ID:" << lastReadOutboxMessageId);
     emit chatReadOutboxUpdated(chatId, lastReadOutboxMessageId);
 }

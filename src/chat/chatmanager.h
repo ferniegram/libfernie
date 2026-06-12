@@ -137,8 +137,6 @@ signals:
     void botSponsoredMessageChanged();
 
 private slots:
-    void handleChatReadInboxUpdated(const QString &id);
-    void handleChatReadOutboxUpdated(const QString &id);
     void handleNewChatDiscovered(qlonglong chatId);
     void handleChatRolesUpdated(qlonglong chatId, const QVector<int> changedRoles = QVector<int>());
     void handleChatPendingJoinRequestsUpdated(qlonglong chatId);

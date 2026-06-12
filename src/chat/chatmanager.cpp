@@ -243,8 +243,6 @@ void ChatManager::setTDLibWrapper(QObject *obj) {
         emit tdlibChanged();
 
         if (tdLibWrapper) {
-            connect(this->tdLibWrapper, &TDLibWrapper::chatReadInboxUpdated, this, &ChatManager::handleChatReadInboxUpdated);
-            connect(this->tdLibWrapper, &TDLibWrapper::chatReadOutboxUpdated, this, &ChatManager::handleChatReadOutboxUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::chatRolesUpdated, this, &ChatManager::handleChatRolesUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::chatPinnedMessageUpdated, this, &ChatManager::handleChatPinnedMessageUpdated);
             connect(this->tdLibWrapper, &TDLibWrapper::userUpdated, this, &ChatManager::handleUserUpdated);
@@ -267,16 +265,6 @@ void ChatManager::setTDLibWrapper(QObject *obj) {
             }
         }
     }
-}
-
-void ChatManager::handleChatReadInboxUpdated(const QString &id) {
-    if (this->chatId == id.toLongLong() && this->chatMessagesModel)
-        emit this->chatMessagesModel->lastReadMessageIndexChanged();
-}
-
-void ChatManager::handleChatReadOutboxUpdated(const QString &id) {
-    if (this->chatId == id.toLongLong() && this->chatMessagesModel)
-        emit this->chatMessagesModel->lastReadSentMessageUpdated();
 }
 
 QVariantMap ChatManager::photo() const {
@@ -380,6 +368,14 @@ void ChatManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> ch
         if (changedRoles.contains(ChatData::RoleChatActionsText)) {
             LOG("Chat actions text updated" << chatId);
             emit chatActionsChanged();
+        }
+        if (changedRoles.contains(ChatData::RoleLastReadOutboxMessageId) && this->chatMessagesModel) {
+            LOG("Chat last read outbox message ID updated" << chatId);
+            emit this->chatMessagesModel->lastReadSentMessageUpdated();
+        }
+        if (changedRoles.contains(ChatData::RoleLastReadInboxMessageId) && this->chatMessagesModel) {
+            LOG("Chat last read inbox message ID updated" << chatId);
+            emit this->chatMessagesModel->lastReadMessageIndexChanged();
         }
         LOG("Chat roles updated" << chatId << changedRoles);
         emit chatInformationChanged();

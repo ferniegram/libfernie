@@ -2065,32 +2065,21 @@ void TDLibWrapper::handleChatDraftMessageUpdated(qlonglong chatId, const QVarian
     updateChatPositions(chatId, positions); // FIXME: this might affect performance
 }
 
-void TDLibWrapper::handleChatReadInboxUpdated(const QString &chatId, const QString &lastReadInboxMessageId, int unreadCount) {
-    bool ok;
-    qlonglong id = chatId.toLongLong(&ok);
-    if (ok) {
-        ChatData *chatData = this->getChatDataForce(id);
+void TDLibWrapper::handleChatReadInboxUpdated(qlonglong chatId, qlonglong lastReadInboxMessageId, int unreadCount) {
+    ChatData *chatData = this->getChatDataForce(chatId);
 
-        QVector<int> changedRoles;
-        changedRoles.append(ChatData::RoleDisplay);
-        if (chatData->updateUnreadCount(unreadCount))
-            changedRoles.append(ChatData::RoleUnreadCount);
-        if (chatData->updateLastReadInboxMessageId(lastReadInboxMessageId.toLongLong()))
-            changedRoles.append(ChatData::RoleLastReadInboxMessageId);
-        emit chatRolesUpdated(id, changedRoles);
-    }
-    emit chatReadInboxUpdated(chatId, lastReadInboxMessageId, unreadCount);
+    QVector<int> changedRoles;
+    changedRoles.append(ChatData::RoleDisplay);
+    if (chatData->updateUnreadCount(unreadCount))
+        changedRoles.append(ChatData::RoleUnreadCount);
+    if (chatData->updateLastReadInboxMessageId(lastReadInboxMessageId))
+        changedRoles.append(ChatData::RoleLastReadInboxMessageId);
+    emit chatRolesUpdated(chatId, changedRoles);
 }
 
-void TDLibWrapper::handleChatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId) {
-    bool ok;
-    qlonglong id = chatId.toLongLong(&ok);
-    if (ok) {
-        if (this->getChatDataForce(id)->updateLastReadOutboxMessageId(lastReadOutboxMessageId.toLongLong()))
-            emit chatRolesUpdated(id, {ChatData::RoleLastReadOutboxMessageId});
-
-        emit chatReadOutboxUpdated(chatId, lastReadOutboxMessageId);
-    }
+void TDLibWrapper::handleChatReadOutboxUpdated(qlonglong chatId, qlonglong lastReadOutboxMessageId) {
+    if (this->getChatDataForce(chatId)->updateLastReadOutboxMessageId(lastReadOutboxMessageId))
+        emit chatRolesUpdated(chatId, {ChatData::RoleLastReadOutboxMessageId});
 }
 
 void TDLibWrapper::handleChatTitleUpdated(qlonglong chatId, const QString &title) {

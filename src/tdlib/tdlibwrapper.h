@@ -524,8 +524,6 @@ signals:
     void responseForRequestIdReceived(qlonglong requestId, const QVariantMap &response);
     void someChatListUpdated();
     void chatLastMessageUpdated(qlonglong chatId, const QVariantMap &lastMessage);
-    void chatReadInboxUpdated(const QString &chatId, const QString &lastReadInboxMessageId, int unreadCount);
-    void chatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
     void chatAvailableReactionsUpdated(qlonglong chatId, const QVariantMap &availableReactions);
     void userUpdated(qlonglong userId, const QVariantMap &userInformation);
     void myUserUpdated();
@@ -667,8 +665,8 @@ private slots:
     void handleChatLastMessageUpdated(qlonglong chatId, const QVariantMap &lastMessage, const QVariantList &positions);
     void handleChatDraftMessageUpdated(qlonglong chatId, const QVariantMap &draftMessage, const QVariantList &positions);
 
-    void handleChatReadInboxUpdated(const QString &chatId, const QString &lastReadInboxMessageId, int unreadCount);
-    void handleChatReadOutboxUpdated(const QString &chatId, const QString &lastReadOutboxMessageId);
+    void handleChatReadInboxUpdated(qlonglong chatId, qlonglong lastReadInboxMessageId, int unreadCount);
+    void handleChatReadOutboxUpdated(qlonglong chatId, qlonglong lastReadOutboxMessageId);
     void handleChatTitleUpdated(qlonglong chatId, const QString &title);
     void handleChatPhotoUpdated(qlonglong chatId, const QVariantMap &photo);
     void handleChatNotificationSettingsUpdated(qlonglong chatId, const QVariantMap &settings);

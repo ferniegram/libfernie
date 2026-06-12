@@ -957,9 +957,9 @@ void Utilities::handleLink(const QString &link) {
         tdLibWrapper->getInternalLinkType(link);
 }
 
-void Utilities::handleLink(const QString &link, qlonglong botCommandChatId) {
+void Utilities::handleLink(const QString &link, qlonglong botCommandChatId, const QVariantMap &botCommandTopicId) {
     if (link.startsWith("botCommand://"))
-        tdLibWrapper->sendTextMessage(botCommandChatId, link.mid(13));
+        tdLibWrapper->sendTextMessage(botCommandChatId, link.mid(13), 0, botCommandTopicId);
     else handleLink(link);
 }
 

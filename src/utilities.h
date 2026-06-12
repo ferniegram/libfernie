@@ -86,7 +86,7 @@ public:
     Q_INVOKABLE static bool messageMatchesSearchFilter(const QVariantMap &message, TDLibWrapper::SearchMessagesFilter filter);
 
     Q_INVOKABLE void handleLink(const QString &link);
-    Q_INVOKABLE void handleLink(const QString &link, qlonglong botCommandChatId);
+    Q_INVOKABLE void handleLink(const QString &link, qlonglong botCommandChatId, const QVariantMap &botCommandTopicId);
 
     static std::string uncompress(const QByteArray &data);
     Q_INVOKABLE static QString uncompressLocalFile(const QString &path);

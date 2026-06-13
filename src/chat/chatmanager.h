@@ -7,12 +7,15 @@
 class ChatMessagesModel : public ReadableMessagesModel {
     Q_OBJECT
 
+    Q_PROPERTY(QString searchQuery MEMBER searchQuery WRITE setSearchQuery)
     Q_PROPERTY(bool containsSponsoredMessages MEMBER containsSponsoredMessages NOTIFY containsSponsoredMessagesChanged)
 public:
     ChatMessagesModel(TDLibWrapper *tdLibWrapper, qlonglong chatId, QObject *parent = nullptr);
 
     Q_INVOKABLE virtual bool clear() override;
-    Q_INVOKABLE void setSearchQuery(const QString newSearchQuery);
+    Q_INVOKABLE void setSearchQuery(const QString &newSearchQuery);
+
+    Q_INVOKABLE virtual int calculateScrollPosition() const override;
 
     friend class ChatManager;
 

@@ -11,6 +11,8 @@ class ForumTopicMessagesModel : public ReadableMessagesModel {
     Q_PROPERTY(int forumTopicId READ forumTopicId NOTIFY forumTopicIdChanged)
     Q_PROPERTY(QString forumTopicName READ forumTopicName NOTIFY forumTopicNameChanged)
 
+    Q_PROPERTY(QString searchQuery MEMBER searchQuery WRITE setSearchQuery)
+
 public:
     ForumTopicMessagesModel(QObject *parent = nullptr);
 
@@ -25,6 +27,8 @@ public:
 
     Q_INVOKABLE virtual bool clear() override;
     Q_INVOKABLE void setSearchQuery(const QString &newSearchQuery);
+
+    Q_INVOKABLE virtual int calculateScrollPosition() const override;
 
 signals:
     void tdlibChanged();

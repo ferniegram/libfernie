@@ -159,3 +159,11 @@ void ForumTopicMessagesModel::handleNewMessageReceived(qlonglong chatId, const Q
     if (this->chatId == chatId && this->forumTopic && this->forumTopic->id == message.value(TOPIC_ID).toMap().value(FORUM_TOPIC_ID).toInt())
         ReadableMessagesModel::handleNewMessageReceived(message);
 }
+
+int ForumTopicMessagesModel::calculateScrollPosition() const {
+    if (!searchQuery.isEmpty()) {
+        LOG("Calculating scroll position while in search");
+        return messages.size() - 1;
+    }
+    return ReadableMessagesModel::calculateScrollPosition();
+}

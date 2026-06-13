@@ -54,7 +54,7 @@ void ChatMessagesModel::loadMessages(int extra, qlonglong fromMessageId, int off
         this->tdLibWrapper->searchChatMessages(chatId, searchQuery, extra, fromMessageId);
 }
 
-void ChatMessagesModel::setSearchQuery(const QString newSearchQuery) {
+void ChatMessagesModel::setSearchQuery(const QString &newSearchQuery) {
     if (this->searchQuery != newSearchQuery) {
         this->clear();
         this->searchQuery = newSearchQuery;
@@ -205,6 +205,14 @@ void ChatMessagesModel::handlePrepareMessagesReceived(int totalCount, UpdateType
             pendingSponsoredMessages.erase(pendingSponsoredMessages.begin(), pendingSponsoredMessages.begin() + i);
         }
     }
+}
+
+int ChatMessagesModel::calculateScrollPosition() const {
+    if (!searchQuery.isEmpty()) {
+        LOG("Calculating scroll position while in search");
+        return messages.size() - 1;
+    }
+    return ReadableMessagesModel::calculateScrollPosition();
 }
 
 

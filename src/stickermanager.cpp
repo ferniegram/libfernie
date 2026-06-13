@@ -78,12 +78,10 @@ void StickerManager::handleStickerSet(const QString &stickerSetId, const QVarian
 
 void StickerManager::handleStickerSetUpdated(const QString &stickerSetId, const QVariantMap &stickerSet) {
     LOG("Sticker set updated" << stickerSetId);
-    this->stickerSets.insert(stickerSetId, stickerSet);
-    emit stickerSetUpdated(stickerSetId);
+    handleStickerSet(stickerSetId, stickerSet);
 }
 
 void StickerManager::handleStickerSetReceived(const QString &stickerSetId, const QVariantMap &stickerSet) {
     LOG("Received a sticker set" << stickerSetId);
-    this->stickerSets.insert(stickerSetId, stickerSet);
-    emit stickerSetUpdated(stickerSetId);
+    handleStickerSet(stickerSetId, stickerSet);
 }

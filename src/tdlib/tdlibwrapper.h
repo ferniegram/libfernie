@@ -270,6 +270,7 @@ public:
     QVariantMap getDefaultReactionType() const;
     static ChatActionType getChatActionType(const QString &type);
     static QString getChatActionTypeString(ChatActionType type);
+    Q_INVOKABLE static QVariantMap getInputFileLocal(const QString &path);
 
     inline Utilities *getUtilities() const { return this->utilities; }
 
@@ -306,7 +307,7 @@ public:
     Q_INVOKABLE void viewMessage(qlonglong chatId, qlonglong messageId, bool force, MessageSource source = MessageSourceAuto);
     Q_INVOKABLE void pinMessage(const QString &chatId, const QString &messageId, bool disableNotification = false);
     Q_INVOKABLE void unpinMessage(const QString &chatId, const QString &messageId);
-    Q_INVOKABLE void sendFileMessage(qlonglong chatId, const QString &messageType, const QString &fileType, const QString &filePath, const QString &caption, qlonglong replyToMessageId, const QVariantMap &topicId = QVariantMap(), const QVariantMap &additionalOptions = QVariantMap());
+    Q_INVOKABLE void sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content, const QVariantMap &options = QVariantMap());
     Q_INVOKABLE void sendTextMessage(qlonglong chatId, const QString &message, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap(), bool clearDraft = false, const QVariantMap &options = QVariantMap());
     Q_INVOKABLE void sendLocationMessage(qlonglong chatId, double latitude, double longitude, double horizontalAccuracy, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
     Q_INVOKABLE void sendStickerMessage(qlonglong chatId, const QString &fileId, qlonglong replyToMessageId = 0, const QVariantMap &topicId = QVariantMap());
@@ -711,7 +712,6 @@ private:
     void setTdlibParameters();
     void setLogVerbosityLevel();
     const Group *updateGroup(qlonglong groupId, const QVariantMap &groupInfo, QHash<qlonglong,Group*> *groups);
-    void sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content, const QVariantMap &options = QVariantMap());
     void initializeTDLibReceiver();
     void setInitialOptions();
     void updateUserInformation(qlonglong userId, const QVariantMap &userInformation);

@@ -76,7 +76,6 @@ namespace {
     const QString TYPE_INPUT_MESSAGE_REPLY_TO_MESSAGE("inputMessageReplyToMessage");
     const QString TEXT("text");
     const QString PHOTO("photo");
-    const QString TYPE_INPUT_FILE_LOCAL("inputFileLocal");
     const QString TYPE_INPUT_FILE_ID("inputFileId");
     const QString PATH("path");
     const QString CONTACT("contact");
@@ -577,6 +576,10 @@ void TDLibWrapper::unpinMessage(const QString &chatId, const QString &messageId)
     });
 }
 
+QVariantMap TDLibWrapper::getInputFileLocal(const QString &path) {
+    return {{_TYPE, "inputFileLocal"}, {PATH, path}};
+}
+
 void TDLibWrapper::sendMessage(qlonglong chatId, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &content, const QVariantMap &options) {
     QVariantMap request{{_TYPE, "sendMessage"}, {CHAT_ID, chatId}, {INPUT_MESSAGE_CONTENT, content}};
     if (replyToMessageId != 0)
@@ -602,31 +605,18 @@ void TDLibWrapper::sendTextMessage(qlonglong chatId, const QString &message, qlo
     sendMessage(chatId, replyToMessageId, topicId, {{_TYPE, "inputMessageText"}, {TEXT, Utilities::enhanceInputText(message)}, {CLEAR_DRAFT, clearDraft}}, options);
 }
 
-void TDLibWrapper::sendFileMessage(qlonglong chatId, const QString &messageType, const QString &fileType, const QString &filePath, const QString &caption, qlonglong replyToMessageId, const QVariantMap &topicId, const QVariantMap &additionalOptions) {
-    LOG("Sending a file message" << chatId << replyToMessageId << messageType << fileType << filePath);
-    QVariantMap content = additionalOptions;
-    content.insert(_TYPE, messageType);
-    content.insert(CAPTION, Utilities::enhanceInputText(caption));
-    content.insert(fileType, QVariantMap{{_TYPE, TYPE_INPUT_FILE_LOCAL}, {PATH, filePath}});
-
-    sendMessage(chatId, replyToMessageId, topicId, content);
-}
-
 void TDLibWrapper::sendLocationMessage(qlonglong chatId, double latitude, double longitude, double horizontalAccuracy, qlonglong replyToMessageId, const QVariantMap &topicId) {
     LOG("Sending location message" << chatId << latitude << longitude << horizontalAccuracy << replyToMessageId);
 
     sendMessage(chatId, replyToMessageId, topicId, {
-                             {_TYPE, "inputMessageLocation"},
-                             {LOCATION, QVariantMap{
-                                     {_TYPE, LOCATION},
-                                     {"latitude", latitude},
-                                     {"longitude", longitude},
-                                     {"horizontal_accuracy", horizontalAccuracy}
-                                 }},
-                             {"live_period", 0},
-                             {"heading", 0},
-                             {"proximity_alert_radius", 0}
-                         });
+        {_TYPE, "inputMessageLocation"},
+        {LOCATION, QVariantMap{
+            {_TYPE, LOCATION},
+            {"latitude", latitude},
+            {"longitude", longitude},
+            {"horizontal_accuracy", horizontalAccuracy}
+        }},
+    });
 }
 
 void TDLibWrapper::sendStickerMessage(qlonglong chatId, const QString &fileId, qlonglong replyToMessageId, const QVariantMap &topicId) {
@@ -1448,10 +1438,7 @@ void TDLibWrapper::getUserPrivacySettingRules(TDLibWrapper::UserPrivacySetting s
 QVariantMap getInputChatPhotoStatic(const QString &filePath) {
     return {
         {_TYPE, "inputChatPhotoStatic"},
-        {PHOTO, QVariantMap{
-            {_TYPE, TYPE_INPUT_FILE_LOCAL},
-            {PATH, filePath}
-        }}
+        {PHOTO, TDLibWrapper::getInputFileLocal(filePath)}
     };
 }
 
@@ -3289,10 +3276,7 @@ void TDLibWrapper::addSavedNotificationSound(const QString &path) {
     LOG("Adding saved notification sound from local file");
     sendRequest({
         {_TYPE, "addSavedNotificationSound"},
-        {"sound", QVariantMap{
-            {_TYPE, TYPE_INPUT_FILE_LOCAL},
-            {PATH, path}
-        }},
+        {"sound", getInputFileLocal(path)},
         {_EXTRA, "localSaved"}
     });
 }

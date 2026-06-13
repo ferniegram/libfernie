@@ -2259,12 +2259,16 @@ void TDLibWrapper::handleOkReceived(const QVariant &extra) {
                 emit archiveChatListChatsLoaded();
             else
                 emit mainChatListChatsLoaded();
+            return;
         } else if (parts.size() == 2 && parts.at(0) == EXTRA_LOAD_CHATS_FOR_FOLDER) {
             int folderId = parts.at(1).toInt();
             LOG("Folder chats chunk loaded" << folderId);
             emit folderChatListChatsLoaded(folderId);
+            return;
         }
     }
+
+    emit okReceived(extra);
 }
 
 void TDLibWrapper::handleMessageInformation(qlonglong chatId, qlonglong messageId, const QVariantMap &receivedInformation) {

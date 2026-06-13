@@ -11,7 +11,7 @@ class ForumTopicMessagesModel : public ReadableMessagesModel {
     Q_PROPERTY(int forumTopicId READ forumTopicId NOTIFY forumTopicIdChanged)
     Q_PROPERTY(QString forumTopicName READ forumTopicName NOTIFY forumTopicNameChanged)
 
-    Q_PROPERTY(QString searchQuery MEMBER searchQuery WRITE setSearchQuery)
+    Q_PROPERTY(QString searchQuery MEMBER searchQuery WRITE setSearchQuery NOTIFY searchQueryChanged)
 
 public:
     ForumTopicMessagesModel(QObject *parent = nullptr);
@@ -31,6 +31,7 @@ public:
     Q_INVOKABLE virtual int calculateScrollPosition() const override;
 
 signals:
+void searchQueryChanged();
     void tdlibChanged();
     void forumTopicsModelChanged();
     void chatIdChanged();

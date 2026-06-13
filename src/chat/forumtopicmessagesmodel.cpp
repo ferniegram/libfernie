@@ -134,6 +134,7 @@ void ForumTopicMessagesModel::setSearchQuery(const QString &newSearchQuery) {
     if (this->searchQuery != newSearchQuery) {
         this->clear();
         this->searchQuery = newSearchQuery;
+        emit searchQueryChanged();
         this->loadMessages(UpdateInitial, searchQuery.isEmpty() ? lastReadInboxMessageId() : 0);
     }
 }

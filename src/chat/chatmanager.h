@@ -7,7 +7,7 @@
 class ChatMessagesModel : public ReadableMessagesModel {
     Q_OBJECT
 
-    Q_PROPERTY(QString searchQuery MEMBER searchQuery WRITE setSearchQuery)
+    Q_PROPERTY(QString searchQuery MEMBER searchQuery WRITE setSearchQuery NOTIFY searchQueryChanged)
     Q_PROPERTY(bool containsSponsoredMessages MEMBER containsSponsoredMessages NOTIFY containsSponsoredMessagesChanged)
 public:
     ChatMessagesModel(TDLibWrapper *tdLibWrapper, qlonglong chatId, QObject *parent = nullptr);
@@ -20,6 +20,7 @@ public:
     friend class ChatManager;
 
 signals:
+    void searchQueryChanged();
     void containsSponsoredMessagesChanged();
 
 protected:
@@ -44,6 +45,7 @@ private slots:
     void handleSponsoredMessagesReceived(qlonglong chatId, const QVariantList &sponsoredMessages, int messagesBetween);
 
 private:
+    // TODO: a separate model for searching based on JumpableMessagesModel and a separate search view in YAST
     QString searchQuery;
 
     bool containsSponsoredMessages;

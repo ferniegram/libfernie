@@ -55,6 +55,7 @@ void ChatMessagesModel::setSearchQuery(const QString &newSearchQuery) {
     if (this->searchQuery != newSearchQuery) {
         this->clear();
         this->searchQuery = newSearchQuery;
+        emit searchQueryChanged();
         this->loadMessages(UpdateInitial, searchQuery.isEmpty() ? qobject_cast<ChatManager*>(parent())->chatInformation().value(LAST_READ_INBOX_MESSAGE_ID).toLongLong() : 0); // fixme
     }
 }

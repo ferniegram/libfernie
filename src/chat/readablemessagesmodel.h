@@ -4,10 +4,9 @@
 
 class ReadableMessagesModel : public JumpableMessagesModel {
     Q_OBJECT
-    Q_PROPERTY(int lastReadMessageIndexInBounds READ calculateLastReadMessageIndexInBounds NOTIFY lastReadMessageIndexChanged)
-    Q_PROPERTY(int lastReadIncomingMessageIndex READ getLastReadMessageIndex NOTIFY lastReadMessageIndexChanged)
-
-    Q_PROPERTY(int lastReadSentMessageIndex READ calculateLastReadSentMessageIndex NOTIFY lastReadSentMessageUpdated)
+    Q_PROPERTY(qlonglong lastReadInboxMessageId READ lastReadInboxMessageId NOTIFY lastReadInboxMessageIdChanged)
+    Q_PROPERTY(qlonglong lastReadOutboxMessageId READ lastReadOutboxMessageId NOTIFY lastReadOutboxMessageIdChanged)
+    Q_PROPERTY(int lastReadInboxMessageIndex READ getLastReadMessageIndex NOTIFY lastReadInboxMessageIndexChanged)
 
 public:
     ReadableMessagesModel(QObject *parent = nullptr);
@@ -21,17 +20,16 @@ signals:
     void newMessageReceived(const QVariantMap &message);
     void unreadCountUpdated(int unreadCount, const QString &lastReadInboxMessageId);
 
-    void lastReadSentMessageUpdated();
-    void lastReadMessageIndexChanged();
+    void lastReadInboxMessageIdChanged();
+    void lastReadOutboxMessageIdChanged();
+
+    void lastReadInboxMessageIndexChanged();
 
 protected slots:
     void handleNewMessageReceived(const QVariantMap &message);
 
 protected:
-    int calculateLastReadMessageIndexInBounds() const;
-
     int getLastReadMessageIndex() const;
-    int calculateLastReadSentMessageIndex() const;
 
     virtual void loadMoreHistoryImpl() override;
     virtual void loadMoreFutureImpl() override;

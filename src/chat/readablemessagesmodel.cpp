@@ -16,13 +16,12 @@ ReadableMessagesModel::ReadableMessagesModel(QObject *parent) :
     JumpableMessagesModel(parent),
     loadingFullEnd(false)
 {
-    connect(this, &ReadableMessagesModel::messageSendSucceeded, this, &ReadableMessagesModel::lastReadSentMessageUpdated);
-    connect(this, &ReadableMessagesModel::messagesReceived, this, &ReadableMessagesModel::lastReadSentMessageUpdated);
+    connect(this, &ReadableMessagesModel::lastReadInboxMessageIdChanged, this, &ReadableMessagesModel::lastReadInboxMessageIndexChanged);
 
     // FIXME: can this be implemented better?
-    connect(this, &ReadableMessagesModel::messagesReceived, this, &ReadableMessagesModel::lastReadMessageIndexChanged);
-    connect(this, &ReadableMessagesModel::newMessageReceived, this, &ReadableMessagesModel::lastReadMessageIndexChanged);
-    connect(this, &ReadableMessagesModel::unreadCountUpdated, this, &ReadableMessagesModel::lastReadMessageIndexChanged);
+    connect(this, &ReadableMessagesModel::messagesReceived, this, &ReadableMessagesModel::lastReadInboxMessageIndexChanged);
+    connect(this, &ReadableMessagesModel::newMessageReceived, this, &ReadableMessagesModel::lastReadInboxMessageIndexChanged);
+    connect(this, &ReadableMessagesModel::unreadCountUpdated, this, &ReadableMessagesModel::lastReadInboxMessageIndexChanged);
 
 }
 
@@ -34,34 +33,13 @@ ReadableMessagesModel::ReadableMessagesModel(TDLibWrapper *tdLibWrapper, QObject
 bool ReadableMessagesModel::clear() {
     LOG("Clearing readable messages model");
     loadingFullEnd = false;
-    if (JumpableMessagesModel::clear()) {
-        emit lastReadSentMessageUpdated();
-        return true;
-    }
-    return false;
+    return JumpableMessagesModel::clear();
 }
 
 int ReadableMessagesModel::getLastReadMessageIndex() const {
     int listInboxPosition = messageIndexMap.value(lastReadInboxMessageId(), -1);
     if (listInboxPosition > messages.size() - 1) listInboxPosition = -1;
     return listInboxPosition;
-}
-
-int ReadableMessagesModel::calculateLastReadSentMessageIndex() const {
-    LOG("calculateLastReadSentMessageIndex");
-    qlonglong id = lastReadOutboxMessageId();
-    LOG("lastReadSentMessageId" << id);
-    LOG("size messageIndexMap" << messageIndexMap.size());
-    LOG("contains ID?" << messageIndexMap.contains(id));
-    int listOutboxPosition;
-    if (messageIndexMap.contains(id))
-        listOutboxPosition = messageIndexMap.value(id, -1);
-    else {
-        LOG("Last read sent message is not loaded, falling back to last loaded sent message");
-        listOutboxPosition = findLastSentMessageIndex();
-    }
-    LOG("Last read sent message" << id << "is at position" << listOutboxPosition);
-    return listOutboxPosition;
 }
 
 int ReadableMessagesModel::calculateScrollPosition() const {
@@ -95,28 +73,6 @@ void ReadableMessagesModel::handlePrepareMessagesReceived(int totalCount, Update
     }
 
     JumpableMessagesModel::handlePrepareMessagesReceived(totalCount, fromUpdate);
-}
-
-int ReadableMessagesModel::calculateLastReadMessageIndexInBounds() const {
-    LOG("calculateLastReadMessageIndexInBounds");
-    const qlonglong lastReadMessageId = lastReadInboxMessageId(); // last read incoming message id
-
-    LOG("lastReadMessageId" << lastReadMessageId);
-    LOG("size messageIndexMap" << messageIndexMap.size()
-        << "; contains last read ID?" << messageIndexMap.contains(lastReadMessageId)
-        );
-
-    int listInboxPosition = messageIndexMap.value(lastReadMessageId, messages.size() - 1);
-    int listOwnPosition = findLastSentMessageIndex();
-
-    if (listInboxPosition > messages.size() - 1)
-        listInboxPosition = messages.size() - 1;
-    if (listOwnPosition > messages.size() - 1)
-        listOwnPosition = -1;
-
-    LOG("Last known message is at position" << listInboxPosition << "; last own message is at position" << listOwnPosition);
-
-    return qMax(listInboxPosition, listOwnPosition);
 }
 
 

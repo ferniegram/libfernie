@@ -19,9 +19,6 @@ namespace {
     const QString SUPERGROUP_ID("supergroup_id");
     const QString MESSAGE_ID("message_id");
     const QString TYPE_USER_TYPE_BOT("userTypeBot");
-
-    const char* PROPERTY_CHAT_INFORMATION = "chatInformation";
-    const char* PROPERTY_IS_CHANNEL = "isChannel";
 }
 
 ChatMessagesModel::ChatMessagesModel(TDLibWrapper *tdLibWrapper, qlonglong chatId, QObject *parent)
@@ -58,18 +55,18 @@ void ChatMessagesModel::setSearchQuery(const QString &newSearchQuery) {
     if (this->searchQuery != newSearchQuery) {
         this->clear();
         this->searchQuery = newSearchQuery;
-        this->loadMessages(UpdateInitial, searchQuery.isEmpty() ? this->parent()->property(PROPERTY_CHAT_INFORMATION).toMap().value(LAST_READ_INBOX_MESSAGE_ID).toLongLong() : 0); // fixme
+        this->loadMessages(UpdateInitial, searchQuery.isEmpty() ? qobject_cast<ChatManager*>(parent())->chatInformation().value(LAST_READ_INBOX_MESSAGE_ID).toLongLong() : 0); // fixme
     }
 }
 
 qlonglong ChatMessagesModel::lastReadInboxMessageId() const {
-    return this->parent()->property(PROPERTY_CHAT_INFORMATION).toMap().value(LAST_READ_INBOX_MESSAGE_ID).toLongLong();
+    return qobject_cast<ChatManager*>(parent())->chatInformation().value(LAST_READ_INBOX_MESSAGE_ID).toLongLong();
 }
 qlonglong ChatMessagesModel::lastReadOutboxMessageId() const {
-    return this->parent()->property(PROPERTY_CHAT_INFORMATION).toMap().value(LAST_READ_OUTBOX_MESSAGE_ID).toLongLong();
+    return qobject_cast<ChatManager*>(parent())->chatInformation().value(LAST_READ_OUTBOX_MESSAGE_ID).toLongLong();
 }
 qlonglong ChatMessagesModel::lastMessageId() const {
-    return this->parent()->property(PROPERTY_CHAT_INFORMATION).toMap().value(LAST_MESSAGE).toMap().value(ID).toLongLong();
+    return qobject_cast<ChatManager*>(parent())->chatInformation().value(LAST_MESSAGE).toMap().value(ID).toLongLong();
 }
 
 void ChatMessagesModel::handleNewMessageReceived(qlonglong chatId, const QVariantMap &message) {
@@ -122,7 +119,7 @@ void ChatMessagesModel::appendMessages(const QList<MessageData *> newMessages) {
 }
 
 void ChatMessagesModel::handleSponsoredMessagesReceived(qlonglong chatId, const QVariantList &sponsoredMessages, int messagesBetween) {
-    if (this->chatId != chatId || !this->parent()->property(PROPERTY_IS_CHANNEL).toBool())
+    if (this->chatId != chatId || !qobject_cast<ChatManager*>(parent())->isChannel())
         return;
 
     LOG("Handling sponsored messages" << chatId << sponsoredMessages.size() << messagesBetween);
@@ -377,13 +374,13 @@ void ChatManager::handleChatRolesUpdated(qlonglong chatId, const QVector<int> ch
             LOG("Chat actions text updated" << chatId);
             emit chatActionsChanged();
         }
-        if (changedRoles.contains(ChatData::RoleLastReadOutboxMessageId) && this->chatMessagesModel) {
-            LOG("Chat last read outbox message ID updated" << chatId);
-            emit this->chatMessagesModel->lastReadSentMessageUpdated();
-        }
         if (changedRoles.contains(ChatData::RoleLastReadInboxMessageId) && this->chatMessagesModel) {
             LOG("Chat last read inbox message ID updated" << chatId);
-            emit this->chatMessagesModel->lastReadMessageIndexChanged();
+            emit this->chatMessagesModel->lastReadInboxMessageIdChanged();
+        }
+        if (changedRoles.contains(ChatData::RoleLastReadOutboxMessageId) && this->chatMessagesModel) {
+            LOG("Chat last read outbox message ID updated" << chatId);
+            emit this->chatMessagesModel->lastReadOutboxMessageIdChanged();
         }
         LOG("Chat roles updated" << chatId << changedRoles);
         emit chatInformationChanged();

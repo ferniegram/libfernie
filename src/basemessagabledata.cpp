@@ -78,8 +78,13 @@ qlonglong BaseMessagableData::draftMessageDate() const {
 
 QString BaseMessagableData::draftMessageText() const {
     QVariantMap draft = draftMessage();
-    if(draft.isEmpty())
+    if (draft.isEmpty())
         return QString();
 
-    return draft.value("input_message_text").toMap().value(TEXT).toMap().value(TEXT).toString();
+    const QVariantMap content = draft.value("content").toMap();
+    // only draftMessageContentText is currently supported
+    if (content.value(_TYPE).toString() != "draftMessageContentText")
+        return QString();
+
+    return content.value(TEXT).toMap().value(TEXT).toString();
 }

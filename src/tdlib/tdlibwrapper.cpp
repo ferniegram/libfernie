@@ -1276,22 +1276,23 @@ void TDLibWrapper::setChatDraftMessage(qlonglong chatId, qlonglong replyToMessag
     if (!topicId.isEmpty())
         requestObject.insert(TOPIC_ID, topicId);
 
-    QVariantMap draftMessage{
-        {_TYPE, "draftMessage"},
-        {"input_message_text", QVariantMap{
-            {_TYPE, "inputMessageText"},
-            {TEXT, Utilities::newFormattedText(draft)},
-            {CLEAR_DRAFT, draft.isEmpty()},
-        }}
-    };
+    if (!draft.isEmpty() || replyToMessageId != 0) {
+        QVariantMap draftMessage{
+            {_TYPE, "draftMessage"},
+            {"content", QVariantMap{
+                {_TYPE, "draftMessageContentText"},
+                {TEXT, Utilities::newFormattedText(draft)}
+            }}
+        };
+        if (replyToMessageId != 0)
+            draftMessage.insert(REPLY_TO, QVariantMap{
+                {_TYPE, TYPE_INPUT_MESSAGE_REPLY_TO_MESSAGE},
+                {MESSAGE_ID, replyToMessageId}
+            });
 
-    if (replyToMessageId != 0)
-        draftMessage.insert(REPLY_TO, QVariantMap{
-            {_TYPE, TYPE_INPUT_MESSAGE_REPLY_TO_MESSAGE},
-            {MESSAGE_ID, replyToMessageId}
-        });
+        requestObject.insert(DRAFT_MESSAGE, draftMessage);
+    }
 
-    requestObject.insert(DRAFT_MESSAGE, draftMessage);
     this->sendRequest(requestObject);
 }
 

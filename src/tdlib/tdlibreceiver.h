@@ -158,6 +158,8 @@ signals:
     void callUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
     void newCallSignalingDataReceived(int callId, const QByteArray &data);
     void messageReadDateReceived(qlonglong chatId, qlonglong messageId, const QVariant &readDate);
+    void chatJoinResultReceived(const QString &type, const QVariantMap &info, bool isChannel, bool byInviteLink);
+    void chatJoinRequestResultReceived(const QString &queryId, qlonglong chatId, const QString &resultType);
 
 private:
     typedef void (TDLibReceiver::*Handler)(const QVariantMap &);
@@ -277,11 +279,13 @@ private:
         {"text", &TDLibReceiver::processText},
         {"callId", &TDLibReceiver::processCallId},
         {"updateCall", &TDLibReceiver::processUpdateCall},
-        {"updateNewCallSignalingData", &TDLibReceiver::processUpdateNewCallSignalingData}
+        {"updateNewCallSignalingData", &TDLibReceiver::processUpdateNewCallSignalingData},
+        {"updateChatJoinResult", &TDLibReceiver::processUpdateChatJoinResult}
     };
     const QMap<QString, Handler> abstractHandlers = {
         {"internalLinkType", &TDLibReceiver::processInternalLinkType},
-        {"messageReadDate", &TDLibReceiver::processMessageReadDate}
+        {"messageReadDate", &TDLibReceiver::processMessageReadDate},
+        {"chatJoinResult", &TDLibReceiver::processChatJoinResult}
     };
     int clientId;
     bool isActive = true;
@@ -410,4 +414,6 @@ private:
     void processUpdateCall(const QVariantMap &receivedInformation);
     void processUpdateNewCallSignalingData(const QVariantMap &receivedInformation);
     void processMessageReadDate(const QVariantMap &receivedInformation);
+    void processChatJoinResult(const QVariantMap &receivedInformation);
+    void processUpdateChatJoinResult(const QVariantMap &receivedInformation);
 };

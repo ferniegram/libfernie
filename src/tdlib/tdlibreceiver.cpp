@@ -1288,3 +1288,22 @@ void TDLibReceiver::processMessageReadDate(const QVariantMap &receivedInformatio
     QVariant readDate = type == "messageReadDateRead" ? receivedInformation.value("read_date") : type;
     emit messageReadDateReceived(chatId, messageId, readDate);
 }
+
+void TDLibReceiver::processChatJoinResult(const QVariantMap &receivedInformation) {
+    const QString type = receivedInformation.value(_TYPE).toString();
+    const QVariantMap extra = receivedInformation.value(_EXTRA).toMap();
+    bool isChannel = extra.value("isChannel").toBool(),
+            byInviteLink = extra.value("invite_link").toBool();
+
+    LOG("Chat join result received" << type << "is a channel:" << isChannel << "by invite link:" << byInviteLink);
+    emit chatJoinResultReceived(type, receivedInformation, isChannel, byInviteLink);
+}
+
+void TDLibReceiver::processUpdateChatJoinResult(const QVariantMap &receivedInformation) {
+    const QString queryId = receivedInformation.value("query_id").toString();
+    qlonglong chatId = receivedInformation.value(CHAT_ID).toLongLong();
+    const QString resultType = receivedInformation.value("result").toMap().value(_TYPE).toString();
+
+    LOG("Received updateChatJoinResult" << queryId << chatId << resultType);
+    emit chatJoinRequestResultReceived(queryId, chatId, resultType);
+}

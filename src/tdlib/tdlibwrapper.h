@@ -260,8 +260,6 @@ public:
     Q_INVOKABLE QStringList getChatReactions(qlonglong chatId);
     QVariant getOption(const QString &optionName);
     Q_INVOKABLE void copyFileToDownloads(qlonglong fileId, const QString &filePath, bool openAfterCopy = false);
-    Q_INVOKABLE bool getJoinChatRequested();
-    Q_INVOKABLE void registerJoinChat();
     Q_INVOKABLE bool isDiceEmoji(const QString &text);
     SearchMessagesFilter getSearchMessagesFilterForType(const QString &type);
     static QString getSearchMessagesFilterType(SearchMessagesFilter filter);
@@ -301,7 +299,7 @@ public:
     Q_INVOKABLE void downloadFile(int fileId);
     Q_INVOKABLE void openChat(qlonglong chatId);
     Q_INVOKABLE void closeChat(qlonglong chatId);
-    Q_INVOKABLE void joinChat(const QString &chatId);
+    Q_INVOKABLE void joinChat(const QString &chatId, bool isChannel = false);
     Q_INVOKABLE void leaveChat(const QString &chatId);
     Q_INVOKABLE void deleteChat(qlonglong chatId);
     Q_INVOKABLE void getChatHistory(qlonglong chatId, int extra, qlonglong fromMessageId = 0, int offset = -1, int limit = 50, bool onlyLocal = false);
@@ -635,6 +633,8 @@ signals:
     void callUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
     void newCallSignalingDataReceived(int callId, const QByteArray &data);
     void messageReadDateReceived(qlonglong chatId, qlonglong messageId, const QVariant &readDate);
+    void chatJoinResultReceived(const QString &type, const QVariantMap &info, bool isChannel, bool byInviteLink);
+    void chatJoinRequestResultReceived(const QString &queryId, qlonglong chatId, const QString &resultType);
 
     // Link types
     void internalLinkTypeProxyReceived(const QString &server, int port, const QVariantMap &type);
@@ -751,7 +751,6 @@ private:
     QVariantMap defaultReactionType;
 
     int versionNumber = 0;
-    bool joinChatRequested = false;
     bool isClosing = false;
     qlonglong nextRequestId = 0;
 };

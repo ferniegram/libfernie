@@ -337,10 +337,6 @@ void ChatListModel::handleChatAddedToList(ChatData *chatData, qlonglong order, b
         chatIndexMap.insert(chatList.at(i)->data->chatId, i);
     }
     endInsertRows();
-    if (this->tdLibWrapper->getJoinChatRequested()) {
-        this->tdLibWrapper->registerJoinChat();
-        emit chatJoined(chat->data->chatId, chat->data->chatData.value("title").toString());
-    }
     enableRefreshTimer();
 }
 

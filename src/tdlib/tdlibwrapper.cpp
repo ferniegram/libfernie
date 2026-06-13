@@ -117,6 +117,7 @@ namespace {
     const QString INVITE_LINK("invite_link");
     const QString LINK("link");
     const QString EXTRA_OPEN_DIRECTLY("openDirectly");
+    const QString EXTRA_IS_CHANNEL("isChannel");
     const QString URL("url");
     const QString BASIC_GROUP_ID("basic_group_id");
     const QString SUPERGROUP_ID("supergroup_id");
@@ -373,6 +374,8 @@ void TDLibWrapper::initializeTDLibReceiver() {
     connect(this->tdLibReceiver, &TDLibReceiver::callUpdated, this, &TDLibWrapper::callUpdated);
     connect(this->tdLibReceiver, &TDLibReceiver::newCallSignalingDataReceived, this, &TDLibWrapper::newCallSignalingDataReceived);
     connect(this->tdLibReceiver, &TDLibReceiver::messageReadDateReceived, this, &TDLibWrapper::messageReadDateReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::chatJoinResultReceived, this, &TDLibWrapper::chatJoinResultReceived);
+    connect(this->tdLibReceiver, &TDLibReceiver::chatJoinRequestResultReceived, this, &TDLibWrapper::chatJoinRequestResultReceived);
 
     this->tdLibReceiver->start();
 }
@@ -507,10 +510,13 @@ void TDLibWrapper::closeChat(qlonglong chatId) {
     this->sendRequest(QVariantMap{{_TYPE, "closeChat"}, {CHAT_ID, chatId}});
 }
 
-void TDLibWrapper::joinChat(const QString &chatId) {
-    LOG("Joining chat " << chatId);
-    this->joinChatRequested = true;
-    this->sendRequest(QVariantMap{{_TYPE, "joinChat"}, {CHAT_ID, chatId}});
+void TDLibWrapper::joinChat(const QString &chatId, bool isChannel) {
+    LOG("Joining chat" << chatId << "is a channel" << isChannel);
+    this->sendRequest({
+        {_TYPE, "joinChat"},
+        {CHAT_ID, chatId},
+        {_EXTRA, QVariantMap{{EXTRA_IS_CHANNEL, isChannel}}}
+    });
 }
 
 void TDLibWrapper::leaveChat(const QString &chatId) {
@@ -1108,16 +1114,15 @@ void TDLibWrapper::searchUserByPhoneNumber(const QString &phoneNumber, bool doOp
 }
 
 void TDLibWrapper::joinChatByInviteLink(const QString &inviteLink, bool isChannel) {
-    LOG("Join chat by invite link" << inviteLink);
-    this->joinChatRequested = true;
+    LOG("Join chat by invite link" << inviteLink << "is a channel" << isChannel);
     this->sendRequest({
-                          {_TYPE, "joinChatByInviteLink"},
-                          {INVITE_LINK, inviteLink},
-                          {_EXTRA, QVariantMap{
-                               {"isChannel", isChannel},
-                               {EXTRA_OPEN_DIRECTLY, true}
-                           }}
-                      });
+        {_TYPE, "joinChatByInviteLink"},
+        {INVITE_LINK, inviteLink},
+        {_EXTRA, QVariantMap{
+            {EXTRA_IS_CHANNEL, isChannel},
+            {INVITE_LINK, true}
+        }}
+    });
 }
 
 void TDLibWrapper::getDeepLinkInfo(const QString &link) {
@@ -1777,14 +1782,6 @@ void TDLibWrapper::handleTextReceived(const QString &text, const QString &extra)
         } else
             emit copyToDownloadsError();
     }
-}
-
-bool TDLibWrapper::getJoinChatRequested() {
-    return this->joinChatRequested;
-}
-
-void TDLibWrapper::registerJoinChat() {
-    this->joinChatRequested = false;
 }
 
 void TDLibWrapper::reset() {

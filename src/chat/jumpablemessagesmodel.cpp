@@ -112,6 +112,6 @@ void JumpableMessagesModel::handleMessagesReceived(int extra, const QVariantList
     this->waitingFor.insert(fromUpdate, false);
 }
 
-int JumpableMessagesModel::calculateScrollPosition() {
+int JumpableMessagesModel::calculateScrollPosition() const {
     return this->messageIndexMap.value(this->highlightedMessageId, -1);
 }

@@ -15,7 +15,7 @@ public:
 
     Q_INVOKABLE virtual bool clear() override;
     Q_INVOKABLE void loadEnd(bool markAllAsRead = false);
-    Q_INVOKABLE virtual int calculateScrollPosition() override;
+    Q_INVOKABLE virtual int calculateScrollPosition() const override;
 
 signals:
     void newMessageReceived(const QVariantMap &message);
@@ -28,10 +28,10 @@ protected slots:
     void handleNewMessageReceived(const QVariantMap &message);
 
 protected:
-    int calculateLastReadMessageIndexInBounds();
+    int calculateLastReadMessageIndexInBounds() const;
 
-    int getLastReadMessageIndex();
-    int calculateLastReadSentMessageIndex();
+    int getLastReadMessageIndex() const;
+    int calculateLastReadSentMessageIndex() const;
 
     virtual void loadMoreHistoryImpl() override;
     virtual void loadMoreFutureImpl() override;

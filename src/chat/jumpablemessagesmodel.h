@@ -14,7 +14,7 @@ public:
     Q_INVOKABLE virtual bool clear() override;
     virtual void loadMessages(int extra, qlonglong fromMessageId, int offset = -1) = 0;
 
-    Q_INVOKABLE virtual int calculateScrollPosition();
+    Q_INVOKABLE virtual int calculateScrollPosition() const;
 
     Q_INVOKABLE void loadMoreHistory();
     Q_INVOKABLE void loadMoreFuture();

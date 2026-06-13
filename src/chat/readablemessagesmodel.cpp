@@ -41,13 +41,13 @@ bool ReadableMessagesModel::clear() {
     return false;
 }
 
-int ReadableMessagesModel::getLastReadMessageIndex() {
+int ReadableMessagesModel::getLastReadMessageIndex() const {
     int listInboxPosition = messageIndexMap.value(lastReadInboxMessageId(), -1);
     if (listInboxPosition > messages.size() - 1) listInboxPosition = -1;
     return listInboxPosition;
 }
 
-int ReadableMessagesModel::calculateLastReadSentMessageIndex() {
+int ReadableMessagesModel::calculateLastReadSentMessageIndex() const {
     LOG("calculateLastReadSentMessageIndex");
     qlonglong id = lastReadOutboxMessageId();
     LOG("lastReadSentMessageId" << id);
@@ -64,7 +64,7 @@ int ReadableMessagesModel::calculateLastReadSentMessageIndex() {
     return listOutboxPosition;
 }
 
-int ReadableMessagesModel::calculateScrollPosition() {
+int ReadableMessagesModel::calculateScrollPosition() const {
     if (loadingFullEnd) return this->messages.size() - 1;
 
     int scrollPosition = this->messageIndexMap.value(this->highlightedMessageId, -1);
@@ -97,7 +97,7 @@ void ReadableMessagesModel::handlePrepareMessagesReceived(int totalCount, Update
     JumpableMessagesModel::handlePrepareMessagesReceived(totalCount, fromUpdate);
 }
 
-int ReadableMessagesModel::calculateLastReadMessageIndexInBounds() {
+int ReadableMessagesModel::calculateLastReadMessageIndexInBounds() const {
     LOG("calculateLastReadMessageIndexInBounds");
     const qlonglong lastReadMessageId = lastReadInboxMessageId(); // last read incoming message id
 

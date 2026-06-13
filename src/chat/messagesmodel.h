@@ -80,7 +80,7 @@ protected:
     virtual void appendMessages(const QList<MessageData*> newMessages);
     virtual void prependMessages(const QList<MessageData*> newMessages);
     void setMessagesAlbum(const QList<MessageData*> newMessages);
-    int findLastSentMessageIndex();
+    int findLastSentMessageIndex() const;
     virtual bool handleInsertMessages(const QVariantList &messages, QList<MessageData*> &newMessagesList, bool setAlbum = true, bool reverseOrder = false);
     inline virtual void processMessageData(MessageData* message) {}
     inline virtual bool messageIsFirstInSequence(const int index, const MessageData *message) const { return index == 0; }

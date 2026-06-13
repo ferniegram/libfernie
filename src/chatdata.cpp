@@ -160,17 +160,16 @@ bool ChatData::updateUnreadCount(int count)
     return prevUnreadCount != unreadCount();
 }
 
-bool ChatData::updateLastReadInboxMessageId(qlonglong messageId)
-{
-    const qlonglong prevLastReadInboxMessageId(lastReadInboxMessageId());
+bool ChatData::updateLastReadInboxMessageId(qlonglong messageId) {
+    const qlonglong prevLastReadInboxMessageId = lastReadInboxMessageId();
     chatData.insert(LAST_READ_INBOX_MESSAGE_ID, messageId);
     return prevLastReadInboxMessageId != lastReadInboxMessageId();
 }
 
 bool ChatData::updateLastReadOutboxMessageId(qlonglong messageId) {
-    const QVariant prevLastMessageSendingState(lastMessageSendingState());
+    const qlonglong prevLastReadOutboxMessageId = lastReadOutboxMessageId();
     chatData.insert(LAST_READ_OUTBOX_MESSAGE_ID, messageId);
-    return prevLastMessageSendingState != lastMessageSendingState();
+    return prevLastReadOutboxMessageId != lastReadOutboxMessageId();
 }
 
 QVector<int> ChatData::updateLastMessage(const QVariantMap &message) {

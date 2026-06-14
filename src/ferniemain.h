@@ -27,6 +27,7 @@ namespace FernieMain {
     struct AppContext {
         Settings *settings;
         TDLibWrapper *tdLibWrapper;
+        MceInterface mceInterface;
 #ifdef USE_CALLS
         CallsManager callsManager;
 #endif

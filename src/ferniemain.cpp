@@ -51,8 +51,9 @@ FernieMain::AppContext::AppContext(QSharedPointer<QQuickView> view,
                                    const QString &dbusServiceName, const QString &dbusInterface, bool useSignalActions) :
     settings(settings),
     tdLibWrapper(tdLibWrapper),
+    mceInterface(view.data()),
 #ifdef USE_CALLS
-    callsManager(tdLibWrapper, settings, view.data()),
+    callsManager(tdLibWrapper, settings, &mceInterface, view.data()),
 #endif
     dbusAdaptor(tdLibWrapper,
 #ifdef USE_CALLS
@@ -61,7 +62,7 @@ FernieMain::AppContext::AppContext(QSharedPointer<QQuickView> view,
         view.data()),
     waveformManager(view.data()),
     chatFoldersModel(tdLibWrapper, settings, utilities, view.data()),
-    notificationManager(tdLibWrapper, settings, utilities, &dbusAdaptor,
+    notificationManager(tdLibWrapper, settings, utilities, &mceInterface, &dbusAdaptor,
 #ifdef USE_CALLS
                         &callsManager,
 #endif

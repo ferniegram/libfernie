@@ -97,7 +97,7 @@ QVariantMap NotificationManager::NotificationGroup::lastNotification() const {
     return activeNotifications.value(notificationOrder.last());
 }
 
-NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, DBusAdaptor *dbusAdaptor,
+NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, MceInterface *mceInterface, DBusAdaptor *dbusAdaptor,
 #ifdef USE_CALLS
                                          CallsManager *callsManager,
 #endif
@@ -106,7 +106,7 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
                                          bool useSignalActions) :
     tdLibWrapper(tdLibWrapper),
     settings(settings),
-    mceInterface(new MceInterface(this)),
+    mceInterface(mceInterface),
     utilities(utilities),
     dbusAdaptor(dbusAdaptor),
 #ifdef USE_CALLS

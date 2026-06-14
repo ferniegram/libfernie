@@ -6,6 +6,7 @@
 
 #include "tdlib/tdlibwrapper.h"
 #include "settings.h"
+#include "mceinterface.h"
 
 class CallsManager : public QObject {
     Q_OBJECT
@@ -60,7 +61,7 @@ public:
         void update(qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
     };
 
-    explicit CallsManager(TDLibWrapper *tdLibWrapper, Settings *settings, QObject *parent = nullptr);
+    explicit CallsManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, QObject *parent = nullptr);
     ~CallsManager();
 
     Q_INVOKABLE void createCall(qlonglong userId);
@@ -103,17 +104,19 @@ private slots:
     void handleCallUpdated(int id, qlonglong uniqueId, qlonglong userId, bool outgoing, bool video, const QVariantMap &state);
     void handleNewCallSignalingDataReceived(int callId, const QByteArray &data);
 
+    void handlePowerSaveModeChanged(bool active);
+
 private:
     static QVariantMap protocol();
     static CallState getTdCallState(const QString &type);
     void resetInstance();
     void setCurrentCallId(int id);
     void handleCallReady();
-    void handleCallDiscarded();
 
 private:
     TDLibWrapper *tdLibWrapper;
     Settings *settings;
+    MceInterface *mceInterface;
 
     QHash<int, QSharedPointer<Call>> activeCalls;
     qlonglong currentCallId = 0;

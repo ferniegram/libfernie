@@ -22,8 +22,24 @@
 #include <QDBusInterface>
 
 class MceInterface : public QDBusInterface {
+    Q_OBJECT
+
 public:
     MceInterface(QObject *parent = nullptr);
 
     void setLedPattern(const QString &pattern, bool activate);
+
+    inline bool getPowerSaveMode() { return powerSaveMode; }
+
+signals:
+    void powerSaveModeChanged(bool active);
+
+private slots:
+    void handlePowerSaveModeChanged(bool active);
+
+private:
+    void updatePowerSaveMode();
+
+private:
+    bool powerSaveMode = false;
 };

@@ -38,7 +38,7 @@ class NotificationManager : public QObject {
     Q_PROPERTY(qlonglong activeChatId MEMBER activeChatId WRITE setActiveChatId)
 
 public:
-    NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, DBusAdaptor *dbusAdaptor,
+    NotificationManager(TDLibWrapper *tdLibWrapper, Settings *settings, Utilities *utilities, MceInterface *mceInterface, DBusAdaptor *dbusAdaptor,
 #ifdef USE_CALLS
                         CallsManager *callsManager,
 #endif

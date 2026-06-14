@@ -24,10 +24,11 @@ namespace {
 }
 
 
-CallsManager::CallsManager(TDLibWrapper *tdLibWrapper, Settings *settings, QObject *parent) :
+CallsManager::CallsManager(TDLibWrapper *tdLibWrapper, Settings *settings, MceInterface *mceInterface, QObject *parent) :
     QObject(parent),
     tdLibWrapper(tdLibWrapper),
-    settings(settings)
+    settings(settings),
+    mceInterface(mceInterface)
 {
     connect(tdLibWrapper, &TDLibWrapper::callIdReceived, this, &CallsManager::handleCallIdReceived);
     connect(tdLibWrapper, &TDLibWrapper::callUpdated, this, &CallsManager::handleCallUpdated);
@@ -124,7 +125,8 @@ void CallsManager::handleCallUpdated(int id, qlonglong uniqueId, qlonglong userI
         case CallState::HangingUp:
             break;
         case CallState::Discarded:
-            handleCallDiscarded();
+            LOG("Call discarded");
+            resetInstance();
             break;
         case CallState::Error:
         {
@@ -316,6 +318,8 @@ void CallsManager::handleCallReady() {
     }
 
     instance = tgcalls::Meta::Create(protocol.value("library_versions").toStringList().first().toStdString(), std::move(descriptor));
+
+    instance->setIsLowBatteryLevel(mceInterface->getPowerSaveMode());
 }
 
 qlonglong CallsManager::currentCallUserId() const {
@@ -419,11 +423,11 @@ const QSharedPointer<CallsManager::Call> CallsManager::getCall(int id) {
     return activeCalls.value(id);
 }
 
-void CallsManager::handleCallDiscarded() {
-    LOG("Call discarded");
-    resetInstance();
-}
-
 void CallsManager::toggleSpeakerphone(bool enabled) {
     CallAudio::toggleSpeakerphone(enabled);
+}
+
+void CallsManager::handlePowerSaveModeChanged(bool active) {
+    if (instance)
+        instance->setIsLowBatteryLevel(active);
 }

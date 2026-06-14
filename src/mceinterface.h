@@ -28,8 +28,11 @@ public:
     MceInterface(QObject *parent = nullptr);
 
     void setLedPattern(const QString &pattern, bool activate);
+    void setCallState(const QString &state, bool isEmergency = false);
+    void resetCallState();
 
     inline bool getPowerSaveMode() { return powerSaveMode; }
+    inline QString getLastSetCallState() { return lastSetCallState; }
 
 signals:
     void powerSaveModeChanged(bool active);
@@ -42,4 +45,5 @@ private:
 
 private:
     bool powerSaveMode = false;
+    QString lastSetCallState;
 };

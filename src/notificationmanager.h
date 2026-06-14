@@ -95,7 +95,7 @@ private:
 
     void publishNotification(const QSharedPointer<NotificationGroup> notificationGroup, bool needFeedback, bool suppressSound = false, const QString &soundFilePath = QString(), TDLibFile *chatPhotoFile = nullptr);
     void controlLedNotification(bool enabled) const;
-    void controlCallLedNotification(bool enabled) const;
+    void controlCallMceState(bool enabled) const;
     void updateNotificationGroup(const QVariantMap &type, int groupId, qlonglong chatId, int totalCount,
         const QVariantList &addedNotifications, const QVariantList &removedNotificationIds = QVariantList(),
         Settings::NotificationFeedback feedback = Settings::NotificationFeedbackNone,

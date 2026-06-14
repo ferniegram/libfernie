@@ -63,3 +63,13 @@ void MceInterface::handlePowerSaveModeChanged(bool active) {
         emit powerSaveModeChanged(powerSaveMode);
     }
 }
+
+void MceInterface::setCallState(const QString &state, bool isEmergency) {
+    LOG("Setting call state" << state << "is emergency" << isEmergency);
+    lastSetCallState = state;
+    call(QStringLiteral("req_call_state_change"), state, isEmergency ? QStringLiteral("emeremergency") : QStringLiteral("normal"));
+}
+
+void MceInterface::resetCallState() {
+    setCallState(QStringLiteral("none"));
+}

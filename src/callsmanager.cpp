@@ -157,6 +157,7 @@ void CallsManager::resetInstance() {
 
     currentCallReadyState = CallReadyState::Reconnecting;
 
+    mceInterface->resetCallState();
     emit callDiscarded();
 
     if (signalBars != 0) {
@@ -181,6 +182,7 @@ void CallsManager::setCurrentCallId(int id) {
         activeCalls.remove(currentCallId);
     currentCallId = id;
 
+    mceInterface->setCallState(QStringLiteral("active"));
     emit callStarted();
 }
 

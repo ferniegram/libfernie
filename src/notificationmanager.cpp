@@ -138,7 +138,6 @@ NotificationManager::NotificationManager(TDLibWrapper *tdLibWrapper, Settings *s
 #endif
 
     this->controlLedNotification(false);
-    this->controlCallLedNotification(false);
 
     // Restore notifications
     QList<QObject*> notifications = Notification::notifications();
@@ -637,7 +636,7 @@ void NotificationManager::publishCallNotification(int callId, TDLibFile *chatPho
     });
 
     notification->publish();
-    this->controlCallLedNotification(true);
+    this->controlCallMceState(true);
 }
 
 void NotificationManager::removeCallNotification(int id) {
@@ -648,7 +647,7 @@ void NotificationManager::removeCallNotification(int id) {
         delete notification;
 
         if (callNotifications.isEmpty())
-            this->controlCallLedNotification(false);
+            this->controlCallMceState(false);
     }
 }
 #endif
@@ -658,8 +657,14 @@ void NotificationManager::controlLedNotification(bool enabled) const {
     mceInterface->setLedPattern(PATTERN, enabled);
 }
 
-void NotificationManager::controlCallLedNotification(bool enabled) const {
-    static const QString PATTERN("PatternCommunicationCall");
+void NotificationManager::controlCallMceState(bool enabled) const {
+    static const QString STATE_RINGING = QStringLiteral("ringing");
+    if (enabled)
+        mceInterface->setCallState(STATE_RINGING);
+    else if (mceInterface->getLastSetCallState() == STATE_RINGING)
+        mceInterface->resetCallState();
+
+    static const QString PATTERN = QStringLiteral("PatternCommunicationCall");
     mceInterface->setLedPattern(PATTERN, enabled);
 }
 

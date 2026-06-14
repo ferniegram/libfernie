@@ -76,6 +76,7 @@ public:
     QStringList currentCallEmojis() const;
 
     Q_INVOKABLE void toggleSpeakerphone(bool enabled);
+    Q_INVOKABLE void toggleMicrophoneIsMuted(bool muted);
 
 private:
     enum class CallReadyState {

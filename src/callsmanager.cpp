@@ -171,6 +171,8 @@ void CallsManager::resetInstance() {
         remoteAudioMuted = false;
         emit remoteAudioMutedChanged();
     }
+
+    toggleSpeakerphone(false);
 }
 
 void CallsManager::setCurrentCallId(int id) {
@@ -425,6 +427,13 @@ const QSharedPointer<CallsManager::Call> CallsManager::getCall(int id) {
 
 void CallsManager::toggleSpeakerphone(bool enabled) {
     CallAudio::toggleSpeakerphone(enabled);
+}
+
+void CallsManager::toggleMicrophoneIsMuted(bool muted) {
+    if (instance) {
+        LOG("Toggling microphone mute state" << muted);
+        instance->setMuteMicrophone(muted);
+    }
 }
 
 void CallsManager::handlePowerSaveModeChanged(bool active) {

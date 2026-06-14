@@ -1,6 +1,6 @@
 # yaqtlib
 
-yaqtlib is a yet another Qt TDLib Library.
+yaqtlib is a yet another Qt TDLib Library. It is designed for creating Telegram clients for Mer-based systems.
 
 ## Credits
 
